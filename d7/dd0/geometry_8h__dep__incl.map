@@ -1,0 +1,7 @@
+<map id="geometry.h" name="geometry.h">
+<area shape="rect" id="node1" title="This file contains information on the geometry of the local lattice, block decomposed geometry,..." alt="" coords="163,5,257,32"/>
+<area shape="rect" id="node2" href="$d4/d3d/geometry__check_8h.html" title="Validity checks on the geometry of spinor fields that are passed as function parameters...." alt="" coords="5,80,148,107"/>
+<area shape="rect" id="node3" href="$d2/d49/global_8h_source.html" title=" " alt="" coords="173,80,247,107"/>
+<area shape="rect" id="node4" href="$d0/d39/init__gpu_8c.html" title="Functions initialize the GPU for the simulation and print collective information on cluster drivers,..." alt="" coords="271,80,357,107"/>
+<area shape="rect" id="node5" href="$d9/dce/libhr_8h_source.html" title=" " alt="" coords="381,80,444,107"/>
+</map>

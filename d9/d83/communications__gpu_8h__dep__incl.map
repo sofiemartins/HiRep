@@ -1,0 +1,4 @@
+<map id="communications_gpu.h" name="communications_gpu.h">
+<area shape="rect" id="node1" title="Communications to send and receive sites from other nodes using MPI with GPU." alt="" coords="5,5,179,32"/>
+<area shape="rect" id="node2" href="$d4/d67/geometry_8h.html" title="This file contains information on the geometry of the local lattice, block decomposed geometry,..." alt="" coords="45,80,139,107"/>
+</map>

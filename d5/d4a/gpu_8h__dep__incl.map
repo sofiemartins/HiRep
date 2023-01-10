@@ -1,0 +1,10 @@
+<map id="gpu.h" name="gpu.h">
+<area shape="rect" id="node1" title="Basic gpu imports and structs. Include this in files that define GPU logic." alt="" coords="434,5,493,32"/>
+<area shape="rect" id="node2" href="$d8/d58/error__gpu_8c.html" title="Error checking on the GPU." alt="" coords="5,80,100,107"/>
+<area shape="rect" id="node3" href="$d2/d41/error__gpu_8h.html" title="Error checking for GPU." alt="" coords="125,80,221,107"/>
+<area shape="rect" id="node4" href="$de/d2e/geometry__gpu__init_8h.html" title="Initialization functions, that determine all important parameters of the geometry,..." alt="" coords="245,80,401,107"/>
+<area shape="rect" id="node5" href="$d2/d49/global_8h_source.html" title=" " alt="" coords="426,80,501,107"/>
+<area shape="rect" id="node6" href="$d8/d1f/libhr__core_8h_source.html" title=" " alt="" coords="451,155,550,181"/>
+<area shape="rect" id="node7" href="$d5/ddc/gpu__info_8c.html" title="Prints information on available hardware and software on the cluster relating to GPUs." alt="" coords="576,80,665,107"/>
+<area shape="rect" id="node8" href="$da/dee/gpu__info_8h.html" title="Functions that print collective information on cluster drivers, necessary software and available hard..." alt="" coords="690,80,781,107"/>
+</map>

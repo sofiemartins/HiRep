@@ -1,0 +1,23 @@
+var searchData=
+[
+  ['complete_5fclover_5fforce_5fsendrecv_0',['complete_clover_force_sendrecv',['../d2/d6f/communications_8h.html#a308b7242ea075dc4d879b57cae5d43e4',1,'communications.c']]],
+  ['complete_5fgf_5fsendrecv_1',['complete_gf_sendrecv',['../d2/d6f/communications_8h.html#aa6d8128421b03b6203e774b951892ef1',1,'communications.c']]],
+  ['complete_5fgf_5fsendrecv_5fflt_2',['complete_gf_sendrecv_flt',['../d2/d6f/communications_8h.html#a04586ac967099d6f59e30ac9be708ce1',1,'communications_flt.c']]],
+  ['complete_5fgt_5fsendrecv_3',['complete_gt_sendrecv',['../d2/d6f/communications_8h.html#a19cb70363d853a23bf31d3abf4b8524a',1,'communications.c']]],
+  ['complete_5fsc_5fsendrecv_4',['complete_sc_sendrecv',['../d2/d6f/communications_8h.html#a34eafb5eab193366814178a808c6c0ee',1,'communications.c']]],
+  ['complete_5fsendrecv_5fgpu_5favfield_5',['complete_sendrecv_gpu_avfield',['../d4/d81/communications__gpu_8h.html#aec5963350dfb2bba7aaf1e73c0f66173',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fclover_5fforce_6',['complete_sendrecv_gpu_clover_force',['../d4/d81/communications__gpu_8h.html#a705eb4f9b9806d6c3bf067822e0cab13',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fclover_5fldl_7',['complete_sendrecv_gpu_clover_ldl',['../d4/d81/communications__gpu_8h.html#a73ace2eb2f32287b51e2bcd595a94420',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fclover_5fterm_8',['complete_sendrecv_gpu_clover_term',['../d4/d81/communications__gpu_8h.html#a588c805d579fe1b46bcf9bb7e1f964a3',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fgfield_9',['complete_sendrecv_gpu_gfield',['../d4/d81/communications__gpu_8h.html#aa9f897b0cc1ecf7d34c1485daa4efaa0',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fgfield_5ff_10',['complete_sendrecv_gpu_gfield_f',['../d4/d81/communications__gpu_8h.html#a9e6a5055672ee1ffa11d8331526d4905',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fgfield_5ff_5fflt_11',['complete_sendrecv_gpu_gfield_f_flt',['../d4/d81/communications__gpu_8h.html#acbfa3dba7863cfd6d776d3a2083d334b',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fgfield_5fflt_12',['complete_sendrecv_gpu_gfield_flt',['../d4/d81/communications__gpu_8h.html#a5c3cb762c775294cfb2a42de7588000a',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fgtransf_13',['complete_sendrecv_gpu_gtransf',['../d4/d81/communications__gpu_8h.html#a8f3402559af1690edf90f4e0941c9872',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fsfield_14',['complete_sendrecv_gpu_sfield',['../d4/d81/communications__gpu_8h.html#affd0579c781f0eeb0eda670d994c76a7',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fspinor_5ffield_5ff_15',['complete_sendrecv_gpu_spinor_field_f',['../d4/d81/communications__gpu_8h.html#ab49b3ad14e4b5227375d077ef485e106',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fspinor_5ffield_5ff_5fflt_16',['complete_sendrecv_gpu_spinor_field_f_flt',['../d4/d81/communications__gpu_8h.html#a3858067266c8050bfaddd5fff523fae0',1,'communications_gpu.c']]],
+  ['complete_5fsendrecv_5fgpu_5fsung_5fscalar_5ffield_17',['complete_sendrecv_gpu_suNg_scalar_field',['../d4/d81/communications__gpu_8h.html#aee91197e1c6faaf58fae09db31a01b79',1,'communications_gpu.c']]],
+  ['complete_5fsf_5fsendrecv_18',['complete_sf_sendrecv',['../d2/d6f/communications_8h.html#a4606bc49ec50028fd650774dc935a2ca',1,'communications.c']]],
+  ['complete_5fsf_5fsendrecv_5fflt_19',['complete_sf_sendrecv_flt',['../d2/d6f/communications_8h.html#a1e958980579362d32e3c69290e18a522',1,'communications_flt.c']]]
+];
