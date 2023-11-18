@@ -26,6 +26,7 @@
 #define BLK_X 4
 #define BLK_Y 4
 #define BLK_Z 4
+#define BLK_VOL BLK_T*BLK_X*BLK_Y*BLK_Z // TODO: works only for really regular lattices -> change for irregular ones.
 
 GLB_VAR(__device__ __constant__ int, T_EXT_GPU);
 GLB_VAR(__device__ __constant__ int, X_EXT_GPU);

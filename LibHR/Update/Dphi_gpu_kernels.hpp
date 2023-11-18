@@ -216,7 +216,7 @@ __global__ void Dphi_gpu_inner_kernel(kernel_field_input *input) {
     _KERNEL_PIECE_FOR(piece) {
         if (input->gd_in & piece) {
             for (int id = blockIdx.x * blockDim.x + threadIdx.x; id < input->vol_out[piece - 1]; id += gridDim.x * blockDim.x) {
-                int ix = id + input->base_out[piece - 1];
+                int ix =  (BLK_VOL * id / 2) % input->vol_out[piece-1] + (BLK_VOL * id / 2) / input->vol_out[piece-1] + input->base_out[piece-1];
                 SITE_TYPE *out = (SITE_TYPE *)input->field_out;
                 SITE_TYPE *in = ((SITE_TYPE *)input->field_in);
                 GAUGE_TYPE *gauge = (GAUGE_TYPE *)input->gauge;
