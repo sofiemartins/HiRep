@@ -6,6 +6,8 @@
 /// Headerfile for:
 /// - strided_reads.cu
 
+#ifdef __cplusplus
+
 #ifndef STRIDED_READS_GPU_HPP
 #define STRIDED_READS_GPU_HPP
 
@@ -15,20 +17,58 @@
 #define THREADSIZE 1
 #endif
 
-//#include "libhr_core.h"
-//#include "geometry.h"
+#include "libhr_core.h"
 
 enum DIRECTION { UP = 0, DOWN = 1 };
 
-#ifdef __cplusplus
+__host__ __device__ static int set_block_size(int L, int b) {
+    //keep decreasing b to find a good value
+    while (b > 1) {
+        if (L % b == 0) { return b; }
+        b--;
+    }
+    return 1;
+}
+
+__host__ __device__ static size_t strided_index(int ix, const int comp, const int dim, const int field_dim, const int n_components, int *blk_vol_out) {
+#ifdef __CUDA_ARCH__
+    int b0 = set_block_size(T_GPU, BLK_T);
+    int b1 = set_block_size(X_GPU, BLK_X);
+    int b2 = set_block_size(Y_GPU, BLK_Y);
+    int b3 = set_block_size(Z_GPU, BLK_Z);
+#else
+    int b0 = set_block_size(0, BLK_T); // TODO: it cannot find T, X, Y, Z. Why?
+    int b1 = set_block_size(0, BLK_X); // the host code is only necessary for testing Memory/Geometry
+    int b2 = set_block_size(0, BLK_Y);
+    int b3 = set_block_size(0, BLK_Z);
+#endif
+
+    int blk_vol = b0*b1*b2*b3 / 2;
+    *blk_vol_out = blk_vol;
+
+    int inner_index = ix % blk_vol;
+    int block_index = ix / blk_vol;
+
+    //printf("blk_vol=%d, dim=%d, field_dim=%d, ncomp=%d, blk_idx=%d, inner_idx=%d, offset=%d, block_idxmvmt=%d, inner_idxmvmt=%d, compmvmt=%d\n", 
+//    blk_vol, dim, field_dim, n_components, block_index, inner_index, ((block_index / THREADSIZE) * THREADSIZE) * dim * field_dim * blk_vol, (block_index % THREADSIZE), 
+ //   inner_index * THREADSIZE, ((comp)*n_components) * (THREADSIZE) * blk_vol);
+    size_t iz = ((block_index / THREADSIZE) * THREADSIZE) * dim * field_dim * blk_vol;
+    iz += (block_index % THREADSIZE);
+    iz += inner_index * THREADSIZE;
+    iz += ((comp)*n_components) * (THREADSIZE) * blk_vol;
+    //return ((ix / THREADSIZE) * THREADSIZE) * dim * field_dim + (ix % THREADSIZE) + ((comp)*n_components) * (THREADSIZE);
+    return iz;
+}
 
 template <typename REAL, typename FIELD_TYPE, typename SITE_TYPE>
 __host__ __device__ void read_gpu(int stride, SITE_TYPE *s, const FIELD_TYPE *in, size_t ix, int comp, int dim) {
     const int field_dim = sizeof(FIELD_TYPE) / sizeof(REAL);
     const int n_components = sizeof(SITE_TYPE) / sizeof(REAL);
 #ifdef FIXED_STRIDE
-    size_t iz = ((ix / THREADSIZE) * THREADSIZE) * dim * field_dim + (ix % THREADSIZE) + ((comp)*n_components) * (THREADSIZE);
-    const int _stride = THREADSIZE;
+    int blk_vol;
+    size_t iz = strided_index(ix, comp, dim, field_dim, n_components, &blk_vol);
+    //size_t iz = ((ix / THREADSIZE) * THREADSIZE) * dim * field_dim + (ix % THREADSIZE) + ((comp)*n_components) * (THREADSIZE);
+    const int _stride = THREADSIZE * blk_vol;
 #else
     size_t iz = ix + ((comp)*n_components) * (THREADSIZE);
     const int _stride = stride;
@@ -46,8 +86,10 @@ __host__ __device__ void write_gpu(int stride, SITE_TYPE *s, FIELD_TYPE *out, si
     const int field_dim = sizeof(FIELD_TYPE) / sizeof(REAL);
     const int n_components = sizeof(SITE_TYPE) / sizeof(REAL);
 #ifdef FIXED_STRIDE
-    size_t iz = ((ix / THREADSIZE) * THREADSIZE) * dim * field_dim + (ix % THREADSIZE) + (comp)*n_components * (THREADSIZE);
-    const int _stride = THREADSIZE;
+    int blk_vol;
+    size_t iz = strided_index(ix, comp, dim, field_dim, n_components, &blk_vol);
+   // size_t iz = ((ix / THREADSIZE) * THREADSIZE) * dim * field_dim + (ix % THREADSIZE) + (comp)*n_components * (THREADSIZE);
+    const int _stride = THREADSIZE * blk_vol;
 #else
     size_t iz = ix + ((comp)*n_components) * (THREADSIZE);
     const int _stride = stride;
@@ -98,6 +140,10 @@ __host__ __device__ void write_assign_gpu(int stride, SITE_TYPE *s, FIELD_TYPE *
 }
 
 #endif
+#endif
+
+#ifndef STRIDED_READS_GPU_H
+#define STRIDED_READS_GPU_H
 
 #ifdef __cplusplus
 extern "C" {

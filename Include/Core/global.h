@@ -90,15 +90,15 @@ GLB_VAR(int, *idn, = NULL);
 GLB_VAR(char, *imask, = NULL);
 GLB_VAR(int, zerocoord[4], = { 0, 0, 0, 0 });
 
-GLB_VAR(int, BLK_T, = 4);
-GLB_VAR(int, BLK_X, = 4);
-GLB_VAR(int, BLK_Y, = 4);
-GLB_VAR(int, BLK_Z, = 4);
+//GLB_VAR(int, BLK_T, = 4);
+//GLB_VAR(int, BLK_X, = 4);
+//GLB_VAR(int, BLK_Y, = 4);
+//GLB_VAR(int, BLK_Z, = 4);
 
-#define BLK_T_GPU 4
-#define BLK_X_GPU 4
-#define BLK_Y_GPU 4
-#define BLK_Z_GPU 4
+#define BLK_T 4
+#define BLK_X 4
+#define BLK_Y 4
+#define BLK_Z 4
 
 /* Geometry structures */
 GLB_VAR(geometry_descriptor, glattice, = { 0 }); /* global lattice */

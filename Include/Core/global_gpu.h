@@ -20,7 +20,12 @@
 
 #include "core_utils.h"
 #include "gpu.h"
-#include "geometry.h"
+#include "Geometry/geometry_maskstate.h"
+
+#define BLK_T 4
+#define BLK_X 4
+#define BLK_Y 4
+#define BLK_Z 4
 
 GLB_VAR(__device__ __constant__ int, T_EXT_GPU);
 GLB_VAR(__device__ __constant__ int, X_EXT_GPU);
