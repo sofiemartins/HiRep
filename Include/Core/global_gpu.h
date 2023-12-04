@@ -22,10 +22,10 @@
 #include "gpu.h"
 #include "Geometry/geometry_maskstate.h"
 
-#define BLK_T 2
-#define BLK_X 2
-#define BLK_Y 2
-#define BLK_Z 2
+#define BLK_T 4
+#define BLK_X 4
+#define BLK_Y 4
+#define BLK_Z 4
 #define BLK_VOL BLK_T*BLK_X*BLK_Y*BLK_Z // TODO: works only for really regular lattices -> change for irregular ones.
 
 GLB_VAR(__device__ __constant__ int, T_EXT_GPU);

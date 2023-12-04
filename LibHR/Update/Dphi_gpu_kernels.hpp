@@ -225,9 +225,7 @@ __global__ void Dphi_gpu_inner_kernel(kernel_field_input *input) {
                 // Make blocks of THREADSIZE # of blocks
                 const int blk_index_glb = id / (BLK_VOL / 2);
                 const int blk_index_loc = blk_index_glb % THREADSIZE;
-
                 const int idx_loc = id % (BLK_VOL / 2);
-
                 const int blk_offset = (blk_index_glb / THREADSIZE) * (THREADSIZE * BLK_VOL / 2);
                 const int ix = blk_offset + idx_loc * THREADSIZE + blk_index_loc + input->base_out[piece-1];
                 //if (piece == 1 && ix == 16) printf("id=%d, blk_index_glb=%d, blk_index_loc=%d, idx_loc=%d, blk_offset=%d, idx=%d\n", 
