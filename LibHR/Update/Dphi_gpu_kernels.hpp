@@ -243,8 +243,8 @@ __global__ void Dphi_gpu_inner_kernel(kernel_field_input *input) {
                 // compared to accessing iup and idn directly
                 __shared__ int iy_up[4];
                 __shared__ int iy_dn[4];
-                memcpy(iy_up, &(input->iup_gpu[4 * ix]), 4 * sizeof(int));
-                memcpy(iy_dn, &(input->idn_gpu[4 * ix]), 4 * sizeof(int));
+                memcpy(iy_up, &(input->iup_gpu[4 * ix_old]), 4 * sizeof(int));
+                memcpy(iy_dn, &(input->idn_gpu[4 * ix_old]), 4 * sizeof(int));
 
                 _spinor_zero_f(r);
 

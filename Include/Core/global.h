@@ -142,6 +142,8 @@ GLB_VAR(int, gpu_id, = 0);
 GLB_VAR(int, *ipt_gpu, = NULL);
 GLB_VAR(int, *iup_gpu, = NULL);
 GLB_VAR(int, *idn_gpu, = NULL);
+GLB_VAR(int, *iup_gpu_dirac, = NULL);
+GLB_VAR(int, *idn_gpu_dirac, = NULL);
 GLB_VAR(char, *imask_gpu, = NULL);
 GLB_VAR(unsigned int, grid_size_max_gpu, = 65535);
 #else

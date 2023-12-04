@@ -18,6 +18,12 @@ void init_neighbors_gpu() {
     error_id = cudaMalloc((void **)&idn_gpu, 4 * N * sizeof(int));
     error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error allocating idn_gpu neighbors array.\n");
 
+    error_id = cudaMalloc((void **)&iup_gpu_dirac, 4 * N * sizeof(int));
+    error(error_id != cudaSuccess, 1, "init_neighbors_gpu", cudaGetErrorString(error_id));
+
+    error_id = cudaMalloc((void **)&idn_gpu_dirac, 4 * N * sizeof(int));
+    error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error allocating idn_gpu neighbors array.\n");
+
     error_id = cudaMalloc((void **)&imask_gpu, N * sizeof(char));
     error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error allocating imask_gpu lookup table.\n");
 
@@ -29,6 +35,31 @@ void init_neighbors_gpu() {
     error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error copying iup neighbors array to device memory.\n");
 
     error_id = cudaMemcpy(idn_gpu, idn, 4 * N * sizeof(int), cudaMemcpyHostToDevice);
+    error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error copying idn neighbors array to device memory.\n");
+
+    int *iup_tmp = (int*)malloc(4 * N * sizeof(int));
+    int *idn_tmp = (int*)malloc(4 * N * sizeof(int));
+
+    // TODO: does not cover buffers
+    _PIECE_FOR(&glattice, ixp) {
+        const int N = glattice.master_end[ixp] - glattice.master_start[ixp] + 1;
+        const int block_start = glattice.master_start[ixp];
+
+        for (int id = 0; id < N; id++) {
+            const int blk_index_glb = id / (BLK_VOL / 2);
+            const int blk_index_loc = blk_index_glb % THREADSIZE;
+            const int idx_loc = id % (BLK_VOL / 2);
+            const int blk_offset = (blk_index_glb / THREADSIZE) * (THREADSIZE * BLK_VOL / 2);
+            const int ix = blk_offset + idx_loc * THREADSIZE + blk_index_loc + block_start;
+            memcpy(iup_tmp + 4*(id + block_start), iup + 4*ix, 4 * sizeof(int));
+            memcpy(idn_tmp + 4*(id + block_start), idn + 4*ix, 4 * sizeof(int));
+        }
+    }
+
+    error_id = cudaMemcpy(iup_gpu_dirac, iup_tmp, 4 * N * sizeof(int), cudaMemcpyHostToDevice);
+    error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error copying iup neighbors array to device memory.\n");
+
+    error_id = cudaMemcpy(idn_gpu_dirac, idn_tmp, 4 * N * sizeof(int), cudaMemcpyHostToDevice);
     error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error copying idn neighbors array to device memory.\n");
 
     error_id = cudaMemcpy(imask_gpu, imask, N * sizeof(*imask), cudaMemcpyHostToDevice);
