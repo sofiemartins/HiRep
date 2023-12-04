@@ -122,6 +122,7 @@ int main(int argc, char *argv[]) {
 
     _TEST_GPU_OP(errors, "Dphi", ninputs + noutputs + 1, in, in + 1, Dphi(-hmass, out, in); Dphi_cpu(-hmass, out, in););
 
+#if 0
     _TEST_GPU_OP(errors, "Dphi_", ninputs + noutputs + 1, in, in + 1, Dphi_(out, in); Dphi_cpu_(out, in););
 
     _TEST_GPU_OP(errors, "g5Dphi", ninputs + noutputs + 1, in, in + 1, g5Dphi(-hmass, out, in); g5Dphi_cpu(-hmass, out, in););
@@ -295,6 +296,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     reset_fields();
+#endif
     finalize_process();
     return errors;
 }

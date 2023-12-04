@@ -95,10 +95,10 @@ GLB_VAR(int, zerocoord[4], = { 0, 0, 0, 0 });
 //GLB_VAR(int, BLK_Y, = 4);
 //GLB_VAR(int, BLK_Z, = 4);
 
-#define BLK_T 4
-#define BLK_X 4
-#define BLK_Y 4
-#define BLK_Z 4
+#define BLK_T 2
+#define BLK_X 2
+#define BLK_Y 2
+#define BLK_Z 2
 
 /* Geometry structures */
 GLB_VAR(geometry_descriptor, glattice, = { 0 }); /* global lattice */

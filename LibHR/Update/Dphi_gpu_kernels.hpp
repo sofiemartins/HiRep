@@ -216,10 +216,22 @@ __global__ void Dphi_gpu_inner_kernel(kernel_field_input *input) {
     _KERNEL_PIECE_FOR(piece) {
         if (input->gd_in & piece) {
             for (int id = blockIdx.x * blockDim.x + threadIdx.x; id < input->vol_out[piece - 1]; id += gridDim.x * blockDim.x) {
-                int ix =  (BLK_VOL * id / 2) % input->vol_out[piece-1] + (BLK_VOL * id / 2) / input->vol_out[piece-1] + input->base_out[piece-1];
+                //int ix =  (BLK_VOL * id / 2) % input->vol_out[piece-1] + (BLK_VOL * id / 2) / input->vol_out[piece-1] + input->base_out[piece-1];
+                int ix_old = id + input->base_out[piece-1];
                 SITE_TYPE *out = (SITE_TYPE *)input->field_out;
                 SITE_TYPE *in = ((SITE_TYPE *)input->field_in);
                 GAUGE_TYPE *gauge = (GAUGE_TYPE *)input->gauge;
+
+                // Make blocks of THREADSIZE # of blocks
+                const int blk_index_glb = id / (BLK_VOL / 2);
+                const int blk_index_loc = blk_index_glb % THREADSIZE;
+
+                const int idx_loc = id % (BLK_VOL / 2);
+
+                const int blk_offset = (blk_index_glb / THREADSIZE) * (THREADSIZE * BLK_VOL / 2);
+                const int ix = blk_offset + idx_loc * THREADSIZE + blk_index_loc + input->base_out[piece-1];
+                //if (piece == 1 && ix == 16) printf("id=%d, blk_index_glb=%d, blk_index_loc=%d, idx_loc=%d, blk_offset=%d, idx=%d\n", 
+                //                                    id, blk_index_glb, blk_index_loc, idx_loc, blk_offset, ix);
 
                 SITE_TYPE r;
                 HSPINOR_TYPE sn;
