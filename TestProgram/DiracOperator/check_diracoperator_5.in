@@ -2,7 +2,7 @@
 GLB_T = 32 
 GLB_X = 32
 GLB_Y = 32
-GLB_Z = 32
+GLB_Z = 32 
 
 NP_T = 2 
 NP_X = 1 

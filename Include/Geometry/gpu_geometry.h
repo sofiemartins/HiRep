@@ -67,6 +67,8 @@ typedef struct _kernel_field_input {
     void *gauge;
     int *iup_gpu;
     int *idn_gpu;
+    int *iup_gpu_old;
+    int *idn_gpu_old;
     char *imask_gpu;
     enum gd_type gd_in;
     char mask;

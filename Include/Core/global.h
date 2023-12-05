@@ -145,6 +145,7 @@ GLB_VAR(int, *idn_gpu, = NULL);
 GLB_VAR(int, *iup_gpu_dirac, = NULL);
 GLB_VAR(int, *idn_gpu_dirac, = NULL);
 GLB_VAR(char, *imask_gpu, = NULL);
+GLB_VAR(char, *imask_gpu_dirac, = NULL);
 GLB_VAR(unsigned int, grid_size_max_gpu, = 65535);
 #else
 #define STD_MEM_TYPE (CPU_MEM)

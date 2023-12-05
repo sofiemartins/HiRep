@@ -27,6 +27,9 @@ void init_neighbors_gpu() {
     error_id = cudaMalloc((void **)&imask_gpu, N * sizeof(char));
     error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error allocating imask_gpu lookup table.\n");
 
+    error_id = cudaMalloc((void **)&imask_gpu_dirac, N * sizeof(char));
+    error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error allocating imask_gpu lookup table.\n");
+
     error_id = cudaMalloc((void **)&ipt_gpu,
                           (X + 2 * X_BORDER) * (Y + 2 * Y_BORDER) * (Z + 2 * Z_BORDER) * (T + 2 * T_BORDER) * sizeof(int));
     error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error allocating ipt_gpu lookup table.\n");
@@ -39,20 +42,31 @@ void init_neighbors_gpu() {
 
     int *iup_tmp = (int*)malloc(4 * N * sizeof(int));
     int *idn_tmp = (int*)malloc(4 * N * sizeof(int));
+    char *imask_tmp = (char*)malloc(N * sizeof(char));
 
     // TODO: does not cover buffers
     _PIECE_FOR(&glattice, ixp) {
-        const int N = glattice.master_end[ixp] - glattice.master_start[ixp] + 1;
+        const int block_size = glattice.master_end[ixp] - glattice.master_start[ixp] + 1;
         const int block_start = glattice.master_start[ixp];
 
-        for (int id = 0; id < N; id++) {
+        for (int id = 0; id < block_size; id++) {
             const int blk_index_glb = id / (BLK_VOL / 2);
             const int blk_index_loc = blk_index_glb % THREADSIZE;
             const int idx_loc = id % (BLK_VOL / 2);
             const int blk_offset = (blk_index_glb / THREADSIZE) * (THREADSIZE * BLK_VOL / 2);
             const int ix = blk_offset + idx_loc * THREADSIZE + blk_index_loc + block_start;
-            memcpy(iup_tmp + 4*(id + block_start), iup + 4*ix, 4 * sizeof(int));
-            memcpy(idn_tmp + 4*(id + block_start), idn + 4*ix, 4 * sizeof(int));
+
+            const int id_loc = id + 4 * block_start;
+            const int id_loc_mask = id + block_start;
+
+            for (int comp = 0; comp < 4; comp++) {
+                // Strided read
+                iup_tmp[id_loc + comp * block_size] = iup[4*ix + comp];
+                idn_tmp[id_loc + comp * block_size] = idn[4*ix + comp];
+
+                // Not striding (single char per site)
+                imask_tmp[id_loc_mask] = imask[ix];
+            }
         }
     }
 
@@ -63,6 +77,9 @@ void init_neighbors_gpu() {
     error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error copying idn neighbors array to device memory.\n");
 
     error_id = cudaMemcpy(imask_gpu, imask, N * sizeof(*imask), cudaMemcpyHostToDevice);
+    error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error copying imask lookup table to device memory.\n");
+
+    error_id = cudaMemcpy(imask_gpu_dirac, imask_tmp, N * sizeof(*imask), cudaMemcpyHostToDevice);
     error(error_id != cudaSuccess, 1, "init_neighbors_gpu", "Error copying imask lookup table to device memory.\n");
 
     error_id = cudaMemcpy(ipt_gpu, ipt,
