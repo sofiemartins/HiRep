@@ -56,17 +56,26 @@ void init_neighbors_gpu() {
             const int blk_offset = (blk_index_glb / THREADSIZE) * (THREADSIZE * BLK_VOL / 2);
             const int ix = blk_offset + idx_loc * THREADSIZE + blk_index_loc + block_start;
 
-            const int id_loc = id + 4 * block_start;
+            //const int id_loc = id + 4 * block_start; // strided
+            const int id_loc = id + block_start;
             const int id_loc_mask = id + block_start;
 
+            // Unstrided, better for L1/L2 hitrate ?
             for (int comp = 0; comp < 4; comp++) {
+                iup_tmp[4*id_loc + comp] = iup[4*ix + comp];
+                idn_tmp[4*id_loc + comp] = idn[4*ix + comp];
+            }
+
+            imask_tmp[id_loc_mask] = imask[ix];
+
+            /*for (int comp = 0; comp < 4; comp++) {
                 // Strided read
                 iup_tmp[id_loc + comp * block_size] = iup[4*ix + comp];
                 idn_tmp[id_loc + comp * block_size] = idn[4*ix + comp];
 
                 // Not striding (single char per site)
                 imask_tmp[id_loc_mask] = imask[ix];
-            }
+            }*/
         }
     }
 

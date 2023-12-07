@@ -216,7 +216,8 @@ __global__ void Dphi_gpu_inner_kernel(kernel_field_input *input) {
     _KERNEL_PIECE_FOR(piece) {
         if (input->gd_in & piece) {
             for (int id = blockIdx.x * blockDim.x + threadIdx.x; id < input->vol_out[piece - 1]; id += gridDim.x * blockDim.x) {
-                const int ix_old = id + 4*input->base_out[piece-1];
+                //const int ix_old = id + 4*input->base_out[piece-1];
+                const int ix_old = id + input->base_out[piece-1];
                 const int ix_old_mask = id + input->base_out[piece-1];
                 SITE_TYPE *out = (SITE_TYPE *)input->field_out;
                 SITE_TYPE *in = ((SITE_TYPE *)input->field_in);
@@ -236,10 +237,13 @@ __global__ void Dphi_gpu_inner_kernel(kernel_field_input *input) {
                 __shared__ int iy_up[4];
                 __shared__ int iy_dn[4];
 
-                for (int comp = 0; comp < 4; comp++) {
+                /*for (int comp = 0; comp < 4; comp++) {
                     iy_up[comp] = input->iup_gpu[ix_old + comp * input->vol_out[piece-1]];
                     iy_dn[comp] = input->idn_gpu[ix_old + comp * input->vol_out[piece-1]];
-                }
+                }*/
+
+                memcpy(&iy_up, &input->iup_gpu[4*ix_old], 4*sizeof(int));
+                memcpy(&iy_dn, &input->idn_gpu[4*ix_old], 4*sizeof(int));
 
                 _spinor_zero_f(r);
 
