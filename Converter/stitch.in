@@ -1,0 +1,29 @@
+// Global variables input lattice
+GLB_T = 48 //Global T size
+GLB_X = 12
+GLB_Y = 12
+GLB_Z = 12
+
+
+// Global variables input lattice
+GLB_T_IN = 48
+GLB_X_IN = 12
+GLB_Y_IN = 12
+GLB_Z_IN = 12
+file_in = cnfg/run1_48x12x12x12nc4rASYnf2b12.000000m0.148000n1
+
+
+// Global variables output lattice
+GLB_T_OUT = 48
+GLB_X_OUT = 24
+GLB_Y_OUT = 24
+GLB_Z_OUT = 24
+file_out = cnfg/run1_48x24x24x24nc4rASYnf2b12.000000m0.148000n0
+
+rlx_level = 1
+rlx_seed = 12345
+
+//Logger levels (default = -1)
+log:default = -1
+log:inverter = -1
+log:forcestat = 0
