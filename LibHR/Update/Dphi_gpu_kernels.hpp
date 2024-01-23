@@ -155,9 +155,9 @@
     _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);       \
     _vector_i_mul_sub_assign_f((r).c[3], -0.5, (sn).c[1]);
 
-#define read_reduced(iy, in, sn, piece)                                        \
+#define read_reduced(iy, in, sn, piece, _base_in)                                        \
     do {                                                                       \
-        const int block_offset = input->base_in[(piece)-1];                    \
+        const int block_offset = _base_in[(piece)-1];                    \
         const HSPINOR_TYPE *in_offset = (HSPINOR_TYPE *)((in) + block_offset); \
         const int iy_loc = (iy)-block_offset;                                  \
         read_gpu<REAL>(0, &(sn), in_offset, iy_loc, 0, 1);                     \
@@ -282,16 +282,15 @@ __global__ void Dphi_gpu_inner_kernel(kernel_field_input *input) {
 }
 
 // Cannot run two boundary kernels at the same time -> race condition
-template <typename HSPINOR_TYPE, class REAL, typename SITE_TYPE, typename GAUGE_TYPE>
-__global__ void Dphi_gpu_boundary_kernel(kernel_field_input *input) {
+template <typename HSPINOR_TYPE, class REAL, typename GAUGE_TYPE, typename SITE_TYPE>
+__global__ void Dphi_gpu_boundary_kernel(gd_type gd_in, int vol_in_even, int vol_in_odd, int base_in_even, int base_in_odd, SITE_TYPE *out, SITE_TYPE *in, char mask, int *iup_gpu, int *idn_gpu) {
+    int vol_in[2] = { vol_in_even, vol_in_odd };
+    int base_in[2] = { base_in_even, base_in_odd };
     _KERNEL_PIECE_FOR(piece) {
-        if (input->gd_in & piece) {
-            for (int id = blockIdx.x * blockDim.x + threadIdx.x; id < input->vol_in[piece - 1]; id += gridDim.x * blockDim.x) {
+        if (gd_in & piece) {
+            for (int id = blockIdx.x * blockDim.x + threadIdx.x; id < vol_in[piece - 1]; id += gridDim.x * blockDim.x) {
                 int ix = 0;
-                int iy = id + input->base_in[piece - 1];
-
-                SITE_TYPE *out = (SITE_TYPE *)input->field_out;
-                SITE_TYPE *in = (SITE_TYPE *)input->field_in;
+                int iy = id + base_in[piece - 1];
 
                 SITE_TYPE r;
                 HSPINOR_TYPE sn;
@@ -300,58 +299,58 @@ __global__ void Dphi_gpu_boundary_kernel(kernel_field_input *input) {
                 _spinor_zero_f(r);
 
                 /******************************* direction +0 *********************************/
-                if (input->mask & T_UP_MASK) {
-                    ix = find_neighbor(input, iy, DOWN, 0);
-                    read_reduced(iy, in, sn, piece);
+                if (mask & T_UP_MASK) {
+                    ix = find_neighbor(iup_gpu, idn_gpu, iy, DOWN, 0);
+                    read_reduced(iy, in, sn, piece, base_in);
                     DPHI_RED_T_UP_GPU(r, sn);
                 }
 
                 /******************************* direction -0 *********************************/
-                if (input->mask & T_DN_MASK) {
-                    ix = find_neighbor(input, iy, UP, 0);
-                    read_reduced(iy, in, sn, piece);
+                if (mask & T_DN_MASK) {
+                    ix = find_neighbor(iup_gpu, idn_gpu, iy, UP, 0);
+                    read_reduced(iy, in, sn, piece, base_in);
                     DPHI_RED_T_DN_GPU(r, sn);
                 }
 
                 /******************************* direction +1 *********************************/
-                if (input->mask & X_UP_MASK) {
-                    ix = find_neighbor(input, iy, DOWN, 1);
-                    read_reduced(iy, in, sn, piece);
+                if (mask & X_UP_MASK) {
+                    ix = find_neighbor(iup_gpu, idn_gpu, iy, DOWN, 1);
+                    read_reduced(iy, in, sn, piece, base_in);
                     DPHI_RED_X_UP_GPU(r, sn);
                 }
 
                 /******************************* direction -1 *********************************/
-                if (input->mask & X_DN_MASK) {
-                    ix = find_neighbor(input, iy, UP, 1);
-                    read_reduced(iy, in, sn, piece);
+                if (mask & X_DN_MASK) {
+                    ix = find_neighbor(iup_gpu, idn_gpu, iy, UP, 1);
+                    read_reduced(iy, in, sn, piece, base_in);
                     DPHI_RED_X_DN_GPU(r, sn);
                 }
 
                 /******************************* direction +2 *********************************/
-                if (input->mask & Y_UP_MASK) {
-                    ix = find_neighbor(input, iy, DOWN, 2);
-                    read_reduced(iy, in, sn, piece);
+                if (mask & Y_UP_MASK) {
+                    ix = find_neighbor(iup_gpu, idn_gpu, iy, DOWN, 2);
+                    read_reduced(iy, in, sn, piece, base_in);
                     DPHI_RED_Y_UP_GPU(r, sn);
                 }
 
                 /******************************* direction -2 *********************************/
-                if (input->mask & Y_DN_MASK) {
-                    ix = find_neighbor(input, iy, UP, 2);
-                    read_reduced(iy, in, sn, piece);
+                if (mask & Y_DN_MASK) {
+                    ix = find_neighbor(iup_gpu, idn_gpu, iy, UP, 2);
+                    read_reduced(iy, in, sn, piece, base_in);
                     DPHI_RED_Y_DN_GPU(r, sn);
                 }
 
                 /******************************* direction +3 *********************************/
-                if (input->mask & Z_UP_MASK) {
-                    ix = find_neighbor(input, iy, DOWN, 3);
-                    read_reduced(iy, in, sn, piece);
+                if (mask & Z_UP_MASK) {
+                    ix = find_neighbor(iup_gpu, idn_gpu, iy, DOWN, 3);
+                    read_reduced(iy, in, sn, piece, base_in);
                     DPHI_RED_Z_UP_GPU(r, sn);
                 }
 
                 /******************************* direction -3 *********************************/
-                if (input->mask & Z_DN_MASK) {
-                    ix = find_neighbor(input, iy, UP, 3);
-                    read_reduced(iy, in, sn, piece);
+                if (mask & Z_DN_MASK) {
+                    ix = find_neighbor(iup_gpu, idn_gpu, iy, UP, 3);
+                    read_reduced(iy, in, sn, piece, base_in);
                     DPHI_RED_Z_DN_GPU(r, sn);
                 }
 

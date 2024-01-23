@@ -229,8 +229,11 @@ _DECLARE(static void, Dphi_boundary, (_FIELD_TYPE * out, _FIELD_TYPE *in)) {
     while (buffer_box && i <= nbuffers) {
         const _GAUGE_TYPE *gauge = GFIELD(u_gauge_f, _REP_SUFFIX)->gpu_ptr;
         int grid = (boxEvenVolume(geometryBoxes) - 1) / BLOCK_SIZE + 1;
-        _GPU_F_NAME(init_kernel_input, _SUFFIX)(out, in, gauge, buffer_box, gd_t);
-        Dphi_gpu_boundary_kernel<_HSPINOR_TYPE, _REAL, _SPINOR_TYPE, _GAUGE_TYPE><<<grid, BLOCK_SIZE, 0, sync_stream[i % 8]>>>(_VAR(input_d, _SUFFIX));
+        Dphi_gpu_boundary_kernel<_HSPINOR_TYPE, _REAL, _GAUGE_TYPE><<<grid, BLOCK_SIZE, 0, sync_stream[i % 8]>>>(
+            gd_t, boxEvenVolume(buffer_box), boxOddVolume(buffer_box), buffer_box->base_index, buffer_box->base_index_odd, 
+            (out->gpu_ptr - out->type->master_shift),
+            (in->gpu_ptr - in->type->master_shift), 
+            buffer_box->mask, iup_gpu, idn_gpu);
         buffer_box = buffer_box->next;
         i++;
     }
@@ -242,87 +245,87 @@ _DECLARE(static void, Dphi_boundary, (_FIELD_TYPE * out, _FIELD_TYPE *in)) {
  * @param in                      Input spinor field
  * @param out                     Output spinor field to save result
  */
-void _GPU_F_NAME_(Dphi, _SUFFIX)(_FIELD_TYPE *out, _FIELD_TYPE *in) {
-    // Input parameter validity checks
-    _CHECK_GEOMETRY_EO(in, out);
-    // TODO: Possibly add: Fields are not null, fields are unequal (SAM)
-    //init_bc_gpu();
-    if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
+void _GPU_F_NAME_(Dphi, _SUFFIX)(_FIELD_TYPE * out, _FIELD_TYPE * in) {
+        // Input parameter validity checks
+        _CHECK_GEOMETRY_EO(in, out);
+        // TODO: Possibly add: Fields are not null, fields are unequal (SAM)
+        //init_bc_gpu();
+        if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
 
-    _F_NAME(sync_reduced_init_, _FIELD_TYPE)(in);
-    _GPU_F_NAME(Dphi_inner_init, _SUFFIX)(out, in);
+        _F_NAME(sync_reduced_init_, _FIELD_TYPE)(in);
+        _GPU_F_NAME(Dphi_inner_init, _SUFFIX)(out, in);
 
 #ifdef WITH_MPI
-    _F_NAME(start_sendrecv_reduced_, _FIELD_TYPE)(in);
+        _F_NAME(start_sendrecv_reduced_, _FIELD_TYPE)(in);
 #endif
-    _GPU_F_NAME(Dphi_inner, _SUFFIX)(out, in);
+        _GPU_F_NAME(Dphi_inner, _SUFFIX)(out, in);
 #ifdef WITH_MPI
-    _F_NAME(complete_sendrecv_reduced_, _FIELD_TYPE)(in);
-    _GPU_F_NAME(Dphi_boundary, _SUFFIX)(out, in);
+        _F_NAME(complete_sendrecv_reduced_, _FIELD_TYPE)(in);
+        _GPU_F_NAME(Dphi_boundary, _SUFFIX)(out, in);
 #endif
-}
+    }
 
 #ifdef WITH_CLOVER
-void _GPU_F_NAME_(Cphi, _SUFFIX)(double mass, _FIELD_TYPE *dptr, _FIELD_TYPE *sptr, int assign) {
-    mass = (4. + mass);
-    _PIECE_FOR(sptr->type, ixp) {
-        const int N = sptr->type->master_end[ixp] - sptr->type->master_start[ixp] + 1;
-        const int grid = (N - 1) / BLOCK_SIZE_CLOVER + 1;
-        const int block_start = sptr->type->master_start[ixp];
-        suNfc *cl_term_gpu = cl_term->gpu_ptr + 4 * block_start;
-        Cphi_gpu_kernel_<_VECTOR_TYPE, _REAL><<<grid, BLOCK_SIZE_CLOVER>>>(_GPU_FIELD_BLK(dptr, ixp), _GPU_FIELD_BLK(sptr, ixp),
-                                                                           cl_term_gpu, mass, assign, N, block_start);
+    void _GPU_F_NAME_(Cphi, _SUFFIX)(double mass, _FIELD_TYPE *dptr, _FIELD_TYPE *sptr, int assign) {
+        mass = (4. + mass);
+        _PIECE_FOR(sptr->type, ixp) {
+            const int N = sptr->type->master_end[ixp] - sptr->type->master_start[ixp] + 1;
+            const int grid = (N - 1) / BLOCK_SIZE_CLOVER + 1;
+            const int block_start = sptr->type->master_start[ixp];
+            suNfc *cl_term_gpu = cl_term->gpu_ptr + 4 * block_start;
+            Cphi_gpu_kernel_<_VECTOR_TYPE, _REAL><<<grid, BLOCK_SIZE_CLOVER>>>(
+                _GPU_FIELD_BLK(dptr, ixp), _GPU_FIELD_BLK(sptr, ixp), cl_term_gpu, mass, assign, N, block_start);
+        }
     }
-}
 
-void _GPU_F_NAME_(Cphi_inv, _SUFFIX)(double mass, _FIELD_TYPE *dptr, _FIELD_TYPE *sptr, int assign) {
-    mass = (4. + mass);
-    compute_ldl_decomp(mass);
+    void _GPU_F_NAME_(Cphi_inv, _SUFFIX)(double mass, _FIELD_TYPE *dptr, _FIELD_TYPE *sptr, int assign) {
+        mass = (4. + mass);
+        compute_ldl_decomp(mass);
 
-    _F_NAME(start_sendrecv_, _FIELD_TYPE)(sptr);
-    _F_NAME(complete_sendrecv_, _FIELD_TYPE)(sptr);
+        _F_NAME(start_sendrecv_, _FIELD_TYPE)(sptr);
+        _F_NAME(complete_sendrecv_, _FIELD_TYPE)(sptr);
 
-    start_sendrecv_ldl_field(cl_ldl);
-    complete_sendrecv_ldl_field(cl_ldl);
+        start_sendrecv_ldl_field(cl_ldl);
+        complete_sendrecv_ldl_field(cl_ldl);
 
-    _PIECE_FOR(sptr->type, ixp) {
-        const int N = sptr->type->master_end[ixp] - sptr->type->master_start[ixp] + 1;
-        const int grid = (N - 1) / BLOCK_SIZE_CLOVER + 1;
-        const int block_start = sptr->type->master_start[ixp];
-        ldl_t *cl_ldl_gpu = cl_ldl->gpu_ptr + block_start;
-        Cphi_inv_kernel_<_VECTOR_TYPE, _COMPLEX, _REAL><<<grid, BLOCK_SIZE_CLOVER>>>(
-            _GPU_FIELD_BLK(dptr, ixp), _GPU_FIELD_BLK(sptr, ixp), cl_ldl_gpu, mass, assign, N, block_start);
+        _PIECE_FOR(sptr->type, ixp) {
+            const int N = sptr->type->master_end[ixp] - sptr->type->master_start[ixp] + 1;
+            const int grid = (N - 1) / BLOCK_SIZE_CLOVER + 1;
+            const int block_start = sptr->type->master_start[ixp];
+            ldl_t *cl_ldl_gpu = cl_ldl->gpu_ptr + block_start;
+            Cphi_inv_kernel_<_VECTOR_TYPE, _COMPLEX, _REAL><<<grid, BLOCK_SIZE_CLOVER>>>(
+                _GPU_FIELD_BLK(dptr, ixp), _GPU_FIELD_BLK(sptr, ixp), cl_ldl_gpu, mass, assign, N, block_start);
+        }
     }
-}
 #endif
 
 #ifdef WITH_EXPCLOVER
-void _GPU_F_NAME_(Cphi, _SUFFIX)(double mass, _FIELD_TYPE *dptr, _FIELD_TYPE *sptr, int assign, int inverse) {
-    evaluate_sw_order(&mass);
+    void _GPU_F_NAME_(Cphi, _SUFFIX)(double mass, _FIELD_TYPE *dptr, _FIELD_TYPE *sptr, int assign, int inverse) {
+        evaluate_sw_order(&mass);
 
-    mass = (4. + mass);
-    double invexpmass = 1.0 / mass;
-    if (inverse == 1) {
-        invexpmass = -1.0 / mass;
-        mass = 1 / mass;
+        mass = (4. + mass);
+        double invexpmass = 1.0 / mass;
+        if (inverse == 1) {
+            invexpmass = -1.0 / mass;
+            mass = 1 / mass;
+        }
+
+        int NN_loc = get_NN();
+        int NNexp_loc = get_NNexp();
+
+        _PIECE_FOR(sptr->type, ixp) {
+            const int N = sptr->type->master_end[ixp] - sptr->type->master_start[ixp] + 1;
+            const int grid = (N - 1) / BLOCK_SIZE_CLOVER + 1;
+            const int block_start = sptr->type->master_start[ixp];
+            suNfc *cl_term_gpu = cl_term->gpu_ptr + 4 * block_start;
+            Cphi_gpu_kernel_<_VECTOR_TYPE, _REAL>
+                <<<grid, BLOCK_SIZE_CLOVER>>>(_GPU_FIELD_BLK(dptr, ixp), _GPU_FIELD_BLK(sptr, ixp), cl_term_gpu, mass,
+                                              invexpmass, assign, N, block_start, NN_loc, NNexp_loc);
+        }
     }
-
-    int NN_loc = get_NN();
-    int NNexp_loc = get_NNexp();
-
-    _PIECE_FOR(sptr->type, ixp) {
-        const int N = sptr->type->master_end[ixp] - sptr->type->master_start[ixp] + 1;
-        const int grid = (N - 1) / BLOCK_SIZE_CLOVER + 1;
-        const int block_start = sptr->type->master_start[ixp];
-        suNfc *cl_term_gpu = cl_term->gpu_ptr + 4 * block_start;
-        Cphi_gpu_kernel_<_VECTOR_TYPE, _REAL><<<grid, BLOCK_SIZE_CLOVER>>>(_GPU_FIELD_BLK(dptr, ixp), _GPU_FIELD_BLK(sptr, ixp),
-                                                                           cl_term_gpu, mass, invexpmass, assign, N,
-                                                                           block_start, NN_loc, NNexp_loc);
-    }
-}
 #endif
 
-/**
+    /**
  * @brief Implementation of the Wilson-Dirac operator with mass on the GPU.
  *
  * @param in                    Input spinor field defined on the full lattice
@@ -331,19 +334,19 @@ void _GPU_F_NAME_(Cphi, _SUFFIX)(double mass, _FIELD_TYPE *dptr, _FIELD_TYPE *sp
  *                              on the input spinor field.
  * @param m0                    Mass parameter
  */
-_DECLARE(void, Dphi, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
-    //Input argument validity checks
-    _CHECK_GEOMETRY_FULL(in);
-    _CHECK_GEOMETRY_FULL(out);
+    _DECLARE(void, Dphi, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
+        //Input argument validity checks
+        _CHECK_GEOMETRY_FULL(in);
+        _CHECK_GEOMETRY_FULL(out);
 
-    // Operation
-    double rho = 4. + m0;
-    _GPU_F_NAME_(Dphi, _SUFFIX)(out, in);
+        // Operation
+        double rho = 4. + m0;
+        _GPU_F_NAME_(Dphi, _SUFFIX)(out, in);
 
-    mul_add_assign(out, (_REAL)rho, in);
-}
+        mul_add_assign(out, (_REAL)rho, in);
+    }
 
-/**
+    /**
  * @brief Implementation of the Hermitian Wilson-Dirac operator with mass on the GPU.
  *
  * @param in                    Input spinor field defined on the full lattice
@@ -352,19 +355,19 @@ _DECLARE(void, Dphi, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
  *                              operator on the input spinor field
  * @param m0                    Mass parameter
  */
-_DECLARE(void, g5Dphi, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
-    // Input argument validity checks
-    _CHECK_GEOMETRY_FULL(in);
-    _CHECK_GEOMETRY_FULL(out);
+    _DECLARE(void, g5Dphi, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
+        // Input argument validity checks
+        _CHECK_GEOMETRY_FULL(in);
+        _CHECK_GEOMETRY_FULL(out);
 
-    // Operation
-    double rho = 4. + m0;
-    _GPU_F_NAME_(Dphi, _SUFFIX)(out, in);
-    mul_add_assign(out, rho, in);
-    g5_assign(out);
-}
+        // Operation
+        double rho = 4. + m0;
+        _GPU_F_NAME_(Dphi, _SUFFIX)(out, in);
+        mul_add_assign(out, rho, in);
+        g5_assign(out);
+    }
 
-/**
+    /**
   * @brief Even-odd preconditioned Wilson-Dirac operator with mass on the GPU.
   *
   * @param in                 Even input spinor field
@@ -373,24 +376,24 @@ _DECLARE(void, g5Dphi, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
   *                           input spinor field
   * @param m0                 Mass parameter
   */
-_DECLARE(void, Dphi_eopre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
-    // Input argument validity checks
-    _CHECK_GEOMETRY_EVEN(in);
-    _CHECK_GEOMETRY_EVEN(out);
+    _DECLARE(void, Dphi_eopre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
+        // Input argument validity checks
+        _CHECK_GEOMETRY_EVEN(in);
+        _CHECK_GEOMETRY_EVEN(out);
 
-    // alloc memory for temporary spinor field
-    if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
+        // alloc memory for temporary spinor field
+        if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
 
-    // Operation
-    _GPU_F_NAME_(Dphi, _SUFFIX)(_VAR(otmp, _SUFFIX), in);
-    _GPU_F_NAME_(Dphi, _SUFFIX)(out, _VAR(otmp, _SUFFIX));
-    double rho = 4. + m0;
-    rho *= -rho; /* this minus sign is taken into account below */
-    mul_add_assign(out, rho, in);
-    minus(out, out);
-}
+        // Operation
+        _GPU_F_NAME_(Dphi, _SUFFIX)(_VAR(otmp, _SUFFIX), in);
+        _GPU_F_NAME_(Dphi, _SUFFIX)(out, _VAR(otmp, _SUFFIX));
+        double rho = 4. + m0;
+        rho *= -rho; /* this minus sign is taken into account below */
+        mul_add_assign(out, rho, in);
+        minus(out, out);
+    }
 
-/**
+    /**
   * @brief Even-odd preconditioned Wilson-Dirac operator with mass on the GPU.
   *
   * @param in                 Odd input spinor field
@@ -399,23 +402,23 @@ _DECLARE(void, Dphi_eopre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
   *                           input spinor field
   * @param m0                 Mass parameter
   */
-_DECLARE(void, Dphi_oepre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
-    // Input argument validity checks
-    _CHECK_GEOMETRY_ODD(in);
-    _CHECK_GEOMETRY_ODD(out);
+    _DECLARE(void, Dphi_oepre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
+        // Input argument validity checks
+        _CHECK_GEOMETRY_ODD(in);
+        _CHECK_GEOMETRY_ODD(out);
 
-    // alloc memory for temporary spinor field
-    if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
+        // alloc memory for temporary spinor field
+        if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
 
-    _GPU_F_NAME_(Dphi, _SUFFIX)(_VAR(etmp, _SUFFIX), in);
-    _GPU_F_NAME_(Dphi, _SUFFIX)(out, _VAR(etmp, _SUFFIX));
-    double rho = 4. + m0;
-    rho *= -rho; /* this minus sign is taken into account below */
-    mul_add_assign(out, rho, in);
-    minus(out, out);
-}
+        _GPU_F_NAME_(Dphi, _SUFFIX)(_VAR(etmp, _SUFFIX), in);
+        _GPU_F_NAME_(Dphi, _SUFFIX)(out, _VAR(etmp, _SUFFIX));
+        double rho = 4. + m0;
+        rho *= -rho; /* this minus sign is taken into account below */
+        mul_add_assign(out, rho, in);
+        minus(out, out);
+    }
 
-/**
+    /**
   * @brief Even-odd preconditioned Hermitian Wilson-Dirac operator with mass on the GPU.
   *
   * @param in                 Even input spinor field
@@ -424,33 +427,33 @@ _DECLARE(void, Dphi_oepre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
   *                           input spinor field
   * @param m0                 Mass parameter
   */
-_DECLARE(void, g5Dphi_eopre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
-    // Input argument validity checks
-    _CHECK_GEOMETRY_EVEN(in);
-    _CHECK_GEOMETRY_EVEN(out);
+    _DECLARE(void, g5Dphi_eopre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
+        // Input argument validity checks
+        _CHECK_GEOMETRY_EVEN(in);
+        _CHECK_GEOMETRY_EVEN(out);
 
 #if defined(BC_T_SF) || defined(BC_T_SF_ROTATED)
-    _CALL(SF_spinor_bcs)(in);
+        _CALL(SF_spinor_bcs)(in);
 #endif
 
-    // alloc memory for temporary spinor field
-    if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
+        // alloc memory for temporary spinor field
+        if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
 
-    // Operation
-    _GPU_F_NAME_(Dphi, _SUFFIX)(_VAR(otmp, _SUFFIX), in);
-    _GPU_F_NAME_(Dphi, _SUFFIX)(out, _VAR(otmp, _SUFFIX));
-    double rho = 4. + m0;
-    rho *= -rho; /* this minus sign is taken into account below */
-    mul_add_assign(out, rho, in);
-    minus(out, out);
-    g5_assign(out);
+        // Operation
+        _GPU_F_NAME_(Dphi, _SUFFIX)(_VAR(otmp, _SUFFIX), in);
+        _GPU_F_NAME_(Dphi, _SUFFIX)(out, _VAR(otmp, _SUFFIX));
+        double rho = 4. + m0;
+        rho *= -rho; /* this minus sign is taken into account below */
+        mul_add_assign(out, rho, in);
+        minus(out, out);
+        g5_assign(out);
 
 #if defined(BC_T_SF) || defined(BC_T_SF_ROTATED)
-    _F_NAME(SF_spinor_bcs)(out);
+        _F_NAME(SF_spinor_bcs)(out);
 #endif
-}
+    }
 
-/**
+    /**
   * @brief Even-odd preconditioned squared Hermitian Wilson-Dirac operator with mass on the GPU.
   *
   * @param in                 Even input spinor field
@@ -459,15 +462,15 @@ _DECLARE(void, g5Dphi_eopre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
   *                           input spinor field
   * @param m0                 Mass parameter
   */
-_DECLARE(void, g5Dphi_eopre_sq, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
-    // alloc memory for temporary spinor field
-    if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
+    _DECLARE(void, g5Dphi_eopre_sq, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
+        // alloc memory for temporary spinor field
+        if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
 
-    _GPU_F_NAME(g5Dphi_eopre, _SUFFIX)(m0, _VAR(etmp, _SUFFIX), in);
-    _GPU_F_NAME(g5Dphi_eopre, _SUFFIX)(m0, out, _VAR(etmp, _SUFFIX));
-}
+        _GPU_F_NAME(g5Dphi_eopre, _SUFFIX)(m0, _VAR(etmp, _SUFFIX), in);
+        _GPU_F_NAME(g5Dphi_eopre, _SUFFIX)(m0, out, _VAR(etmp, _SUFFIX));
+    }
 
-/**
+    /**
  * @brief Implementation of the squared Hermitian Wilson-Dirac operator with mass on the GPU.
  *
  * @param in                    Input spinor field defined on the full lattice
@@ -476,30 +479,30 @@ _DECLARE(void, g5Dphi_eopre_sq, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) 
  *                              operator on the input spinor field
  * @param m0                    Mass parameter
  */
-_DECLARE(void, g5Dphi_sq, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
-    // alloc memory for temporary spinor field
-    if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
+    _DECLARE(void, g5Dphi_sq, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
+        // alloc memory for temporary spinor field
+        if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
 
-    _GPU_F_NAME(g5Dphi, _SUFFIX)(m0, _VAR(gtmp, _SUFFIX), in);
-    _GPU_F_NAME(g5Dphi, _SUFFIX)(m0, out, _VAR(gtmp, _SUFFIX));
-}
+        _GPU_F_NAME(g5Dphi, _SUFFIX)(m0, _VAR(gtmp, _SUFFIX), in);
+        _GPU_F_NAME(g5Dphi, _SUFFIX)(m0, out, _VAR(gtmp, _SUFFIX));
+    }
 
-_ALIAS_INNER(unsigned long int, getMVM, _SUFFIX, ());
-_ALIAS_INNER_(void, Dphi, _SUFFIX, (_FIELD_TYPE * out, _FIELD_TYPE *in));
-_ALIAS_INNER(void, Dphi, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
-_ALIAS_INNER(void, g5Dphi, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
-_ALIAS_INNER(void, g5Dphi_sq, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
-_ALIAS_INNER(void, Dphi_eopre, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
-_ALIAS_INNER(void, Dphi_oepre, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
-_ALIAS_INNER(void, g5Dphi_eopre, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
-_ALIAS_INNER(void, g5Dphi_eopre_sq, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
+    _ALIAS_INNER(unsigned long int, getMVM, _SUFFIX, ());
+    _ALIAS_INNER_(void, Dphi, _SUFFIX, (_FIELD_TYPE * out, _FIELD_TYPE * in));
+    _ALIAS_INNER(void, Dphi, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
+    _ALIAS_INNER(void, g5Dphi, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
+    _ALIAS_INNER(void, g5Dphi_sq, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
+    _ALIAS_INNER(void, Dphi_eopre, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
+    _ALIAS_INNER(void, Dphi_oepre, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
+    _ALIAS_INNER(void, g5Dphi_eopre, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
+    _ALIAS_INNER(void, g5Dphi_eopre_sq, _SUFFIX, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in));
 
 #ifdef WITH_CLOVER
-_ALIAS_INNER_(void, Cphi, _SUFFIX, (double mass, _FIELD_TYPE *, _FIELD_TYPE *, int));
-_ALIAS_INNER_(void, Cphi_inv, _SUFFIX, (double mass, _FIELD_TYPE *, _FIELD_TYPE *, int));
+    _ALIAS_INNER_(void, Cphi, _SUFFIX, (double mass, _FIELD_TYPE *, _FIELD_TYPE *, int));
+    _ALIAS_INNER_(void, Cphi_inv, _SUFFIX, (double mass, _FIELD_TYPE *, _FIELD_TYPE *, int));
 #endif
 #ifdef WITH_EXPCLOVER
-_ALIAS_INNER_(void, Cphi, _SUFFIX, (double mass, _FIELD_TYPE *, _FIELD_TYPE *, int, int));
+    _ALIAS_INNER_(void, Cphi, _SUFFIX, (double mass, _FIELD_TYPE *, _FIELD_TYPE *, int, int));
 #endif
 
 #undef _FIELD_TYPE
