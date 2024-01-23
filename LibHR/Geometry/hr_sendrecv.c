@@ -44,6 +44,8 @@ void hr_sendrecv(void *sendbuffer, void *recvbuffer, geometry_descriptor *type, 
         MPI_Irecv(recv_buffer, recv_size_in_dbl, mpi_real_type, recv_proc, i, cart_comm, &(field_reqs[2 * i + 1]));
     }
 
+    MPI_Barrier(cart_comm);
+
     _BUFFER_FOR(i, nbuffers) {
         char *send_buffer = (_GET_SEND_BUFFER((char *)sendbuffer, i, field_dim, type, chars_per_site));
         int send_proc = type->sbuf_to_proc[i];

@@ -44,11 +44,16 @@
 
 #define _IF_IN_BOX_IN(_input, _piece) \
     if (_input->gd_in & piece)        \
-        if (blockIdx.x * BLOCK_SIZE + threadIdx.x < _input->vol_in[piece - 1])
+        if (blockIdx.x * BLOCK_SIZE + threadIdx.x < _input->vol_in[_piece - 1])
 
 #define _IF_IN_BOX_OUT(_input, _piece) \
     if (_input->gd_in & piece)         \
-        if (blockIdx.x * BLOCK_SIZE + threadIdx.x < _input->vol_out[piece - 1])
+        if (blockIdx.x * blockDim.x + threadIdx.x < _input->vol_out[_piece - 1])
+
+#define _IF_IN_BOX_OUT2(_gd_in, _vol_out, _piece) \
+    if (_gd_in & piece)         \
+        if (blockIdx.x * blockDim.x + threadIdx.x < _vol_out[_piece - 1])
+
 
 typedef struct _kernel_field_input {
     void *field_in;
