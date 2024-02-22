@@ -127,14 +127,15 @@ GLB_VAR(coord4 *, sb_icoord_gpu, );
 #define STD_MEM_TYPE (CPU_MEM | GPU_MEM)
 #include "gpu.h"
 #define BLOCK_SIZE 256
-#define BLOCK_SIZE_LINEAR_ALGEBRA 512
-#define BLOCK_SIZE_GLOBAL_SUM 512
+#define BLOCK_SIZE_LINEAR_ALGEBRA 256
+#define BLOCK_SIZE_GLOBAL_SUM 256
 #define BLOCK_SIZE_DIRAC 256
 #define BLOCK_SIZE_CLOVER 256
-#define BLOCK_SIZE_DIRAC_FLT 512
+#define BLOCK_SIZE_DIRAC_FLT 256
 #define BLOCK_SIZE_SYNC 32
 
 GLB_VAR(cudaStream_t, non_default_stream, = NULL);
+GLB_VAR(cudaStream_t, non_default_stream2, = NULL);
 GLB_VAR(kernel_field_input, **input, = NULL);
 
 GLB_VAR(input_gpu, gpu_var, = init_input_gpu(gpu_var));

@@ -42,7 +42,7 @@ void hr_sendrecv(void *sendbuffer, void *recvbuffer, geometry_descriptor *type, 
         int recv_proc = type->rbuf_from_proc[i];
         int number_of_sites = roundUp(type->rbuf_len[i], THREADSIZE) / 2;
         int recv_size_in_dbl = field_dim * number_of_sites * mpi_chunks_per_site;
-        MPI_Irecv(recv_buffer, recv_size_in_dbl, mpi_real_type, recv_proc, i, cart_comm, &(field_reqs[2 * i + 1]));
+        CHECK_MPI(MPI_Irecv(recv_buffer, recv_size_in_dbl, mpi_real_type, recv_proc, i, cart_comm, &(field_reqs[2 * i + 1])));
     }
 
     _BUFFER_FOR(i, nbuffers) {
@@ -50,7 +50,7 @@ void hr_sendrecv(void *sendbuffer, void *recvbuffer, geometry_descriptor *type, 
         int send_proc = type->sbuf_to_proc[i];
         int number_of_sites = roundUp(type->sbuf_len[i], THREADSIZE) / 2;
         int send_size_in_dbl = field_dim * number_of_sites * mpi_chunks_per_site;
-        MPI_Isend(send_buffer, send_size_in_dbl, mpi_real_type, send_proc, i, cart_comm, &(field_reqs[2 * i]));
+        CHECK_MPI(MPI_Isend(send_buffer, send_size_in_dbl, mpi_real_type, send_proc, i, cart_comm, &(field_reqs[2 * i])));
     }
 }
 

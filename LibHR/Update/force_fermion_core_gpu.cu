@@ -728,8 +728,9 @@ void force_clover_fermion_gpu(spinor_field *Xs, spinor_field *Ys, double residue
         const int grid = (N - 1) / BLOCK_SIZE + 1;
         suNf *cl_force_gpu = cl_force->gpu_ptr + 6 * block_start;
         suNfc *cl_term_gpu = cl_term->gpu_ptr + 4 * block_start;
-        _force_clover_fermion<<<grid, BLOCK_SIZE, 0, 0>>>(invexpmass, cl_force_gpu, cl_term_gpu, _GPU_FIELD_BLK(Xs, ixp),
-                                                          _GPU_FIELD_BLK(Ys, ixp), residue, get_NNexp(), N, block_start);
+        _force_clover_fermion<<<grid, BLOCK_SIZE>>>(invexpmass, cl_force_gpu, cl_term_gpu, _GPU_FIELD_BLK(Xs, ixp),
+                                                    _GPU_FIELD_BLK(Ys, ixp), residue, get_NNexp(), N, block_start);
+        CudaCheckError();
     }
 #endif
 
@@ -739,8 +740,9 @@ void force_clover_fermion_gpu(spinor_field *Xs, spinor_field *Ys, double residue
         const int block_start = glattice.master_start[ixp];
         const int grid = (N - 1) / BLOCK_SIZE + 1;
         suNf *cl_force_gpu = cl_force->gpu_ptr + 6 * block_start;
-        _force_clover_fermion<<<grid, BLOCK_SIZE, 0, 0>>>(cl_force_gpu, _GPU_FIELD_BLK(Xs, ixp), _GPU_FIELD_BLK(Ys, ixp),
-                                                          residue, N, block_start);
+        _force_clover_fermion<<<grid, BLOCK_SIZE>>>(cl_force_gpu, _GPU_FIELD_BLK(Xs, ixp), _GPU_FIELD_BLK(Ys, ixp), residue, N,
+                                                    block_start);
+        CudaCheckError();
     }
 #endif
 }
@@ -758,8 +760,9 @@ void force_clover_fermion_taylor_gpu(spinor_field *Xs, spinor_field *Ys, double 
         const int grid = (N - 1) / BLOCK_SIZE + 1;
         suNf *cl_force_gpu = cl_force->gpu_ptr + 6 * block_start;
         suNfc *cl_term_gpu = cl_term->gpu_ptr + 4 * block_start;
-        _force_clover_fermion_taylor<<<grid, BLOCK_SIZE, 0, 0>>>(invexpmass, cl_force_gpu, cl_term_gpu, _GPU_FIELD_BLK(Xs, ixp),
-                                                                 _GPU_FIELD_BLK(Ys, ixp), residue, get_NNexp(), N, block_start);
+        _force_clover_fermion_taylor<<<grid, BLOCK_SIZE>>>(invexpmass, cl_force_gpu, cl_term_gpu, _GPU_FIELD_BLK(Xs, ixp),
+                                                           _GPU_FIELD_BLK(Ys, ixp), residue, get_NNexp(), N, block_start);
+        CudaCheckError();
     }
 }
 #endif
@@ -772,11 +775,12 @@ void force_clover_core_gpu(double dt) {
 
     _PIECE_FOR(&glattice, ixp) {
         const int N = glattice.master_end[ixp] - glattice.master_start[ixp] + 1;
-        const int block_start = glattice.master_start[ixp];
-        const int grid = (N - 1) / BLOCK_SIZE + 1;
-        _force_clover_core<<<grid, BLOCK_SIZE, 0, 0>>>(cl_force->gpu_ptr, force_sum->gpu_ptr, u_gauge_f->gpu_ptr, iup_gpu,
-                                                       idn_gpu, dt, coeff, N, block_start);
     }
+    const int block_start = glattice.master_start[ixp];
+    const int grid = (N - 1) / BLOCK_SIZE + 1;
+    _force_clover_core<<<grid, BLOCK_SIZE>>>(cl_force->gpu_ptr, force_sum->gpu_ptr, u_gauge_f->gpu_ptr, iup_gpu, idn_gpu, dt,
+                                             coeff, N, block_start);
+    CudaCheckError();
 }
 
 #endif
@@ -842,8 +846,9 @@ void force_fermion_core_gpu(spinor_field *Xs, spinor_field *Ys, int auto_fill_od
         const int N = glattice.master_end[ixp] - glattice.master_start[ixp] + 1;
         const int block_start = glattice.master_start[ixp];
         const int grid = (N - 1) / BLOCK_SIZE + 1;
-        _force_fermion_core<<<grid, BLOCK_SIZE, 0, 0>>>(Xs->gpu_ptr, Ys->gpu_ptr, force_sum->gpu_ptr, u_gauge_f->gpu_ptr,
-                                                        iup_gpu, coeff, N, block_start);
+        _force_fermion_core<<<grid, BLOCK_SIZE>>>(Xs->gpu_ptr, Ys->gpu_ptr, force_sum->gpu_ptr, u_gauge_f->gpu_ptr, iup_gpu,
+                                                  coeff, N, block_start);
+        CudaCheckError();
     }
 
     Xs->type = Xtmp.type;

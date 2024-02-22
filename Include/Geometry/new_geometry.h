@@ -49,11 +49,6 @@ enum box_type {
     SENDBUF = 5
 };
 
-// TODO: this should be in geometry.h and geometry descriptor should contain it
-// enum to define geometry type
-// this is a simple bitmask with GLOBAL = EVEN | ODD
-enum gd_type { EVEN = 1, ODD = 2, GLOBAL = 3 };
-
 ///  ----h
 ///  ....|  NB: the h[4] is not in the box,
 ///  ....|  i.e. coordinates needs to be l[]<= p[] <h[]
@@ -80,9 +75,8 @@ void geometryMemSize(box_t *G, size_t *total, size_t *buffers);
 #define _DECLARE_SYNC_TO_BUFFER(_name, _field_type, _type) \
     void sync_box_to_buffer_gpu_##_name(geometry_descriptor *, box_t *, _field_type *, void *);
 
-#define _DECLARE_SYNC_TO_BUFFER_REDUCED(_name, _field_type, _type)                                                 \
-    void sync_box_to_buffer_gpu_reduced_##_name(geometry_descriptor *, box_t *, _field_type *, void *, int, char); \
-    void sync_box_reduced_init_##_name(geometry_descriptor *, box_t *, _field_type *, void *, int);
+#define _DECLARE_SYNC_TO_BUFFER_REDUCED(_name, _field_type, _type) \
+    void sync_box_to_buffer_gpu_reduced_##_name(geometry_descriptor *, box_t *, _field_type *, void *, int, char);
 
 _DECLARE_SYNC_TO_BUFFER(spinor_field, spinor_field, suNf_spinor);
 _DECLARE_SYNC_TO_BUFFER(spinor_field_flt, spinor_field_flt, suNf_spinor_flt);

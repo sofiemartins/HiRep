@@ -37,7 +37,7 @@ const char *sComputeMode[] = {
  */
 void print_device_count_info(input_gpu gpu_var_init) {
     int device_count;
-    cudaGetDeviceCount(&device_count);
+    CHECK_CUDA(cudaGetDeviceCount(&device_count));
     lprintf("GPU_INIT", 0, "GPU_ID = %d\n", gpu_var_init.gpuID);
     //error(gpu_id > device_count, 1, "init_gpu", "Illegal device ID");
     // I don't see what we need this for (SAM)
@@ -50,8 +50,8 @@ void print_device_count_info(input_gpu gpu_var_init) {
  */
 void print_software_info(cudaDeviceProp device_prop) {
     int driver_version, runtime_version;
-    cudaDriverGetVersion(&driver_version);
-    cudaRuntimeGetVersion(&runtime_version);
+    CHECK_CUDA(cudaDriverGetVersion(&driver_version));
+    CHECK_CUDA(cudaRuntimeGetVersion(&runtime_version));
     lprintf("GPU_INIT", 10, "CUDA Capability Major/Minor version number: %d.%d\n", device_prop.major, device_prop.minor);
     lprintf("GPU_INIT", 10, "CUDA Driver Version / Runtime Version: %d.%d / %d.%d\n", driver_version / 1000,
             driver_version % 100, runtime_version / 1000, runtime_version % 100);
@@ -69,8 +69,8 @@ void print_global_memory_info(cudaDeviceProp device_prop, input_gpu gpu_var_init
     int mem_clock;
 
     // Query properties
-    cuDeviceGetAttribute(&mem_bus_width, CU_DEVICE_ATTRIBUTE_GLOBAL_MEMORY_BUS_WIDTH, gpu_var_init.gpuID);
-    cuDeviceGetAttribute(&mem_clock, CU_DEVICE_ATTRIBUTE_MEMORY_CLOCK_RATE, gpu_var_init.gpuID);
+    CHECK_CUDA(cuDeviceGetAttribute(&mem_bus_width, CU_DEVICE_ATTRIBUTE_GLOBAL_MEMORY_BUS_WIDTH, gpu_var_init.gpuID));
+    CHECK_CUDA(cuDeviceGetAttribute(&mem_clock, CU_DEVICE_ATTRIBUTE_MEMORY_CLOCK_RATE, gpu_var_init.gpuID));
 
     // Print formatted
     lprintf("GPU_INIT", 10, "Total amount of global memory: %.0f MB (%lluB)\n",
@@ -101,7 +101,7 @@ void print_cache_info(cudaDeviceProp device_prop, input_gpu gpu_var_init) {
     int l2_cache_size;
 
     // Query properties
-    cuDeviceGetAttribute(&l2_cache_size, CU_DEVICE_ATTRIBUTE_L2_CACHE_SIZE, gpu_var_init.gpuID);
+    CHECK_CUDA(cuDeviceGetAttribute(&l2_cache_size, CU_DEVICE_ATTRIBUTE_L2_CACHE_SIZE, gpu_var_init.gpuID));
 
     // Print formatted
     lprintf("GPU_INIT", 10, "L2 Cache Size: %dB\n", l2_cache_size);
@@ -223,11 +223,11 @@ void print_performance_metrics() {
    * 
   */
     int n_devices;
-    cudaGetDeviceCount(&n_devices);
+    CHECK_CUDA(cudaGetDeviceCount(&n_devices));
     double peak_memory_bandwidth = 0;
     for (int i = 0; i < n_devices; i++) {
         cudaDeviceProp prop;
-        cudaGetDeviceProperties(&prop, i);
+        CHECK_CUDA(cudaGetDeviceProperties(&prop, i));
         peak_memory_bandwidth += 2.0 * prop.memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6;
     }
     lprintf("GPU_INIT", 10, "Peak Memory Bandwidth (GB/s): %1.6g\n", peak_memory_bandwidth);

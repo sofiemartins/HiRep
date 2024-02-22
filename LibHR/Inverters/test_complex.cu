@@ -27,8 +27,8 @@ int test_overload_plus_rhs_double_gpu() {
     double b = 3.3;
     cudaMalloc((void **)&a_d, sizeof(hr_complex));
 
-    test_gpu1<<<1, 1, 0, 0>>>(b, c, a_d);
-    cudaDeviceSynchronize();
+    test_gpu1<<<1, 1>>>(b, c, a_d);
+    CudaCheckError();
     cudaMemcpy(&a, a_d, sizeof(hr_complex), cudaMemcpyDeviceToHost);
     cudaFree(a_d);
     if (abs(4.4 - a.re) > pow(10, -6)) { result += int(pow(10, 0)); }
@@ -166,8 +166,8 @@ int test_overload_prod_hr_complex_gpu() {
     hr_complex *a_d;
     cudaMalloc((void **)&a_d, sizeof(hr_complex));
 
-    test_gpu9<<<1, 1, 0, 0>>>(b, c, a_d);
-    cudaDeviceSynchronize();
+    test_gpu9<<<1, 1>>>(b, c, a_d);
+    CudaCheckError();
     cudaMemcpy(&a, a_d, sizeof(hr_complex), cudaMemcpyDeviceToHost);
     cudaFree(a_d);
     if (abs(-6.05 - a.re) > pow(10, -6)) { result += int(pow(10, 0)); }

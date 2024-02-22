@@ -806,6 +806,7 @@ static void gd_init() {
     glattice.total_spinor_master_pieces = 2 + 2 * (L3_BORDER);
     glattice.gsize_gauge = memory_even_volume + memory_odd_volume; //this will be increased in gd_set_boxIndices()
     glattice.gsize_spinor = memory_even_volume + memory_odd_volume; //this will be increased in gd_set_boxIndices()
+    glattice.desc = GLOBAL;
 
     //set up even lattice
     gd_alloc_mem(&glat_even, L3_BORDER, 1);
@@ -821,6 +822,7 @@ static void gd_init() {
     glat_even.total_spinor_master_pieces = 1 + L3_BORDER;
     glat_even.gsize_gauge = -1; //TODO: can we do better?
     glat_even.gsize_spinor = memory_even_volume; //this will be increased in gd_set_boxIndices()
+    glat_even.desc = EVEN;
 
     //set up odd lattice
     gd_alloc_mem(&glat_odd, L3_BORDER, 1);
@@ -836,6 +838,7 @@ static void gd_init() {
     glat_odd.total_spinor_master_pieces = 1 + L3_BORDER;
     glat_odd.gsize_gauge = -1; //TODO: can we do better?
     glat_odd.gsize_spinor = memory_odd_volume; //this will be increased in gd_set_boxIndices()
+    glat_odd.desc = ODD;
 
     //free memory at exit
     atexit(&gd_free);
@@ -1052,7 +1055,7 @@ void sendbuf_report() {
 // src : source geometry box.
 // bytes_per_site : size in bytes of the local object to copy. Could be 4 gauge fields or a (half)spinor
 // sendbuf : memory destination to be send over MPI to a matching recv buffer in the extended lattice (dst)
-static void syncBoxToBuffer(enum gd_type gd_t, size_t bytes_per_site, box_t *src, void *lattice, void *sendbuf) {
+static void syncBoxToBuffer(gd_type gd_t, size_t bytes_per_site, box_t *src, void *lattice, void *sendbuf) {
 #ifndef NDEBUG
     lprintf("SYNC", 1, "VOLUME/PARITY: SRC=%d[even=%d]/%d\n", boxVolume(src), boxEvenVolume(src), boxParity(src));
 #endif
@@ -1083,12 +1086,7 @@ static void syncBoxToBuffer(enum gd_type gd_t, size_t bytes_per_site, box_t *src
 }
 
 void sync_field(geometry_descriptor *gd, size_t bytes_per_site, int is_spinor_like, void *latticebuf, void *sb_ptr) {
-    enum gd_type gd_t = GLOBAL;
-    //TODO: the type should really be in the descriptor itself
-    // we shouldn't compare pointers...
-    if (gd == &glat_even) { gd_t = EVEN; }
-    if (gd == &glat_odd) { gd_t = ODD; }
-
+    const gd_type gd_t = gd->desc;
     latticebuf = ((char *)latticebuf) - (bytes_per_site * gd->master_shift); //shift buffer by master_shift
     char *const sendbuf_base = (char *)sb_ptr;
     int n_buffers = is_spinor_like ? gd->nbuffers_spinor : gd->nbuffers_gauge;

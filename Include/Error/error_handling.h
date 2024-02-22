@@ -52,9 +52,11 @@ void register_sighandlers(void);
             char message[MPI_MAX_ERROR_STRING];                             \
             int message_length;                                             \
             MPI_Error_string(mpireturn, message, &message_length);          \
-            error(1, 1, "Error in: %s:%d, function: %s\n \
+            char errmsg[500];                                               \
+            sprintf(errmsg, "Error in: %s:%d, function: %s\n \
                             Communications call exited with code %d: %s\n", \
-                  __FILE__, __LINE__, __func__, mpireturn, message);        \
+                    __FILE__, __LINE__, __func__, mpireturn, message);      \
+            error(1, 1, __func__, errmsg);                                  \
         }                                                                   \
     } while (0)
 #endif

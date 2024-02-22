@@ -34,6 +34,6 @@ void force0_kernel_gpu(suNg_av_field *force, double coeff) {
         _force0_gpu<<<grid, BLOCK_SIZE, 0, 0>>>(u_gauge->gpu_ptr, force->gpu_ptr, coeff, iup_gpu, idn_gpu, NULL, N,
                                                 block_start);
 #endif
-        cudaDeviceSynchronize();
+        CudaCheckError();
     }
 }
