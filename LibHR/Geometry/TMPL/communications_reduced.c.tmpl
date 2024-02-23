@@ -47,6 +47,8 @@ _DECLARE(sync_reduced_init_, (_FIELD_TYPE * f)) {
     _F_NAME(check_sendrecv_guard_, _FIELD_TYPE)(f);
     _F_NAME(lock_communications_, _FIELD_TYPE)(f);
     _GPU_F_NAME(sync_reduced_, _FIELD_TYPE)(f);
+    CHECK_CUDA(cudaDeviceSynchronize()); // sync needs to complete before the communications are started
+    CHECK_MPI(MPI_Barrier(cart_comm));
 #endif
 }
 

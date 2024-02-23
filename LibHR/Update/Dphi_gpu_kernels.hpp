@@ -614,61 +614,103 @@ __global__ void Dphi_gpu_boundary_kernel(SITE_TYPE *in, SITE_TYPE *out, const GA
 }
 
 #ifdef WITH_CLOVER
-template <typename VECTOR_TYPE, class REAL, typename SITE_TYPE>
+template <typename VECTOR_TYPE, class REAL, typename COMPLEX, typename SITE_TYPE>
 __global__ void Cphi_gpu_kernel_(SITE_TYPE *dptr, SITE_TYPE *sptr, suNfc *cl_term, double mass, int assign, int N,
                                  int block_start) {
-    for (int ix = blockIdx.x * blockDim.x + threadIdx.x; ix < N; ix += gridDim.x * blockDim.x) {
-        VECTOR_TYPE v1, v2;
-        VECTOR_TYPE s0, s1, out;
-        suNfc cl_0, cl_1;
+    for (int id = blockIdx.x * blockDim.x + threadIdx.x; id < N * NF * 4; id += gridDim.x * blockDim.x) {
+        const int dir = id / (N * NF);
+        const int id2 = id % (N * NF);
+        const int tgt_comp = (id2 / SUBBLOCKS) % NF;
+        const int ix = id2 % SUBBLOCKS + (id2 / (SUBBLOCKS * NF)) * SUBBLOCKS;
 
-        read_gpu<REAL>(0, &s0, sptr, ix, 0, 1);
-        read_gpu<REAL>(0, &s1, sptr, ix, 1, 1);
-        read_gpu<double>(0, &cl_0, cl_term, ix, 0, 4);
-        read_gpu<double>(0, &cl_1, cl_term, ix, 1, 4);
-        _suNfc_multiply(v1, cl_0, s0);
-        _suNfc_multiply(v2, cl_1, s1);
-        _vector_add_f(v1, v1, v2);
-        _vector_mul_add_assign_f(v1, mass, s0);
-        if (assign) {
-            read_gpu<REAL>(0, &out, dptr, ix, 0, 1);
-            _vector_add_assign_f(v1, out);
-        }
-        write_gpu<REAL>(0, &v1, dptr, ix, 0, 1);
+        COMPLEX v1, v2, v3;
+        COMPLEX s0, s1, out;
+        COMPLEX cl_0, cl_1;
 
-        _suNfc_inverse_multiply(v1, cl_1, s0);
-        _suNfc_multiply(v2, cl_0, s1);
-        _vector_sub_f(v1, v1, v2);
-        _vector_mul_add_assign_f(v1, mass, s1);
-        if (assign) {
-            read_gpu<REAL>(0, &out, dptr, ix, 1, 1);
-            _vector_add_assign_f(v1, out);
-        }
-        write_gpu<REAL>(0, &v1, dptr, ix, 1, 1);
+        if (dir == 0) {
+            v3 = 0.0;
 
-        read_gpu<REAL>(0, &s0, sptr, ix, 2, 1);
-        read_gpu<REAL>(0, &s1, sptr, ix, 3, 1);
-        read_gpu<double>(0, &cl_0, cl_term, ix, 2, 4);
-        read_gpu<double>(0, &cl_1, cl_term, ix, 3, 4);
-        _suNfc_multiply(v1, cl_0, s0);
-        _suNfc_multiply(v2, cl_1, s1);
-        _vector_add_f(v1, v1, v2);
-        _vector_mul_add_assign_f(v1, mass, s0);
-        if (assign) {
-            read_gpu<REAL>(0, &out, dptr, ix, 2, 1);
-            _vector_add_assign_f(v1, out);
-        }
-        write_gpu<REAL>(0, &v1, dptr, ix, 2, 1);
+            for (int vcomp = 0; vcomp < NF; vcomp++) {
+                read_gpu<REAL>(0, &s0, sptr, ix, vcomp, 1);
+                read_gpu<REAL>(0, &s1, sptr, ix, vcomp + NF, 1);
+                read_gpu<double>(0, &cl_0, cl_term, ix, NF * tgt_comp + vcomp, 4);
+                read_gpu<double>(0, &cl_1, cl_term, ix, NF * tgt_comp + vcomp + NF * NF, 4);
+                v1 = cl_0 * s0;
+                v2 = cl_1 * s1;
+                v3 += v1 + v2;
+                if (vcomp == tgt_comp) { v3 += mass * s0; }
+            }
 
-        _suNfc_inverse_multiply(v1, cl_1, s0);
-        _suNfc_multiply(v2, cl_0, s1);
-        _vector_sub_f(v1, v1, v2);
-        _vector_mul_add_assign_f(v1, mass, s1);
-        if (assign) {
-            read_gpu<REAL>(0, &out, dptr, ix, 3, 1);
-            _vector_add_assign_f(v1, out);
+            if (assign) {
+                write_assign_gpu<REAL>(0, &v3, dptr, ix, tgt_comp, 1);
+            } else {
+                write_gpu<REAL>(0, &v3, dptr, ix, tgt_comp, 1);
+            }
         }
-        write_gpu<REAL>(0, &v1, dptr, ix, 3, 1);
+
+        if (dir == 1) {
+            v3 = 0.0;
+
+            for (int vcomp = 0; vcomp < NF; vcomp++) {
+                // this reread might not be ideal
+                read_gpu<REAL>(0, &s0, sptr, ix, vcomp, 1);
+                read_gpu<REAL>(0, &s1, sptr, ix, vcomp + NF, 1);
+                read_gpu<double>(0, &cl_0, cl_term, ix, NF * tgt_comp + vcomp, 4);
+                read_gpu<double>(0, &cl_1, cl_term, ix, NF * vcomp + tgt_comp + NF * NF, 4);
+                v1 = conj(cl_1) * s0;
+                v2 = cl_0 * s1;
+                v3 += (v1 - v2);
+                if (vcomp == tgt_comp) { v3 += mass * s1; }
+            }
+
+            if (assign) {
+                write_assign_gpu<REAL>(0, &v3, dptr, ix, tgt_comp + NF, 1);
+            } else {
+                write_gpu<REAL>(0, &v3, dptr, ix, tgt_comp + NF, 1);
+            }
+        }
+
+        if (dir == 2) {
+            v3 = 0.0;
+
+            for (int vcomp = 0; vcomp < NF; vcomp++) {
+                read_gpu<REAL>(0, &s0, sptr, ix, vcomp + 2 * NF, 1);
+                read_gpu<REAL>(0, &s1, sptr, ix, vcomp + 3 * NF, 1);
+                read_gpu<double>(0, &cl_0, cl_term, ix, NF * tgt_comp + vcomp + 2 * NF * NF, 4);
+                read_gpu<double>(0, &cl_1, cl_term, ix, NF * tgt_comp + vcomp + 3 * NF * NF, 4);
+                v1 = cl_0 * s0;
+                v2 = cl_1 * s1;
+                v3 += v1 + v2;
+                if (vcomp == tgt_comp) { v3 += mass * s0; }
+            }
+
+            if (assign) {
+                write_assign_gpu<REAL>(0, &v3, dptr, ix, tgt_comp + 2 * NF, 1);
+            } else {
+                write_gpu<REAL>(0, &v3, dptr, ix, tgt_comp + 2 * NF, 1);
+            }
+        }
+
+        if (dir == 3) {
+            v3 = 0.0;
+
+            for (int vcomp = 0; vcomp < NF; vcomp++) {
+                read_gpu<REAL>(0, &s0, sptr, ix, vcomp + 2 * NF, 1);
+                read_gpu<REAL>(0, &s1, sptr, ix, vcomp + 3 * NF, 1);
+                read_gpu<double>(0, &cl_0, cl_term, ix, NF * tgt_comp + vcomp + 2 * NF * NF, 4);
+                read_gpu<double>(0, &cl_1, cl_term, ix, NF * vcomp + tgt_comp + 3 * NF * NF, 4);
+                v1 = conj(cl_1) * s0;
+                v2 = cl_0 * s1;
+                v3 += (v1 - v2);
+                if (vcomp == tgt_comp) { v3 += mass * s1; }
+            }
+
+            if (assign) {
+                write_assign_gpu<REAL>(0, &v3, dptr, ix, tgt_comp + 3 * NF, 1);
+            } else {
+                write_gpu<REAL>(0, &v3, dptr, ix, tgt_comp + 3 * NF, 1);
+            }
+        }
     }
 }
 

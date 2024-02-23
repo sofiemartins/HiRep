@@ -152,18 +152,17 @@ int main(int argc, char *argv[]) {
 
 #ifdef WITH_CLOVER
 
-    _TEST_GPU_OP(errors, "Cphi_", ninputs + noutputs + 1, in, in + 1, Cphi_(-hmass, &in_flt[1], in, 0);
-                 Cphi_cpu_(-hmass, &in_flt[1], in, 0);, "GPU_TEST", EPSILON_TEST);
+    _TEST_GPU_OP(errors, "Cphi_", ninputs + noutputs + 1, in, in + 1, Cphi_(-hmass, &in[1], in, 0);
+                 Cphi_cpu_(-hmass, &in[1], in, 0);, "GPU_TEST", EPSILON_TEST);
 
-    _TEST_GPU_OP(errors, "Cphi_ (+=)", ninputs + noutputs + 1, in, in + 1, Cphi_(-hmass, &in_flt[1], in, 1);
-                 Cphi_cpu_(-hmass, &in_flt[1], in, 1);, "GPU_TEST", EPSILON_TEST);
+    _TEST_GPU_OP(errors, "Cphi_ (+=)", ninputs + noutputs + 1, in, in + 1, Cphi_(-hmass, &in[1], in, 1);
+                 Cphi_cpu_(-hmass, &in[1], in, 1);, "GPU_TEST", EPSILON_TEST);
 
-    _TEST_GPU_OP(errors, "Cphi_inv_", ninputs + noutputs + 1, in, in + 1, Cphi_inv_(-hmass, &in_flt[1], in, 0);
-                 Cphi_inv_cpu_(-hmass, &in_flt[1], in, 0);, "GPU_TEST", EPSILON_TEST);
+    _TEST_GPU_OP(errors, "Cphi_inv_", ninputs + noutputs + 1, in, in + 1, Cphi_inv_(-hmass, &in[1], in, 0);
+                 Cphi_inv_cpu_(-hmass, &in[1], in, 0);, "GPU_TEST", EPSILON_TEST);
 
-    _TEST_GPU_OP(errors, "Cphi_inv_ (+=)", ninputs + noutputs + 1, in, in + 1, Cphi_inv_(-hmass, &in_flt[1], in, 1);
-                 Cphi_inv_cpu_(-hmass, &in_flt[1], in, 1);, "GPU_TEST", EPSILON_TEST);
-
+    _TEST_GPU_OP(errors, "Cphi_inv_ (+=)", ninputs + noutputs + 1, in, in + 1, Cphi_inv_(-hmass, &in[1], in, 1);
+                 Cphi_inv_cpu_(-hmass, &in[1], in, 1);, "GPU_TEST", EPSILON_TEST);
 #endif
 
 #ifdef WITH_EXPCLOVER
@@ -249,7 +248,6 @@ int main(int argc, char *argv[]) {
                  Cphi_inv_cpu_(-hmass, &in[1], in, 1);, "GPU_TEST", EPSILON_TEST);
 
 #endif
-
 #ifdef WITH_EXPCLOVER
 
     _TEST_GPU_OP(errors, "Cphi_ (EE)", ninputs + noutputs + 1, in, in + 1, Cphi_(-hmass, &in[1], in, 0, 0);

@@ -775,12 +775,12 @@ void force_clover_core_gpu(double dt) {
 
     _PIECE_FOR(&glattice, ixp) {
         const int N = glattice.master_end[ixp] - glattice.master_start[ixp] + 1;
+        const int block_start = glattice.master_start[ixp];
+        const int grid = (N - 1) / BLOCK_SIZE + 1;
+        _force_clover_core<<<grid, BLOCK_SIZE>>>(cl_force->gpu_ptr, force_sum->gpu_ptr, u_gauge_f->gpu_ptr, iup_gpu, idn_gpu,
+                                                 dt, coeff, N, block_start);
+        CudaCheckError();
     }
-    const int block_start = glattice.master_start[ixp];
-    const int grid = (N - 1) / BLOCK_SIZE + 1;
-    _force_clover_core<<<grid, BLOCK_SIZE>>>(cl_force->gpu_ptr, force_sum->gpu_ptr, u_gauge_f->gpu_ptr, iup_gpu, idn_gpu, dt,
-                                             coeff, N, block_start);
-    CudaCheckError();
 }
 
 #endif

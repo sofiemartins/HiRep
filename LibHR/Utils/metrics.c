@@ -114,7 +114,7 @@ int bytes_per_site(operator_type type) {
         break;
 
     case CPHI:
-        bytesite = 52 * sizeof(suNf_vector) + 8 * sizeof(suNf) + 2 * sizeof(suNfc);
+        bytesite = 14 * sizeof(suNf_spinor) + 4 * sizeof(suNfc) + 8 * sizeof(suNf);
         break;
 
     case CPHI_FLT:
@@ -122,7 +122,7 @@ int bytes_per_site(operator_type type) {
         break;
 
     case CPHI_CORE:
-        bytesite = 12 * sizeof(suNf_vector) + sizeof(ldl_t);
+        bytesite = 4 * sizeof(suNf_spinor) + 4 * sizeof(suNfc);
         break;
 
     case CPHI_FLT_CORE:
