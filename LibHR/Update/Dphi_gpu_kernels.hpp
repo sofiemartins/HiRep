@@ -11,6 +11,8 @@
 #include "update.h"
 #include "utils.h"
 
+#define SUBBLOCKS 32
+
 #ifndef LARGE_N
 #define DPHI_T_UP_GPU(ix, iy, in, gauge, r, sn, u)        \
     in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);   \
@@ -461,14 +463,22 @@ __global__ void Dphi_gpu_inner_kernel(SITE_TYPE *in, SITE_TYPE *out, const GAUGE
 
 #else
 
-#define SUBBLOCKS 32
-
 template <typename HSPINOR_TYPE, class REAL, typename COMPLEX, typename SITE_TYPE, typename GAUGE_TYPE>
 __global__ void Dphi_gpu_inner_kernel(SITE_TYPE *in, SITE_TYPE *out, const GAUGE_TYPE *gauge, int vol_in, int vol_out,
                                       int base_in, int base_out, gd_type piece, char *imask_gpu, int *iup_gpu, int *idn_gpu) {
     for (int id = blockIdx.x * blockDim.x + threadIdx.x; id < vol_out * NF; id += gridDim.x * blockDim.x) {
-        const int ix = id % SUBBLOCKS + (id / (SUBBLOCKS * NF)) * SUBBLOCKS + base_out;
-        const int tgt_comp = (id / SUBBLOCKS) % NF;
+        // This might degrade performance for unusually sized lattices
+        int divider = SUBBLOCKS;
+        while (vol_out * NF % divider != 0) {
+            divider--;
+        }
+
+        const int ix = id % divider + (id / (divider * NF)) * divider + base_out;
+        const int tgt_comp = (id / divider) % NF;
+        if (id == 0) {
+            printf("N * NF: %d, SUBBLOCKS: %d, N * NF / SUBBLOCKS: %d, N * NF mod SUBBLOCKS: %d\n", vol_out * NF, divider,
+                   vol_out * NF / divider, vol_out * NF % divider);
+        }
 
         COMPLEX sn_cpx0;
 #ifdef REPR_IS_REAL
@@ -620,8 +630,12 @@ __global__ void Cphi_gpu_kernel_(SITE_TYPE *dptr, SITE_TYPE *sptr, suNfc *cl_ter
     for (int id = blockIdx.x * blockDim.x + threadIdx.x; id < N * NF * 4; id += gridDim.x * blockDim.x) {
         const int dir = id / (N * NF);
         const int id2 = id % (N * NF);
-        const int tgt_comp = (id2 / SUBBLOCKS) % NF;
-        const int ix = id2 % SUBBLOCKS + (id2 / (SUBBLOCKS * NF)) * SUBBLOCKS;
+        int divider = SUBBLOCKS;
+        while (N * NF % divider != 0) {
+            divider--;
+        }
+        const int tgt_comp = (id2 / divider) % NF;
+        const int ix = id2 % divider + (id2 / (divider * NF)) * divider;
 
         COMPLEX v1, v2, v3;
         COMPLEX s0, s1, out;

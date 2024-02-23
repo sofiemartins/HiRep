@@ -252,7 +252,7 @@ void _GPU_F_NAME_(Cphi, _SUFFIX)(double mass, _FIELD_TYPE *dptr, _FIELD_TYPE *sp
         const int grid = (N * NF * 4 - 1) / BLOCK_SIZE_CLOVER + 1;
         const int block_start = sptr->type->master_start[ixp];
         suNfc *cl_term_gpu = cl_term->gpu_ptr + 4 * block_start;
-        Cphi_gpu_kernel_<_VECTOR_TYPE, _REAL><<<grid, BLOCK_SIZE_CLOVER, 0, 0>>>(
+        Cphi_gpu_kernel_<_VECTOR_TYPE, _REAL, _COMPLEX><<<grid, BLOCK_SIZE_CLOVER, 0, 0>>>(
             _GPU_FIELD_BLK(dptr, ixp), _GPU_FIELD_BLK(sptr, ixp), cl_term_gpu, mass, assign, N, block_start);
     }
 }
