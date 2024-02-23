@@ -469,16 +469,12 @@ __global__ void Dphi_gpu_inner_kernel(SITE_TYPE *in, SITE_TYPE *out, const GAUGE
     for (int id = blockIdx.x * blockDim.x + threadIdx.x; id < vol_out * NF; id += gridDim.x * blockDim.x) {
         // This might degrade performance for unusually sized lattices
         int divider = SUBBLOCKS;
-        while (vol_out * NF % divider != 0) {
+        while (vol_out % divider != 0) {
             divider--;
         }
 
         const int ix = id % divider + (id / (divider * NF)) * divider + base_out;
         const int tgt_comp = (id / divider) % NF;
-        if (id == 0) {
-            printf("N * NF: %d, SUBBLOCKS: %d, N * NF / SUBBLOCKS: %d, N * NF mod SUBBLOCKS: %d\n", vol_out * NF, divider,
-                   vol_out * NF / divider, vol_out * NF % divider);
-        }
 
         COMPLEX sn_cpx0;
 #ifdef REPR_IS_REAL
@@ -631,7 +627,7 @@ __global__ void Cphi_gpu_kernel_(SITE_TYPE *dptr, SITE_TYPE *sptr, suNfc *cl_ter
         const int dir = id / (N * NF);
         const int id2 = id % (N * NF);
         int divider = SUBBLOCKS;
-        while (N * NF % divider != 0) {
+        while (N % divider != 0) {
             divider--;
         }
         const int tgt_comp = (id2 / divider) % NF;

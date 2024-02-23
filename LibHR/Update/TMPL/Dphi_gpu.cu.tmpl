@@ -318,12 +318,16 @@ _DECLARE(void, Dphi, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
     _CHECK_GEOMETRY_FULL(in);
     _CHECK_GEOMETRY_FULL(out);
 
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(in);
+
     // Operation
     double rho = 4. + m0;
     _GPU_F_NAME_(Dphi, _SUFFIX)(out, in);
 
     //mul_add_assign(out, (_REAL)rho, in);
     _F_NAME(mul_add_assign_spinor_field, _REP_SUFFIX)(out, rho, in);
+
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(out);
 }
 
 /**
@@ -340,11 +344,15 @@ _DECLARE(void, g5Dphi, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
     _CHECK_GEOMETRY_FULL(in);
     _CHECK_GEOMETRY_FULL(out);
 
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(in);
+
     // Operation
     double rho = 4. + m0;
     _GPU_F_NAME_(Dphi, _SUFFIX)(out, in);
     _F_NAME(mul_add_assign_spinor_field, _REP_SUFFIX)(out, rho, in);
     _F_NAME(g5_assign_spinor_field, _REP_SUFFIX)(out);
+
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(out);
 }
 
 /**
@@ -364,13 +372,18 @@ _DECLARE(void, Dphi_eopre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
     // alloc memory for temporary spinor field
     if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
 
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(in);
+
     // Operation
     _GPU_F_NAME_(Dphi, _SUFFIX)(_VAR(otmp, _SUFFIX), in);
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(_VAR(otmp, _SUFFIX));
     _GPU_F_NAME_(Dphi, _SUFFIX)(out, _VAR(otmp, _SUFFIX));
     double rho = 4. + m0;
     rho *= -rho; /* this minus sign is taken into account below */
     _F_NAME(mul_add_assign_spinor_field, _REP_SUFFIX)(out, rho, in);
     _F_NAME(minus_spinor_field, _REP_SUFFIX)(out, out);
+
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(out);
 }
 
 /**
@@ -390,12 +403,17 @@ _DECLARE(void, Dphi_oepre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
     // alloc memory for temporary spinor field
     if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
 
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(in);
+
     _GPU_F_NAME_(Dphi, _SUFFIX)(_VAR(etmp, _SUFFIX), in);
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(_VAR(etmp, _SUFFIX));
     _GPU_F_NAME_(Dphi, _SUFFIX)(out, _VAR(etmp, _SUFFIX));
     double rho = 4. + m0;
     rho *= -rho; /* this minus sign is taken into account below */
     _F_NAME(mul_add_assign_spinor_field, _REP_SUFFIX)(out, rho, in);
     _F_NAME(minus_spinor_field, _REP_SUFFIX)(out, out);
+
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(out);
 }
 
 /**
