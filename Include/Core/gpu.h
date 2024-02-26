@@ -50,6 +50,7 @@ typedef struct {
 #define cudaMemcpyDeviceToHost hipMemcpyDeviceToHost
 #define cudaDeviceSynchronize hipDeviceSynchronize
 #define cudaError_t hipError_t
+#define cudaGetLastError hipGetLastError
 #define cudaDeviceProp hipDeviceProp_t
 #define cudaSuccess hipSuccess
 #define cudaGetErrorString hipGetErrorString
