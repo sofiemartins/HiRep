@@ -103,7 +103,7 @@ int enable_GPU_peer_to_peer_access() {
                       "Unable to enable peer-to-peer access.\n");
             }
 
-            cudaError_t err = cudaDeviceEnablePeerAccess(i, 0);
+            CHECK_CUDA(cudaDeviceEnablePeerAccess(i, 0));
 #ifndef HIP
             if (err == cudaErrorInvalidDevice) {
                 error(1, 1, __func__, "Peer memory access cannot be enabled on invalid device\n");
