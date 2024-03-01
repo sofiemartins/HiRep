@@ -104,17 +104,6 @@ int enable_GPU_peer_to_peer_access() {
             }
 
             CHECK_CUDA(cudaDeviceEnablePeerAccess(i, 0));
-#ifndef HIP
-            if (err == cudaErrorInvalidDevice) {
-                error(1, 1, __func__, "Peer memory access cannot be enabled on invalid device\n");
-            } else if (err == cudaErrorPeerAccessAlreadyEnabled) {
-                lprintf("INFO", 0, "Tried to enable peer access from %d to %d but access was already enabled\n", LID, i);
-            } else if (err == cudaErrorInvalidValue) {
-                error(1, 1, __func__, "Flags must be set to 0 in cudaDeviceEnablePeerAccess\n");
-            } else if (err != cudaSuccess) {
-                CHECK_CUDA(err);
-            }
-#endif
             lprintf("INFO", 0, "Enabled peer-to-peer access between local GPU devices %d and %d\n", LID, i);
         }
     }
