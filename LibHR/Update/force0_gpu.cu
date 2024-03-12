@@ -27,6 +27,8 @@ void force0_kernel_gpu(suNg_av_field *force, double coeff) {
         const int N = glattice.master_end[ixp] - glattice.master_start[ixp] + 1;
         const int block_start = glattice.master_start[ixp];
         const int grid = (N - 1) / BLOCK_SIZE + 1;
+        start_sendrecv_suNg_field(u_gauge);
+        complete_sendrecv_suNg_field(u_gauge);
 #ifdef PLAQ_WEIGHTS
         _force0_gpu<<<grid, BLOCK_SIZE, 0, 0>>>(u_gauge->gpu_ptr, force->gpu_ptr, coeff, iup_gpu, idn_gpu, plaq_weight_gpu, N,
                                                 block_start);

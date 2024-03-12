@@ -18,6 +18,8 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
+
 //error.c
 /**
     * @brief Print message to error file defined on startup.
