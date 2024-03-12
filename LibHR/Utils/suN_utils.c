@@ -28,7 +28,7 @@ visible void vector_star(suNg_vector *v1, suNg_vector *v2) {
 }
 
 #ifdef GAUGE_SON
-static void normalize(double *v) {
+static void normalize_suN(double *v) {
     double fact = 0;
     int i;
     for (i = 0; i < NG; ++i) {
@@ -39,7 +39,7 @@ static void normalize(double *v) {
         v[i] *= fact;
     }
 }
-static void normalize_flt(float *v) {
+static void normalize_suN_flt(float *v) {
     float fact = 0;
     int i;
     for (i = 0; i < NG; ++i) {
@@ -51,90 +51,19 @@ static void normalize_flt(float *v) {
     }
 }
 #elif !defined(WITH_QUATERNIONS)
-visible static void normalize(suNg_vector *v) {
+visible void normalize_suN(suNg_vector *v) {
     double fact;
     _vector_prod_re_g(fact, *v, *v);
     fact = 1.0 / sqrt(fact);
     _vector_mul_g(*v, fact, *v);
 }
-visible static void normalize_flt(suNg_vector_flt *v) {
+visible void normalize_suN_flt(suNg_vector_flt *v) {
     float fact;
     _vector_prod_re_g(fact, *v, *v);
     fact = 1.0f / sqrtf(fact);
     _vector_mul_g(*v, fact, *v);
 }
 #endif
-
-visible void project_to_suNg(suNg *u) {
-#ifdef GAUGE_SON
-    hr_complex norm;
-    _suNg_sqnorm(norm, *u);
-    if (creal(norm) < 1.e-28) { return; }
-
-    double *v1, *v2;
-    int i, j, k;
-    double z;
-    for (i = 0; i < NG; ++i) {
-        v2 = &u->c[i * NG];
-        for (j = 0; j < i; ++j) {
-            v1 = &u->c[j * NG];
-            z = 0;
-            for (k = 0; k < NG; ++k) {
-                z += v1[k] * v2[k];
-            } /*_vector_prod_re_g */
-            for (k = 0; k < NG; ++k) {
-                v2[k] -= z * v1[k];
-            } /*_vector_project_g */
-        }
-        normalize(v2);
-    }
-#else
-#ifdef WITH_QUATERNIONS
-    double norm;
-    _suNg_sqnorm(norm, *u);
-    if (norm < 1.e-28) { return; }
-
-    _suNg_sqnorm(norm, *u);
-    norm = sqrt(0.5 * norm);
-    norm = 1. / norm;
-    _suNg_mul(*u, norm, *u);
-
-#else
-    hr_complex norm;
-    _suNg_sqnorm(norm, *u);
-    if (creal(norm) < 1.e-28) { return; }
-
-    int i, j;
-    suNg_vector *v1, *v2;
-    hr_complex z;
-
-    v1 = (suNg_vector *)(u);
-    v2 = v1 + 1;
-    normalize(v1);
-    for (i = 1; i < NG; ++i) {
-        for (j = i; j > 0; --j) {
-            _vector_prod_g(z, *v1, *v2);
-            _vector_project_g(*v2, z, *v1);
-            ++v1;
-        }
-        normalize(v2);
-#ifdef WITH_GPU
-        // This did not work before without this absolutely cryptic line
-        // the compiler now shoes me an error. Might this now
-        // work without?
-        //memcpy(u->c + NG * i, v2, sizeof(suNg_vector));
-#endif
-        ++v2;
-        v1 = (suNg_vector *)(u);
-    }
-
-    det_Cmplx_Ng(&norm, u);
-    norm = cpow(norm, -1. / NG);
-    _suNg_mul_assign(*u, norm);
-
-#endif
-#endif
-}
 
 void project_to_suNg_flt(suNg_flt *u) {
 #ifdef GAUGE_SON
@@ -157,7 +86,7 @@ void project_to_suNg_flt(suNg_flt *u) {
                 v2[k] -= z * v1[k];
             } /*_vector_project_g */
         }
-        normalize_flt(v2);
+        normalize_suN_flt(v2);
     }
 #else
 #ifdef WITH_QUATERNIONS
@@ -183,14 +112,14 @@ void project_to_suNg_flt(suNg_flt *u) {
     v1 = (suNg_vector_flt *)(u);
     v2 = v1 + 1;
 
-    normalize_flt(v1);
+    normalize_suN_flt(v1);
     for (i = 1; i < NG; ++i) {
         for (j = i; j > 0; --j) {
             _vector_prod_g(z, *v1, *v2);
             _vector_project_g(*v2, z, *v1);
             ++v1;
         }
-        normalize_flt(v2);
+        normalize_suN_flt(v2);
         ++v2;
         v1 = (suNg_vector_flt *)(u);
     }
@@ -198,7 +127,7 @@ void project_to_suNg_flt(suNg_flt *u) {
         ud.c[i] = (hr_complex)(u->c[i]);
     }
 
-    det_Cmplx_Ng(&dnorm, &ud);
+    //det_Cmplx_Ng(&dnorm, &ud);
     dnorm = cpow(dnorm, -1. / NG);
     _suNg_mul_assign(*u, dnorm);
 
