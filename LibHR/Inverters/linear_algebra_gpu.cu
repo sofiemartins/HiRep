@@ -5,10 +5,10 @@
 #ifdef WITH_GPU
 //This file should not be compiled if !WITH_GPU
 
-#include "inverters.h"
 #include "libhr_core.h"
 #include "geometry.h"
 #include "Utils/generics.h"
+#include "inverters.h"
 
 #define _CUDA_FOR(s, ixp, body)                                                        \
     do {                                                                               \
@@ -44,6 +44,21 @@
 // Linear Algebra functions are generic
 // They are parametrized over the input types for double/single precision
 // The template for GPU is in TMPL/linear_algebra_gpu.cu.tmpl
+
+quad_double *alloc_quad_double_sum_field(int n) {
+    static quad_double *res = NULL;
+    static int n_size = 0;
+    if (n > n_size && res != NULL) {
+        cudaFree(res);
+        res = NULL;
+    }
+
+    if (res == NULL) {
+        cudaMalloc((void **)&res, n * sizeof(quad_double));
+        n_size = n;
+    }
+    return res;
+}
 
 // double precision
 #define _FIELD_TYPE spinor_field

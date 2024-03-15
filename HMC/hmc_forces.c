@@ -29,7 +29,7 @@
 #include "spectrum.h"
 #include "print_compile_options.h"
 #include "representation.h"
-#include "linear_algebra.h"
+#include "inverters.h"
 #include "setup.h"
 
 /* flow control variable */

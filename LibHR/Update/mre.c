@@ -10,7 +10,7 @@
 #include "libhr_core.h"
 #include "memory.h"
 #include "io.h"
-#include "Inverters/linear_algebra.h"
+#include "inverters.h"
 
 //#define cabs(a) sqrt(_complex_prod_re(a,a))
 #define MAX 15

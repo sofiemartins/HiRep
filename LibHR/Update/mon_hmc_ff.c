@@ -11,7 +11,7 @@
 #include "libhr_core.h"
 #include "memory.h"
 #include "random.h"
-#include "Inverters/linear_algebra.h"
+#include "inverters.h"
 
 static spinor_field *tmp_pf = NULL;
 static int mon_init = 1;

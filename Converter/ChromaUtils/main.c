@@ -16,7 +16,7 @@
 #include "suN.h"
 #include "suN_types.h"
 #include "dirac.h"
-#include "linear_algebra.h"
+#include "inverters.h"
 #include "inverters.h"
 #include "representation.h"
 #include "utils.h"

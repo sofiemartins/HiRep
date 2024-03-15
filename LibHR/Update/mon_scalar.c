@@ -7,7 +7,7 @@
 #include "libhr_core.h"
 #include "memory.h"
 #include "random.h"
-#include "Inverters/linear_algebra.h"
+#include "inverters.h"
 
 void scalar_blank(monomial const *m) {
     /* empty */

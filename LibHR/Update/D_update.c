@@ -1,6 +1,6 @@
 #include "update.h"
 #include "libhr_core.h"
-#include "Inverters/linear_algebra.h"
+#include "inverters.h"
 #include "io.h"
 #include "memory.h"
 

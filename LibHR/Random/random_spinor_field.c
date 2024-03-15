@@ -5,7 +5,7 @@
 
 #include "random.h"
 #include "libhr_core.h"
-#include "Inverters/linear_algebra.h"
+#include "inverters.h"
 #include "Utils/boundary_conditions.h"
 #include "memory.h"
 

@@ -5,7 +5,7 @@
 
 #include "update.h"
 #include "libhr_core.h"
-#include "Inverters/linear_algebra.h"
+#include "inverters.h"
 #include "error.h"
 #include "memory.h"
 #include "utils.h"

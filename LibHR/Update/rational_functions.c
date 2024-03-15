@@ -6,7 +6,7 @@
 #include "update.h"
 #include "libhr_core.h"
 #include "memory.h"
-#include "Inverters/linear_algebra.h"
+#include "inverters.h"
 #include "io.h"
 
 /* include rational approximations database */

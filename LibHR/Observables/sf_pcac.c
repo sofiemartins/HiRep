@@ -2,7 +2,7 @@
 #include "libhr_core.h"
 #include "io.h"
 #include "memory.h"
-#include "Inverters/linear_algebra.h"
+#include "inverters.h"
 #include "Inverters/global_sum.h"
 #include "Update/dirac.h"
 

@@ -10,7 +10,7 @@
 #include "io.h"
 #include "memory.h"
 #include "utils.h"
-#include "Inverters/linear_algebra.h"
+#include "inverters.h"
 #include "Inverters/scalarfield_operations.h"
 
 //The flavors are not degenerate, the pi field has opposite sign
