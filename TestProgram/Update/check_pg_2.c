@@ -8,6 +8,7 @@
 
 int main(int argc, char *argv[]) {
     int return_val = 0;
+    std_comm_t = ALL_COMMS; // Communications of both the CPU and GPU field copy are necessary
     setup_process(&argc, &argv);
     setup_gauge_fields();
 
@@ -17,6 +18,8 @@ int main(int argc, char *argv[]) {
 
     random_suNg_field_cpu(u_gauge);
     copy_to_gpu_suNg_field(u_gauge);
+    start_sendrecv_suNg_field(u_gauge);
+    complete_sendrecv_suNg_field(u_gauge);
 
     // Random force
     suNg_av_field *force_gpu = alloc_suNg_av_field(&glattice);

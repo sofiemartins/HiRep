@@ -16,6 +16,7 @@ static double sigma;
 static double csw_value;
 static double cphi_exp_mass = 0;
 static double cphi_invexp_mass = 0;
+static int cphi_stale = 0;
 
 #define c_idx(i, j) ((i) * ((i) + 1) / 2 + (j))
 
@@ -28,7 +29,7 @@ static double cphi_invexp_mass = 0;
         CudaCheckError();                                                        \
     }
 
-__device__ static void clover_loop(int ix, int mu, int nu, suNf *u, suNf *gauge, int *iup_gpu, int *idn_gpu) {
+__device__ __forceinline__ static void clover_loop(int ix, int mu, int nu, suNf *u, suNf *gauge, int *iup_gpu, int *idn_gpu) {
     int o1, o2, o3;
     suNf s1, s2, s3;
     suNf u1, u2;
@@ -323,6 +324,7 @@ __global__ static void _compute_clover_term(suNfc *cl_term_gpu, double csw_value
         clover_loop(ix, 1, 3, &tmp[4], gauge, iup_gpu, idn_gpu);
         clover_loop(ix, 2, 3, &tmp[5], gauge, iup_gpu, idn_gpu);
 
+
         for (int i = 0; i < NF; i++) {
             for (int j = 0; j < NF; j++) {
                 int ij = i * NF + j;
@@ -384,10 +386,7 @@ void compute_clover_term_gpu() {
 
     apply_BCs_on_clover_term(cl_term);
 #if defined(WITH_EXPCLOVER) && defined(WITH_GPU)
-    double mass = get_dirac_mass();
-    mass = (4. + mass);
-    double invexpmass = 1.0 / mass;
-    Cphi_init(mass, invexpmass);
+    cphi_stale = 1;
 #endif
 }
 
@@ -452,7 +451,7 @@ __global__ void Cphi_init_(suNfc *cl_term, suNfc *cl_term_expAplus, suNfc *cl_te
 #endif
 
 void Cphi_init(double mass, double invexpmass) {
-    if (mass != cphi_exp_mass || invexpmass != cphi_invexp_mass) {
+    if (mass != cphi_exp_mass || invexpmass != cphi_invexp_mass || cphi_stale) {
         _PIECE_FOR((&glattice), ixp) {
             const int N = (&glattice)->master_end[ixp] - (&glattice)->master_start[ixp] + 1;
             const int grid = (N - 1) / BLOCK_SIZE_CLOVER + 1;
@@ -471,6 +470,7 @@ void Cphi_init(double mass, double invexpmass) {
         }
         cphi_exp_mass = mass;
         cphi_invexp_mass = invexpmass;
+        cphi_stale = 0;
     }
 }
 
@@ -489,10 +489,7 @@ void clover_init_gpu(double csw) {
     cudaMemset(cl_ldl->gpu_ptr, 0, sizeof(ldl_t) * glattice.gsize_gauge);
     cudaMemset(cl_force->gpu_ptr, 0, 6 * sizeof(suNf) * glattice.gsize_gauge);
 #if defined(WITH_EXPCLOVER) && defined(WITH_GPU)
-    double mass = get_dirac_mass();
-    mass = (4. + mass);
-    double invexpmass = 1.0 / mass;
-    Cphi_init(mass, invexpmass);
+    cphi_stale = 1;
 #endif
 
     sigma = 0xF00F;
