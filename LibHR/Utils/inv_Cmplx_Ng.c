@@ -40,7 +40,7 @@ visible void inv_Cmplx_Ng(suNg *a) {
     double d;
     int i, j;
     b = *a;
-    ludcmp(b.c, indx, &d, NG);
+    ludcmp(b.c, indx, &d);
     for (j = 0; j < NG; j++) {
         for (i = 0; i < NG; i++) {
             _complex_0(col[i]);
@@ -55,11 +55,12 @@ visible void inv_Cmplx_Ng(suNg *a) {
 
 #endif
 
-visible void ludcmp(hr_complex *a, int *indx, double *d, int N) {
+visible void ludcmp(hr_complex *a, int *indx, double *d) {
     const double tiny = 1.0e-20;
     int i, j, k, imax;
     double big, tmp, dum;
-    double *vv = (double *)malloc(N * sizeof(double));
+    const int N = NG;
+    double vv[NG];
     hr_complex ctmp, csum;
     *d = 1;
     for (j = 0; j < N; ++j) {
@@ -121,7 +122,6 @@ visible void ludcmp(hr_complex *a, int *indx, double *d, int N) {
             }
         }
     }
-    free(vv);
 }
 
 visible void lubksb(hr_complex *a, int *indx, hr_complex *b, int N) {
