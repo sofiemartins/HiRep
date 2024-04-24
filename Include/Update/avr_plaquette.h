@@ -21,6 +21,7 @@ extern double (*avr_plaquette)(void);
 extern void (*avr_plaquette_time)(double *plaqt, double *plaqs);
 extern void (*full_plaquette)(void);
 extern void (*local_plaquette)(scalar_field *s);
+void local_smoothness(scalar_field *sp, suNg_field *u);
 double local_plaq(int ix);
 void avr_ts_plaquette(void);
 void cplaq_wrk(hr_complex *ret, int ix, int mu, int nu);

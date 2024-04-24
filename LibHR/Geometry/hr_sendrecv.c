@@ -78,7 +78,9 @@ static comms_args *c_args = NULL;
 void communicate(comms_args *l) {
     // Initialize correct CUDA device context on consumer thread
     if (!init) {
+#ifdef WITH_GPU
         CHECK_CUDA(cudaSetDevice(LID));
+#endif
         init = 1;
     }
 

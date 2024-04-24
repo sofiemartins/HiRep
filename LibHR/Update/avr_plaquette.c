@@ -46,6 +46,33 @@ double plaq(int ix, int mu, int nu) {
 #endif
 }
 
+double plaq_u(suNg_field *u, int ix, int mu, int nu) {
+    int iy, iz;
+    double p;
+    suNg *v1, *v2, *v3, *v4, w1, w2, w3;
+
+    iy = iup(ix, mu);
+    iz = iup(ix, nu);
+
+    v1 = ((u->ptr) + coord_to_index(ix, mu));
+    v2 = ((u->ptr) + coord_to_index(iy, nu));
+    v3 = ((u->ptr) + coord_to_index(iz, mu));
+    v4 = ((u->ptr) + coord_to_index(ix, nu));
+
+    _suNg_times_suNg(w1, (*v1), (*v2));
+    _suNg_times_suNg(w2, (*v4), (*v3));
+    _suNg_times_suNg_dagger(w3, w1, w2);
+
+    _suNg_trace_re(p, w3);
+
+#ifdef PLAQ_WEIGHTS
+    if (plaq_weight == NULL) { return p; }
+    return plaq_weight[ix * 16 + mu * 4 + nu] * p;
+#else
+    return p;
+#endif
+}
+
 void cplaq(hr_complex *ret, int ix, int mu, int nu) {
     int iy, iz;
     suNg *v1, *v2, *v3, *v4, w1, w2, w3;
@@ -87,6 +114,34 @@ double local_plaq(int ix) {
     pa += plaq(ix, 3, 2);
 
     return pa;
+}
+
+void local_smoothness(scalar_field *sp, suNg_field *u) {
+#ifdef WITH_NEW_GEOMETRY
+    complete_sendrecv_suNg_field(u);
+#endif
+
+    _MASTER_FOR(&glattice, ix) {
+        double pa = plaq(ix, 1, 0);
+        double max = NG - pa;
+
+        pa = plaq_u(u, ix, 2, 0);
+        max = (max < (NG - pa)) ? NG - pa : max;
+
+        pa = plaq_u(u, ix, 2, 1);
+        max = (max < (NG - pa)) ? NG - pa : max;
+
+        pa = plaq_u(u, ix, 3, 0);
+        max = (max < (NG - pa)) ? NG - pa : max;
+
+        pa = plaq_u(u, ix, 3, 1);
+        max = (max < (NG - pa)) ? NG - pa : max;
+
+        pa = plaq_u(u, ix, 3, 2);
+        max = (max < (NG - pa)) ? NG - pa : max;
+
+        *_FIELD_AT(sp, ix) = max;
+    }
 }
 
 double avr_plaquette_cpu() {
