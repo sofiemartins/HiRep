@@ -122,7 +122,7 @@ void local_smoothness(scalar_field *sp, suNg_field *u) {
 #endif
 
     _MASTER_FOR(&glattice, ix) {
-        double pa = plaq(ix, 1, 0);
+        double pa = plaq_u(u, ix, 1, 0);
         double max = NG - pa;
 
         pa = plaq_u(u, ix, 2, 0);
