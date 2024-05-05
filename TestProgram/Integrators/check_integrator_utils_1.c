@@ -195,11 +195,11 @@ double integrate_ghmc(int regenerate, ghmc_par *update_par) {
         suN_momenta_copy = alloc_suNg_av_field(&glattice);
 
         u_gauge_copy = alloc_suNg_field(&glattice);
-        suNg_field_copy(u_gauge_copy, u_gauge);
+        copy_suNg_field(u_gauge_copy, u_gauge);
 
         if (u_scalar != NULL) {
             u_scalar_copy = alloc_suNg_scalar_field(&glattice);
-            suNg_scalar_field_copy(u_scalar_copy, u_scalar);
+            copy_suNg_scalar_field(u_scalar_copy, u_scalar);
         }
         pf_copy = (spinor_field **)malloc(num_mon() * sizeof(spinor_field *));
         for (int i = 0; i < num_mon(); i++) {
@@ -280,8 +280,8 @@ double integrate_ghmc(int regenerate, ghmc_par *update_par) {
 
     suNg_av_field_copy(suN_momenta, suN_momenta_copy);
     // we need to write the function for the scalar momenta Antonio
-    suNg_field_copy(u_gauge, u_gauge_copy);
-    if (u_scalar != NULL) { suNg_scalar_field_copy(u_scalar, u_scalar_copy); }
+    copy_suNg_field(u_gauge, u_gauge_copy);
+    if (u_scalar != NULL) { copy_suNg_scalar_field(u_scalar, u_scalar_copy); }
 
     for (int i = 0; i < num_mon(); ++i) {
         monomial const *m = mon_n(i);

@@ -671,6 +671,7 @@ static void WF_measure_and_store(suNg_field *V, storage_switch swc, data_storage
     start_sendrecv_suNg_field(V);
     local_smoothness(sp, V);
     double h = creal(max_scalar_field(sp));
+    free_field(sp);
 
     E = WF_E(V);
     Esym = WF_Esym(V);
