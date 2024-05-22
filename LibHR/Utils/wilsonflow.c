@@ -671,12 +671,14 @@ static void WF_measure_and_store(suNg_field *V, storage_switch swc, data_storage
     start_sendrecv_suNg_field(V);
     local_smoothness(sp, V);
     double h = creal(max_scalar_field(sp));
+    double hsq_avg = creal(sqnorm_scalar_field(sp));
     free_field(sp);
 
     E = WF_E(V);
     Esym = WF_Esym(V);
-    lprintf("WILSONFLOW", 0, "WF (t,E,t2*E,Esym,t2*Esym,TC,h) = %1.8e %1.16e %1.16e %1.16e %1.16e %1.16e %1.16e\n", *t, E,
-            *t * *t * E, Esym, *t * *t * Esym, TC, h);
+    lprintf("WILSONFLOW", 0,
+            "WF (t,E,t2*E,Esym,t2*Esym,TC,h,h2_avg) = %1.8e %1.16e %1.16e %1.16e %1.16e %1.16e %1.16e %1.16e\n", *t, E,
+            *t * *t * E, Esym, *t * *t * Esym, TC, h, hsq_avg);
     if (swc == STORE) {
         idx[0] = idmeas - 1;
         idx[1] = 0;
