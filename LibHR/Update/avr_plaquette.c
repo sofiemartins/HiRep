@@ -150,25 +150,25 @@ void local_variance(scalar_field *sp, suNg_field *u) {
 #endif
 
     _MASTER_FOR(&glattice, ix) {
-        double pa = plaq_u(u, ix, 1, 0);
-        double var = pa*pa;
+        double pa = NG - plaq_u(u, ix, 1, 0);
+        double var = pa;
 
-        pa = plaq_u(u, ix, 2, 0);
+        pa = NG - plaq_u(u, ix, 2, 0);
         var += pa*pa;
 
-        pa = plaq_u(u, ix, 2, 1);
+        pa = NG - plaq_u(u, ix, 2, 1);
         var += pa*pa;
 
-        pa = plaq_u(u, ix, 3, 0);
+        pa = NG - plaq_u(u, ix, 3, 0);
         var += pa*pa;
 
-        pa = plaq_u(u, ix, 3, 1);
+        pa = NG - plaq_u(u, ix, 3, 1);
         var += pa*pa;
 
-        pa = plaq_u(u, ix, 3, 2);
+        pa = NG - plaq_u(u, ix, 3, 2);
         var += pa*pa;
 
-        *_FIELD_AT(sp, ix) = var / 6.0;
+        *_FIELD_AT(sp, ix) = sqrt(var / 6.0);
     }
 }
 
