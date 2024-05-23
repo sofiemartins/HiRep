@@ -144,6 +144,34 @@ void local_smoothness(scalar_field *sp, suNg_field *u) {
     }
 }
 
+void local_variance(scalar_field *sp, suNg_field *u) {
+#ifdef WITH_NEW_GEOMETRY
+    complete_sendrecv_suNg_field(u);
+#endif
+
+    _MASTER_FOR(&glattice, ix) {
+        double pa = plaq_u(u, ix, 1, 0);
+        double var = pa*pa;
+
+        pa = plaq_u(u, ix, 2, 0);
+        var += pa*pa;
+
+        pa = plaq_u(u, ix, 2, 1);
+        var += pa*pa;
+
+        pa = plaq_u(u, ix, 3, 0);
+        var += pa*pa;
+
+        pa = plaq_u(u, ix, 3, 1);
+        var += pa*pa;
+
+        pa = plaq_u(u, ix, 3, 2);
+        var += pa*pa;
+
+        *_FIELD_AT(sp, ix) = var / 6.0;
+    }
+}
+
 double avr_plaquette_cpu() {
     static double pa = 0.;
 

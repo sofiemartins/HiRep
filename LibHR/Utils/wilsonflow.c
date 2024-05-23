@@ -671,7 +671,8 @@ static void WF_measure_and_store(suNg_field *V, storage_switch swc, data_storage
     start_sendrecv_suNg_field(V);
     local_smoothness(sp, V);
     double h = creal(max_scalar_field(sp));
-    double hsq_avg = creal(sqnorm_scalar_field(sp));
+    local_variance(sp, V);
+    double hsq_avg = creal(sqnorm_scalar_field(sp) / GLB_VOLUME);
     free_field(sp);
 
     E = WF_E(V);
