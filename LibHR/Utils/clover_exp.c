@@ -5,6 +5,7 @@
 
 #include <math.h>
 #include <float.h>
+#include <assert.h>
 
 #ifdef WITH_EXPCLOVER
 
@@ -367,13 +368,8 @@ visible static void doublehornerNF3(double *C, suNfc *A, int lNNexp) {
 
     int i, j, k;
     double q[2 * NF], qlast;
-
-    double **q2 = (double **)malloc((lNNexp + 1) * sizeof(double *));
-    for (int l = 0; l < lNNexp + 1; ++l) {
-        q2[l] = (double *)malloc((2 * NF) * sizeof(double));
-    }
-
-    //  for(i=0; i<2*NF-1;i++)printf("p[%d] = %2.20e\n", i, creal(p[i]));
+    assert(100 >= lNNexp);
+    double q2[100][2 * NF];
 
     for (j = 0; j <= lNNexp; j++) {
         q[0] = inverse_fact(lNNexp + 2);
@@ -415,11 +411,6 @@ visible static void doublehornerNF3(double *C, suNfc *A, int lNNexp) {
             C[2 * NF * j + i] = q[j];
         }
     }
-
-    for (int l = 0; l < lNNexp + 1; ++l) {
-        free(q2[l]);
-    }
-    free(q2);
 }
 
 #endif
@@ -442,12 +433,8 @@ visible static void doublehornerNF2(double *C, suNfc *A, int lNNexp) {
     int i, j, k;
     double q[2 * NF], qlast;
 
-    double **q2 = (double **)malloc((lNNexp + 1) * sizeof(double *));
-    for (int l = 0; l < lNNexp + 1; ++l) {
-        q2[l] = (double *)malloc((2 * NF) * sizeof(double));
-    }
-
-    //  for(i=0; i<2*NF-1;i++)printf("p[%d] = %2.20e\n", i, creal(p[i]));
+    assert(100 >= lNNexp);
+    double q2[100][2 * NF];
 
     for (j = 0; j <= lNNexp; j++) {
         q[0] = inverse_fact(lNNexp + 2);
@@ -489,11 +476,6 @@ visible static void doublehornerNF2(double *C, suNfc *A, int lNNexp) {
             C[2 * NF * j + i] = q[j];
         }
     }
-
-    for (int l = 0; l < lNNexp + 1; ++l) {
-        free(q2[l]);
-    }
-    free(q2);
 }
 #endif
 
