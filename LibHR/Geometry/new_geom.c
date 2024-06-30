@@ -9,7 +9,7 @@
 
 // this will include the 4th L2 corner in the geometry
 // it's not needed, was here for testing purposed
-// #define _INCLUDE_UP_UP_L2
+#define _INCLUDE_UP_UP_L2
 
 char *const LOGTAG = "GEOMETRY DEFINE";
 

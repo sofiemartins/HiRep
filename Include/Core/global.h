@@ -72,10 +72,11 @@ GLB_VAR(int, PB_Y, = 2);
 GLB_VAR(int, PB_Z, = 2);
 
 /* MPI stuff */
-GLB_VAR(int, WORLD_SIZE, = 1); /* mpi rank for this process */
-GLB_VAR(int, CART_SIZE, = 1); /* mpi rank for this process */
+GLB_VAR(int, WORLD_SIZE, = 1); /* total number of processes launched with MPI */
+GLB_VAR(int, CART_SIZE, = 1); /* total number of processes in the cartesian communicator */
 GLB_VAR(int, N_REP, = 1); /* number of replicas*/
-GLB_VAR(int, MPI_WORLD_SIZE, = 1); /* mpi rank for this process */
+GLB_VAR(int, MPI_WORLD_SIZE, = 1); /* total number of processes launched with MPI */
+GLB_VAR(int, MPI_NODE_WORLD_SIZE, = 1); /* number of processes on local node */
 GLB_VAR(int, MPI_PID, = 0); /* mpi rank inside MPI_COMM_WORLD (unique across replicas) */
 #ifdef WITH_MPI
 #include <hr_mpi.h>

@@ -148,6 +148,7 @@ int setup_process(int *argc, char ***argv) {
     MPI_Comm shared_comm;
     MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &shared_comm);
     MPI_Comm_rank(shared_comm, &LID);
+    MPI_Comm_size(shared_comm, &MPI_NODE_WORLD_SIZE);
 #else
     RID = 0;
     PID = 0;

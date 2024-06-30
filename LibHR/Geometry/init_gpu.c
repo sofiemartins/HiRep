@@ -90,7 +90,9 @@ int enable_GPU_peer_to_peer_access() {
     int device_count = 0;
     CHECK_CUDA(cudaGetDeviceCount(&device_count));
 
-    for (int i = 0; i < device_count; ++i) {
+    error(device_count < MPI_NODE_WORLD_SIZE, 1, __func__, "Insufficient GPUs for the number of launched MPI processes.\n");
+    for (int i = 0; i < MPI_NODE_WORLD_SIZE;
+         ++i) { // Only make devices available that are needed for the given number of local processes
         if (i != LID) {
             int peer_access_available = 0;
             CHECK_CUDA(cudaDeviceCanAccessPeer(&peer_access_available, LID, i));
