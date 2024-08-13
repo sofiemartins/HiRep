@@ -103,7 +103,6 @@ void measure_spectrum_pt(int tau, int nm, double *m, int n_mom, int conf_num, do
             copy_from_gpu(prop + 4 * k + beta);
         }
 #endif
-        if (k == 0) { printf("prop no 1 @ idx 5: %0.15e\n", creal((*_FIELD_AT(prop, 5)).c[0].c[0])); }
         if (n_mom > 1) {
             measure_point_mesons_momenta(meson_correlators, prop + 4 * k, source, nm, tau, n_mom);
         } else {
