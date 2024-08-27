@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   docs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Download HiRep
         run: wget https://github.com/claudiopica/HiRep/archive/${{ github.sha }}.tar.gz && tar -xvf ${{ github.sha }}.tar.gz --strip-components=1
@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: graphviz texlive-base
+          packages: graphviz texlive
           version: 1.0
 
       - name: Restore Doxygen 1.9.4 from cache
