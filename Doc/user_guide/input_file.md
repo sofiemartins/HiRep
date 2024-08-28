@@ -668,3 +668,38 @@ disc:n_mom = 1
 ```
 
 Maximum component of the momentum, default: 1.
+
+## Wilson Flow
+
+```
+WF:integrator = 2
+```
+
+Wilson flow integrator used. Options are
+
+1. 0: Euler integration
+2. 1: 3rd-order Runge-Kutta integration
+3. 2: Adaptive 3rd-order Runge-Kutta integration
+
+```
+WF:tmax = 0.2
+```
+
+Maximal evolution time in the Wilson flow evolution.
+
+```
+WF:nmeas = 1
+```
+
+Number of measurements. Putting one here measures once at `WF:tmax`, in this example at 0.2 flow time. Putting 100 here will measure after each step of 2e-3.
+
+```
+WF:eps = 0.002
+WF:delta= 0.00001
+```
+
+Adaptive epsilon and delta parameters for the (adaptive) integrator.
+
+```
+WF:configlist = list_confs.txt
+```
