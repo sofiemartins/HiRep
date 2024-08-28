@@ -137,6 +137,16 @@ MACRO += LARGE_N
 
 This option is also useful for all gauge groups when using AMD GPUs because the kernel is optimized to minimize register pressure.
 
+#### Hardware locality
+
+For GPU setups, you can use `hwloc` to make sure that the CPUs used to manage the GPUs on a node are located in the same NUMA domain. For this compile with
+
+```
+MACRO += HWLOC
+```
+
+and dynamically link -lhwloc in the LDFLAGS.
+
 ### Compiler options
 
 To compile the code for your laptop, you only need to set the C compiler. For example 
