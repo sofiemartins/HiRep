@@ -1,6 +1,241 @@
 @page input_file Input File Configuration
 [TOC]
-## Integrator
+## Lattice Geometry
+
+Configure the size of your lattice by setting the variables
+
+```
+GLB_T = 8
+GLB_X = 8
+GLB_Y = 8
+GLB_Z = 8
+```
+
+## Parallelization
+
+Configurate the decomposition into local lattices by determining the MPI decomposition. For example the smallest local lattice is `3x3x3x3`, so an allowed configuration would be
+
+```
+GLB_T = 6
+GLB_X = 6
+GLB_Y = 6
+GLB_Z = 6
+NP_T = 2
+NP_X = 2
+NP_Y = 2
+NP_Z = 2
+```
+
+using NP\_T*NP\_X*NP\_Y*NP\_Z=16 processes.
+
+HiRep also allows decomposition into unevenly sized local lattices, meaning not all processes have the same size of the local lattice. For example, the following decomposition is allowed
+
+```
+GLB_T = 10
+GLB_X = 8
+GLB_Y = 8
+GLB_Z = 8
+NP_T = 3
+NP_X = 2
+NP_Y = 2
+NP_Z = 2
+```
+
+cutting the lattice into local lattices of either `3x4x4x4` or `4x4x4x4` and using 24 processes. In general, this is discouraged, because then the different CPUs have different amount of work. Further, even-odd preconditioning enforces lattices with even lattice extents, so the highest performing decomposition is likely going to be one where all the local lattices are the same size and even. 
+
+## Random number generator
+
+This software uses RANLUX @cite Luscher:1993dy random numbers. You can configure this random number generator.
+
+### Level
+
+```
+rlx_level = 1
+```
+
+configures the level of the RANLUX random number generator. These levels refer to the number of random numbers to be discarded in between two random numbers used for the simulation. In general the random number generation is not a bottleneck in the simulations, so choose the necessary quality here. A higher level indicates higher quality of the random numbers in exchange for more necessary computation. However, `rlx_level=1` is usually sufficient for any application within the scope of this library.
+
+### Seed
+
+```
+rlx_seed = 60718
+```
+
+The seed is only used when the random number generator is not initialized from a saved random number state. Please be very careful to consider the following notes.
+
+1. It is very important that if you stop and restart a simulation, for example with the HMC, that you do not restart from the same seed otherwise unwanted and unphysical correlations will be introduced into your results. 
+2. <span style="color:red">**If you are using MPI be aware that you are not using only a single seed, but a seed range, where the first element is 60718 and the last element is 60718 + number of processes.**</span> This means that if, for example, you have a parallelized simulation with 16 processes and you stop and restart from a seed and you change your seed to 60719 your results will be correlated. You will have to set it to at least 60734.
+3. While you can restart from a saved state, the saved state will only be valid for a specific MPI layout. If you move to more or less processes, you will have to restart from a new seed.
+
+### Random number state
+
+```
+rlx_state = rlx_state
+```
+
+This defines the file where the state will be saved to. For reproducibility it is also possible to store the random number states alongside the configurations. The default choice here is no, which means there will be no possibility to restore the exact random number state after a certain configuration. Note that the file above will always be updated/overwritten, while the states for reproducibility will be stored in the same directory as the configurations.
+
+```
+rlx_store = 1 // Store random number state alongside each configuration for reproducibility (default 0=no, 1=yes)
+```
+
+### Restart from state or generate new
+
+```
+rlx_start = new
+```
+
+This option uses the seed to initialize a range of random number generators, one for each process. These states will then be written to file to restart from the latest state with the given MPI layout.
+
+```
+rlx_start = continue
+```
+
+This reads the random number state given in `rlx_state` and overwrites this with a new state when the configuration is written out. The recommended workflow for best reproducibility is to set `rlx_store=1` and then copy the state stored alongside the configuration to the file in the working directory given in `rlx_state`. 
+
+## Logger
+
+For debbuging purposes you may increase the logger level (typical next levels would be 20, 50 or 100). In standard production settings the default is sufficient.
+
+```
+//Logger levels (default = -1)
+log:default = -1
+log:inverter = -1
+log:forcestat = -1
+```
+
+## Fermion twisting
+
+This option is only available if you compiled the corresponding direction with `BC_\<DIR\>_THETA`. Then you can set a global fermion phase into this direction by setting
+
+```
+theta_\<DIR\> = 0.
+```
+
+where 0. has to be replaced by the desired phase.
+
+## HMC variables
+
+```
+tlen = 1.0
+csw = 1.1329500
+```
+
+`tlen` corresponds to the length of the trajectory and `csw` is the Sheikholeslami-Wohlert coefficient that is only available if the code has been compiled with clover improvement, i.e. either with `WITH_CLOVER` or `WITH_EXPCLOVER`.
+
+```
+run name = run1
+```
+
+The run name will be used to name the configurations written out.
+
+```
+save freq = 1
+```
+
+How often configurations should be saved. Putting `1` here implied all configurations will be saved (every 1st trajectory) and putting `20` means every 20th trajectory will be saved.
+
+```
+meas freq = 1
+```
+
+If measurements are selected, this is the frequency with which they are done. For example, I could save only every 20th trajectory but select `2` here to measure the plaquette value and polyakov loops after every second trajectory. 
+
+```
+conf dir = cnfg
+```
+
+Specify here the directory in the current working directory where the configurations will be written out. The code does not create the directory and will fail if it does not exist, so you will have to create it before starting the simulation.
+
+```
+gauge start = random
+```
+
+Starting value for the gauge configuration. Possible values are `random`=hot start, `unit`=cold start, a file name of a file that is located in the directory given in `conf dir`=start up from a saved configuration. Note that you have to give the path of this file relative to the `conf dir`. For example is the start up configuration is called `run1_n0` and is located in `cnfg` you put here `run1_n0` and **not** `cnfg/run1_n0`. 
+  
+```
+last conf = +1
+```
+
+This option allows you to specify the number of trajectories you want to generate. Note that there is a different between `+1` and `1`. The "+" in front of `last conf` specifies the number of additional trajectories to be generated after the chosen startup configuration. I.e. if the startup configuration is trajectory number 5 and `last conf = 6` then one additional trajectory will be generated, while if `last conf = +6` then six additional trajectories will be generated (i.e. the last configuration generated will be number 11).
+
+## Online measurements
+
+### Eigenvalue tracking
+
+```
+eva:make = false
+```
+Set this to true to track eigenvalues for a selected number of standard operators at the end of the trajectories given the frequency of measurements.
+
+```
+eva:nevt = 5
+```
+
+Search space dimension in searching for eigenvalues. This is limited by memory, because fields need to be allocated for this, so if the application runs out of memory, try to reduce this number.
+
+```
+eva:nev = 1
+```
+
+Number of accurate eigenvalues that should be found.
+
+```
+eva:kmax = 50
+eva:maxiter = 100
+eva:omega1 = 1.e-3
+eva:omega2 = 1.e-3
+```
+
+Parameters of the eigenvalue search algorithm: `eva:kmax` describes the maximum degree of the polynomial, `eva:maxiter` the maximum number of subiterations, `eva:omega1` is the absolute precision and `eva:omega2` the relative precision.
+
+```
+eva:mass = 1.0
+```
+
+Input mass for the eigenvalue calculations.
+
+### Connected contributions to the correlation functions
+
+```
+mes:make = false
+```
+
+Set this to true to measure connected contributions to the correlation functions for a selected number of standard operators at the end of the trajectories given the frequency of measurements.
+
+```
+mes:mass = -0.60
+```
+
+Input masses for the measurements. 
+
+```
+mes:precision = 1.e-24
+```
+
+Squared relative inverter precision. Here the theoretical highest precision is 1.e-30 corresponding to 1.e-15 computer precision. The higher this precision, the more expensive is this calculation. Often 1.e-16 is sufficient.
+
+```
+mes:nhits = 3
+```
+
+Number of sources used in the calculation. The simulation output for the connected contributions towards the correlation function will be done after the stochastic average. So the output will contain a single value for the correlation for each time slice and configuration.
+
+```
+mes:csw = 1.0
+```
+
+Value of the Sheikholeslami-Wohlert coefficient using during measurements.
+
+### Polyakov loops
+
+```
+poly:make = false
+```
+
+Set this to `true` if you want the polyakov loops to be measured at the end of trajectories given the measurement frequency. 
+
+## Integrators
 
 The HiRep code uses a multilevel integrator and each integrator level has to be specified in the input file.
 
