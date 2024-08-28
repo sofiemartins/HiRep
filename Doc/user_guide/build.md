@@ -115,11 +115,11 @@ The setting
 MACRO += COMMS_NONBLOCKING
 ```
 
-switches from sequential blocking communications to immediately returning calls. For multi-GPU jobs on unusual node and network topologies the blocking communications perform better, avoiding too many requests to pile up. However, for large jobs on a supercomputer, the non-blocking communications are substantially faster. While the default option is to use blocking communications, performance tuning is possible by adding this flag.
+switches from sequential blocking communications to immediately returning calls. For multi-GPU jobs on unusual node and network topologies, blocking communications perform better, avoiding too many requests from piling up. However, for large jobs on a supercomputer, non-blocking communications are substantially faster. While the default option is to use blocking communications, performance tuning is possible by adding this flag.
 
 #### New and old geometry
 
-While for GPUs the new geometry is the only supported options, the old geometry minimizes the amount of copies necessary for the send buffer synchronization, so you may want to use the old geometry when compiling for CPUs. However, there is a dependence on the system, so its worth testing both to see which one gives the better performance in your production setting.
+While the new geometry is the only supported option for GPUs, the old geometry minimizes the number of copies necessary for the send buffer synchronization, so you may want to use the old geometry when compiling for CPUs. However, there is a dependence on the system, so it is worth testing to see which performs better in your production setting.
 
 The old geometry is the default. When one wants to use the new geometry, compile with
 
@@ -135,7 +135,7 @@ For GPU setups, there is a kernel improvement that scales better for large gauge
 MACRO += LARGE_N
 ```
 
-This option is also useful for all gauge groups when using AMD GPUs, because the kernel is optimized to minimize register pressure.
+This option is also useful for all gauge groups when using AMD GPUs because the kernel is optimized to minimize register pressure.
 
 ### Compiler options
 
