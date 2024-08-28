@@ -124,6 +124,12 @@ csw = 1.1329500
 `tlen` corresponds to the length of the trajectory and `csw` is the Sheikholeslami-Wohlert coefficient that is only available if the code has been compiled with clover improvement, i.e. either with `WITH_CLOVER` or `WITH_EXPCLOVER`.
 
 ```
+N_REP = 1
+```
+
+Number of replicas to be generated. With MPI these are parallelized trivially.
+
+```
 run name = run1
 ```
 
@@ -527,3 +533,138 @@ Include this in the input file using the type `rhmc`. One further needs to speci
 ## Chronological Inverter
 
 When using the chronological inverter the force precision should be \f$10^{-14}\f$ or better to ensure reversibility in the algorithm. Further, masses given in monomials should include the mass shift.
+
+## Connected Contributions
+
+```
+mes:csw = 1.0
+mes:precision = 1.e-14
+```
+
+Set Sheikholeslami-Wohlert coefficient and squared relative inverter precision. 
+
+```
+mes:nhits_2pt = 5
+mes:mass = -0.45
+```
+
+Number of stochastic sources and input mass used in the connected contributions to the correlation function.
+
+```
+mes:meas_mixed = 1
+```
+
+Enable this, (0=disabled, 1=enabled) if mixed channels should be measured, not just standard channels.
+
+```
+mes:momentum = 0
+```
+
+Maximum component of momenta. Default is 0. Some choice of sources only allow this choice.
+
+```
+mes:def_semwall = 0
+mes:def_point = 1
+mes:def_gfwall = 0
+mes:ext_semwall = 0
+mes:ext_point = 0
+```
+
+Here one can select the type of source used to measure the connected contributions. For each of the choices above that are enabled (disabled=0, enabled=1), the correlation function will be calculated and printed to output. For the connected contributions, the stochastic average will be correctly evaluated automatically. Choices are
+
+1. def_semwall: Default Spin-Explicit-Method Wall sources
+2. def_point: Default point sources
+3. def_gfwall: Default Gauge-fixed Wall sources
+4. ext_semwall: Extended Spin-Explicit-Method Wall sources
+5. ext_point: Extended point sources
+
+```
+mes:def_baryon = 0
+```
+
+Enable baryon measurements.
+
+```
+mes:dirichlet_dt = 2
+mes:dirichlet_semwall = 0
+mes:dirichlet_point = 0
+mes:dirichlet_gfwall = 0
+```
+
+Sources with dirichlet boundary conditions. Here the options are 
+
+1. dirichlet_semwall: Spin-Explicit-Method Wall sources with Dirichlet boundary conditions
+2. dirichlet_point: Point sources with Dirichlet boundary conditions
+3. dirichlet_gfwall: Gauge-fixed Wall sources with Dirichlet boundary conditions
+
+Set `mes:dirichlet_dt` to the distance to the boundary.
+
+```
+mes:degree_hopping = 0
+mes:nhits_hopping = 5
+```
+
+Settings for the hopping parameter expansion. Setting `mes:degree_hopping=0` disables the evaluation of correlation functions using the hopping parameter expansion, otherwise use a positive integer as the order of the expansion. `mes:nhits_hopping` denotes the number of sources used in the stochastic average.
+
+```
+ff:on = false
+```
+
+Include four-fermion interactions.
+
+```
+mes:configlist = list_conf.txt
+```
+
+A list of paths were configurations are stored relative to the current working directory. This means that for example if `conf dir=cnfg` this directory is included in the path, for example `cnfg/run1_n100`. 
+
+<span style="color:red">**Any settings for disconnected contributions in the folder `Spectrum` have no guarantee of working and are therefore not documented here. Please refer to the next section**</span>
+
+## Disconnected Contributions
+
+The binary in `Disconnected` is the only working code to evaluate disconnected contributions to correlation functions. In addition to the standard parameters to define the random numbers, lattice size and parallelization on has to set the following options:
+
+```
+disc:mass = -0.6
+```
+
+Is the input quark mass.
+
+```
+disc:precision = 1e-20
+```
+
+Is the squared relative inverter precision, i.e. this corresponds to a relative precision of 1e-10 and the maximum setting is 1e-30 which corresponds to 1e-15 relative precision (double precision).
+
+```
+disc:nhits = 2
+```
+
+Number of sources used for the calculation. This code will then produce one-point operator measurements for each time slice, channel and source (plus additional depending on the type of the source). The correlation function needs to be manually evaluated, taking the appropriate stochastic average and, if applicable, subtracting the vacuum expectation value. 
+
+```
+disc:source_type = 0
+```
+
+Type of source. Available types are 
+
+* 0: Pure volume sources
+* 1: Gauge fixed wall sources
+* 2: Volume sources with time and spin dilution
+* 3: Volume sources with time, spin and color dilution
+* 4: Volume sources with time, spin, color and even-odd dilution
+* 6: Volume source with spin, color and even-odd dilution 
+
+See more documentation on the sources in section `Analysis`.
+
+```
+disc:configlist = list_conf.txt
+```
+
+A list of paths were configurations are stored relative to the current working directory. This means that for example if `conf dir=cnfg` this directory is included in the path, for example `cnfg/run1_n100`. 
+
+```
+disc:n_mom = 1
+```
+
+Maximum component of the momentum, default: 1.

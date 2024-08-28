@@ -18,7 +18,7 @@ rlx_store = 0
 
 disc:mass = -0.6
 disc:precision = 1e-20
-disc:nhits =2
-disc:source_type =0
+disc:nhits = 2
+disc:source_type = 0
 disc:configlist = list_conf.txt 
 disc:n_mom = 1
