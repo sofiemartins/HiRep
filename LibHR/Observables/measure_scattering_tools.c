@@ -1,12 +1,5 @@
-#include "observables.h"
-#include "libhr_core.h"
-#include "io.h"
-#include "memory.h"
-#include "utils.h"
-#include "random.h"
-#include <string.h>
-#include "geometry.h"
-#include "inverters.h"
+
+#include "libhr.h"
 
 /**
  *
@@ -122,6 +115,12 @@ static void do_global_sum(meson_observable *mo, double norm) {
  * @param tau Time slice corresponding to the boundary.
  */
 static void flip_T_bc(int tau) {
+#ifdef WITH_GPU
+    copy_from_gpu(u_gauge_f);
+    u_gauge_f->comm_type = CPU_COMM;
+    start_sendrecv_suNf_field(u_gauge_f);
+    complete_sendrecv_suNf_field(u_gauge_f);
+#endif
     int index;
     int ix, iy, iz;
     suNf *u;
@@ -146,6 +145,12 @@ static void flip_T_bc(int tau) {
             }
         }
     }
+#ifdef WITH_GPU
+    copy_to_gpu(u_gauge_f);
+    u_gauge_f->comm_type = GPU_COMM;
+    start_sendrecv_suNf_field(u_gauge_f);
+    complete_sendrecv_suNf_field(u_gauge_f);
+#endif
     lprintf("meson_measurements", 50, "Flipping DONE!\n");
 }
 
@@ -184,6 +189,11 @@ void init_src_common_point(struct src_common *src, int tau) {
     src->src_0_eta = alloc_spinor_field(4, &glattice);
     src->src_0_0 = alloc_spinor_field(4, &glattice);
     for (int i = 0; i < 4; i++) {
+#ifdef WITH_GPU
+        zero_spinor_field_cpu(&(src->src_0[i]));
+        zero_spinor_field_cpu(&(src->src_0_eta[i]));
+        zero_spinor_field_cpu(&(src->src_0_0[i]));
+#endif
         zero_spinor_field(&(src->src_0[i]));
         zero_spinor_field(&(src->src_0_eta[i]));
         zero_spinor_field(&(src->src_0_0[i]));
@@ -205,6 +215,11 @@ void init_src_common(struct src_common *src, int tau) {
     src->src_0_eta = alloc_spinor_field(4, &glattice);
     src->src_0_0 = alloc_spinor_field(4, &glattice);
     for (int i = 0; i < 4; i++) {
+#ifdef WITH_GPU
+        zero_spinor_field_cpu(&(src->src_0[i]));
+        zero_spinor_field_cpu(&(src->src_0_eta[i]));
+        zero_spinor_field_cpu(&(src->src_0_0[i]));
+#endif
         zero_spinor_field(&(src->src_0[i]));
         zero_spinor_field(&(src->src_0_eta[i]));
         zero_spinor_field(&(src->src_0_0[i]));
@@ -236,6 +251,14 @@ void init_src_p(struct src_p *srcp, struct src_common *src0, int px, int py, int
     srcp->src_mp_0 = alloc_spinor_field(4, &glattice);
 
     for (int i = 0; i < 4; i++) {
+#ifdef WITH_GPU
+        zero_spinor_field_cpu(&(srcp->src_p[i]));
+        zero_spinor_field_cpu(&(srcp->src_mp[i]));
+        zero_spinor_field_cpu(&(srcp->src_p_0[i]));
+        zero_spinor_field_cpu(&(srcp->src_0_p[i]));
+        zero_spinor_field_cpu(&(srcp->src_mp_0[i]));
+        zero_spinor_field_cpu(&(srcp->src_0_mp[i]));
+#endif
         zero_spinor_field(&(srcp->src_p[i]));
         zero_spinor_field(&(srcp->src_mp[i]));
         zero_spinor_field(&(srcp->src_p_0[i]));
@@ -282,6 +305,11 @@ void free_src_p(struct src_p *src) {
  */
 void make_propagator_P(spinor_field *prop, spinor_field *src, int ndilute, int tau) {
     calc_propagator(prop, src, ndilute);
+#ifdef WITH_GPU
+    for (int beta = 0; beta < ndilute; beta++) {
+        copy_from_gpu(prop + beta);
+    }
+#endif
 }
 
 /**
@@ -304,6 +332,11 @@ void make_propagator_PA(spinor_field *prop, spinor_field *src, int ndilute, int 
     }
 
     free_spinor_field(proptmp);
+#ifdef WITH_GPU
+    for (int beta = 0; beta < ndilute; beta++) {
+        copy_from_gpu(prop + beta);
+    }
+#endif
 }
 
 /**
@@ -335,9 +368,16 @@ void make_prop_common(struct prop_common *prop, struct src_common *src0, int ndi
     }
 
     for (int i = 0; i < 4; i++) {
+#ifdef WITH_GPU
+        zero_spinor_field_cpu(prop->Q_0 + i);
+        zero_spinor_field_cpu(prop->Q_0_eta + i);
+#endif
         zero_spinor_field(prop->Q_0 + i);
         zero_spinor_field(prop->Q_0_eta + i);
         for (int t = 0; t < GLB_T; t++) {
+#ifdef WITH_GPU
+            zero_spinor_field_cpu(prop->W_0_0[t] + i);
+#endif
             zero_spinor_field(prop->W_0_0[t] + i);
         }
     }
@@ -351,6 +391,20 @@ void make_prop_common(struct prop_common *prop, struct src_common *src0, int ndi
 
     free_spinor_field(tmp);
     create_sequential_source_stoch(src0->src_0_0, tau, prop->Q_0);
+
+#ifdef WITH_GPU
+    for (int beta = 0; beta < 4; beta++) {
+        copy_from_gpu(prop->Q_0 + beta);
+        copy_from_gpu(src0->src_0 + beta);
+        copy_from_gpu(prop->Q_0_eta + beta);
+        copy_from_gpu(src0->src_0_eta + beta);
+        copy_from_gpu(src0->src_0_0 + beta);
+        for (int ts = 0; ts < GLB_T; ts++) {
+            copy_from_gpu(prop->W_0_0[ts] + beta);
+        }
+    }
+#endif
+
     lprintf("MAIN", 0, "Propagator with momentum 0 inverted\n");
 }
 
@@ -1050,6 +1104,12 @@ void measure_pion_scattering_I2(double *m, int numsources, double precision, cha
             }
         }
         for (int i = 0; i < 4; i++) {
+#ifdef WITH_GPU
+            zero_spinor_field_cpu(prop_ts1 + i);
+            zero_spinor_field_cpu(prop_ts2 + i);
+            zero_spinor_field_cpu(source_ts1 + i);
+            zero_spinor_field_cpu(source_ts2 + i);
+#endif
             zero_spinor_field(prop_ts1 + i);
             zero_spinor_field(prop_ts2 + i);
         }
@@ -1061,6 +1121,15 @@ void measure_pion_scattering_I2(double *m, int numsources, double precision, cha
         create_diluted_source_equal_atau(source_ts2, ts);
         calc_propagator(prop_ts2, source_ts2, 4);
         lprintf("MAIN", 0, "Start to perform the contractions ...\n");
+
+#ifdef WITH_GPU
+        for (int beta = 0; beta < 4; beta++) {
+            copy_from_gpu(source_ts1 + beta);
+            copy_from_gpu(source_ts2 + beta);
+            copy_from_gpu(prop_ts1 + beta);
+            copy_from_gpu(prop_ts2 + beta);
+        }
+#endif
 
         // "standard" two points : pi and rho
         measure_mesons_core(prop_ts1, prop_ts1, source_ts1, pi1, 1, ts, 1, 0, GLB_T);
@@ -1131,6 +1200,10 @@ void measure_pion_scattering_I2(double *m, int numsources, double precision, cha
 }
 
 hr_complex Ralt_contract(spinor_field *prop1, spinor_field *prop2, int tref) {
+#ifdef WITH_GPU
+    copy_from_gpu(prop1);
+    copy_from_gpu(prop2);
+#endif
     int ix0, ix1, ix2, ix3, tc, i;
     hr_complex z = 0.0;
     suNf_spinor *sptr1;
@@ -1251,10 +1324,16 @@ void measure_pion_scattering_I0(double *m, int numsources, double precision, cha
     init_propagator_eo(1, m, precision);
     for (int src = 0; src < numsources; ++src) {
         for (int i = 0; i < 4; i++) {
+#ifdef WITH_GPU
+            zero_spinor_field_cpu(prop_ts2 + i);
+#endif
             zero_spinor_field(prop_ts2 + i);
         }
         for (int t = 0; t < GLB_T; t++) {
             for (int i = 0; i < 4; i++) {
+#ifdef WITH_GPU
+                zero_spinor_field_cpu(prop_ts1[src][t] + i);
+#endif
                 zero_spinor_field(prop_ts1[src][t] + i);
             }
         }
@@ -1280,22 +1359,46 @@ void measure_pion_scattering_I0(double *m, int numsources, double precision, cha
         for (int t = 0; t < GLB_T; ++t) {
             create_diluted_source_equal_atau(source_ts1[t], (t + ts) % GLB_T);
             calc_propagator(prop_ts1[src][t], source_ts1[t], 4);
+#ifdef WITH_GPU
+            for (int beta = 0; beta < 4; beta++) {
+                copy_from_gpu(prop_ts1[src][t] + beta);
+            }
+#endif
         }
 
         create_diluted_source_equal_atau(source_ts2, ts);
         calc_propagator(prop_ts2, source_ts2, 4);
+#ifdef WITH_GPU
+        for (int beta = 0; beta < 4; beta++) {
+            copy_from_gpu(prop_ts2 + beta);
+        }
+#endif
         if (seq_prop == 1) { // if seq_prop= true
             lprintf("MAIN", 0, "Creating sequential source...\n");
             create_sequential_source_stoch(seq_source, ts, prop_ts1[src][0]);
             calc_propagator(seq_0, seq_source, 4);
+#ifdef WITH_GPU
+            for (int beta = 0; beta < 4; beta++) {
+                copy_from_gpu(seq_0 + beta);
+            }
+#endif
             lprintf("MAIN", 0, "Sequential source inverted.\n");
 
             lprintf("MAIN", 0, "Contraction R...\n");
             for (int t = 0; t < GLB_T; ++t) {
                 create_sequential_source_stoch(seq_source, (ts + t) % GLB_T, prop_ts1[src][0]);
                 calc_propagator(seq_t, seq_source, 4);
-
+#ifdef WITH_GPU
+                for (int beta = 0; beta < 4; beta++) {
+                    copy_from_gpu(seq_t + beta);
+                }
+#endif
                 reset_mo(tmp_mo);
+#ifdef WITH_GPU
+                copy_from_gpu(seq_0);
+                copy_from_gpu(seq_t);
+                copy_from_gpu(source_ts1[0]);
+#endif
                 measure_mesons_core(seq_0, seq_t, source_ts1[0], tmp_mo, 1, ts, 1, 0, GLB_T);
                 do_global_sum(tmp_mo, 1.0); //
 
@@ -1307,6 +1410,9 @@ void measure_pion_scattering_I0(double *m, int numsources, double precision, cha
         lprintf("MAIN", 0, "Contraction V...\n");
         for (int t = 0; t < GLB_T; ++t) {
             reset_mo(tmp_mo);
+#ifdef WITH_GPU
+
+#endif
             measure_mesons_core(prop_ts1[src][t], prop_ts1[src][t], source_ts1[t], tmp_mo, 1, (ts + t) % GLB_T, 1, 0, GLB_T);
             do_global_sum(tmp_mo, 1.0); //
             V->corr_re[corr_ind(0, 0, 0, 1, (ts + t) % GLB_T, 1, 0)] = tmp_mo->corr_re[corr_ind(0, 0, 0, 1, 0, 1, 0)];
@@ -1482,6 +1588,14 @@ void measure_pion_scattering_I0_TS(double *m, int numsources, double precision, 
         reset_mo(Tr);
 
         for (int i = 0; i < 4; i++) {
+#ifdef WITH_GPU
+            zero_spinor_field_cpu(prop_disc + i);
+            zero_spinor_field_cpu(prop_tri + i);
+            zero_spinor_field_cpu(seq_0 + i);
+            zero_spinor_field_cpu(source_tri + i);
+            zero_spinor_field_cpu(source_seq + i);
+            zero_spinor_field_cpu(source_disc + i);
+#endif
             zero_spinor_field(prop_disc + i);
             zero_spinor_field(prop_tri + i);
             zero_spinor_field(seq_0 + i);
@@ -1495,12 +1609,29 @@ void measure_pion_scattering_I0_TS(double *m, int numsources, double precision, 
         // connected sigma and triangle
         create_diluted_source_equal_atau(source_tri, ts);
         calc_propagator(prop_tri, source_tri, 4);
+
+#ifdef WITH_GPU
+        for (int beta = 0; beta < 4; beta++) {
+            copy_from_gpu(source_tri + beta);
+            copy_from_gpu(prop_tri + beta);
+        }
+#endif
+
         create_sequential_source_stoch(source_seq, ts, prop_tri);
         calc_propagator(seq_0, source_seq, 4);
 
         // disconected sigma
         create_noise_source_equal_eo(source_disc);
         calc_propagator(prop_disc, source_disc, 4);
+
+#ifdef WITH_GPU
+        for (int beta = 0; beta < 4; beta++) {
+            copy_from_gpu(source_seq + beta);
+            copy_from_gpu(source_disc + beta);
+            copy_from_gpu(seq_0 + beta);
+            copy_from_gpu(prop_disc + beta);
+        }
+#endif
 
         // contractions
         measure_mesons_core(prop_disc, prop_disc, source_disc, sigmadisc, 1, 0, 1, 0, GLB_T); //disc
