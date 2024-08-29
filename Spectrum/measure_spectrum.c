@@ -57,7 +57,7 @@ typedef struct input_mesons {
 #define init_input_mesons(varname)                                                                                        \
     {                                                                                                                     \
         .read = {                                                                                                         \
-            { "quark quenched masses", "mes:mass = %s", STRING_T, (varname).mstring },                                  \
+            { "quark quenched masses", "mes:mass = %s", STRING_T, (varname).mstring },                                    \
             { "inverter precision", "mes:precision = %lf", DOUBLE_T, &(varname).precision },                              \
             { "measure mixed correlators", "mes:meas_mixed = %d", INT_T, &(varname).meas_mixed },                         \
             { "number of noisy sources per cnfg for 2pt fn", "mes:nhits_2pt = %d", INT_T, &(varname).nhits_2pt },         \
