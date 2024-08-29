@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     lprintf("MAIN", 0, "To be compared with results in file gxly_tree_b0_th0\n");
 
     represent_gauge_field();
-    full_plaquette();
+    full_plaquette(u_gauge);
 
     SF_PCAC_wall_corr(mass, acc, NULL);
 

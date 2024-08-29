@@ -159,9 +159,9 @@ int main(int argc, char *argv[]) {
         lprintf("MAIN", 0, "Configuration from %s\n", cnfg_filename);
         read_gauge_field(cnfg_filename);
 
-        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
+        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette(u_gauge));
 
-        full_plaquette();
+        full_plaquette(u_gauge);
 
         double p1 = calc_plaq(u_gauge);
         lprintf("TEST", 0, "u_gauge plaq %1.6f\n", p1);

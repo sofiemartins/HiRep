@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
         gettimeofday(&end, 0);
         timeval_subtract(&etime, &end, &start);
         lprintf("MAIN", 0, "ML Measure & update #%d: generated in [%ld sec %ld usec]\n", i, etime.tv_sec, etime.tv_usec);
-        lprintf("MAIN", 0, "Plaquette %1.18e\n", avr_plaquette());
+        lprintf("MAIN", 0, "Plaquette %1.18e\n", avr_plaquette(u_gauge));
 
         if (strcmp(flow.wf->make, "true") == 0) {
             static suNg_field *Vwf = NULL;

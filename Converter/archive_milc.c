@@ -59,7 +59,7 @@ void read_gauge_field_milc(char filename[]) {
         }
     }
     fclose(fp);
-    full_plaquette();
+    full_plaquette(u_gauge);
     double elapsed_sec = timer_lap(&clock) * 1.e-6; //time in seconds
     lprintf("IO", 0, "Configuration [%s] read [%lf sec]\n", filename, elapsed_sec);
 }
@@ -158,10 +158,10 @@ void read_gauge_field_milc_no3row(char filename[]) {
 
     fclose(fp);
     if (head_plaq != 0.0) {
-        error(fabs(head_plaq - avr_plaquette()) > 1.e-9, 1, "read_gauge_field_asci", "Plaquette mismatch\n");
+        error(fabs(head_plaq - avr_plaquette(u_gauge)) > 1.e-9, 1, "read_gauge_field_asci", "Plaquette mismatch\n");
     }
 
-    full_plaquette();
+    full_plaquette(u_gauge);
     double elapsed_sec = timer_lap(&clock) * 1.e-6; //time in seconds
     lprintf("IO", 0, "Configuration [%s] read [%lf sec]\n", filename, elapsed_sec);
 }

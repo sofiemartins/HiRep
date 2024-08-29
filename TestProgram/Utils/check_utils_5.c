@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     lprintf("MAIN", 0, "done.\n\n");
 
     lprintf("MAIN", 0, "Measuring the plaquette... ");
-    plaq[0] = avr_plaquette();
+    plaq[0] = avr_plaquette(u_gauge);
     lprintf("MAIN", 0, "done.\n\n");
 
     lprintf("MAIN", 0, "Generating and applying a random even shift to the gauge field... ");
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     lprintf("MAIN", 0, "Shift = (%d,%d,%d,%d)\n ", shift[0], shift[1], shift[2], shift[3]);
 
     lprintf("MAIN", 0, "Measuring the plaquette on the shifted field... ");
-    plaq[1] = avr_plaquette();
+    plaq[1] = avr_plaquette(u_gauge);
     lprintf("MAIN", 0, "done.\n\n");
 
     plaq[1] -= plaq[0];
@@ -211,7 +211,7 @@ int main(int argc, char *argv[]) {
     lprintf("MAIN", 0, "Shift = (%d,%d,%d,%d)\n ", shift[0], shift[1], shift[2], shift[3]);
 
     lprintf("MAIN", 0, "Measuring the plaquette on the shifted field... ");
-    plaq[1] = avr_plaquette();
+    plaq[1] = avr_plaquette(u_gauge);
     lprintf("MAIN", 0, "done.\n\n");
 
     plaq[1] -= plaq[0];

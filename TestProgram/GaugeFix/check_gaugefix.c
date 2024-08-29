@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
     start_sendrecv_gtransf(g);
     complete_sendrecv_gtransf(g);
 
-    p1 = avr_plaquette();
+    p1 = avr_plaquette(u_gauge);
     lprintf("TEST", 0, "original gauge plaq %1.14f\n", p1);
 
     transform_u(fixed_gauge, u_gauge, g);

@@ -150,8 +150,8 @@ int main(int argc, char *argv[]) {
     printf0("Chroma plaquette{%s} = %g\n\n", argv[1], plaq / (QDP_volume() * QDP_Nc * NDIM * (NDIM - 1) / 2));
 
     /* Compute plaquette with HiRep */
-    lprintf("Converter", 0, "HiRep plaq = %8.6f \n", avr_plaquette());
-    full_plaquette();
+    lprintf("Converter", 0, "HiRep plaq = %8.6f \n", avr_plaquette(u_gauge));
+    full_plaquette(u_gauge);
 
     write_gauge_field(output_filename);
 

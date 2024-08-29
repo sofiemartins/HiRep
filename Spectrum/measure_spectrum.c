@@ -222,14 +222,14 @@ int main(int argc, char *argv[]) {
         read_gauge_field(cnfg_filename);
         represent_gauge_field();
 
-        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
+        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette(u_gauge));
 
         // if non zero background field : apply abelian field and boundary correction. Then measure all plaquettes.
         if (mes_var.background_field) {
             measure_diquark_semwall_background(nm, m, mes_var.nhits_2pt, i, mes_var.precision, mes_var.Q, mes_var.nEz,
                                                DONTSTORE, NULL);
         }
-        full_plaquette();
+        full_plaquette(u_gauge);
         gettimeofday(&start, 0);
 
         if (four_fermion_active == 1) { ff_observables(); }

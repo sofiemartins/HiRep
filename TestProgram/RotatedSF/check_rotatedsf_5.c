@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     read_gauge_field_nocheck("suNg_field_sint.dat");
 
     lprintf("MAIN", 0, "Value of the plaquette in Sint's normalization %f\n",
-            (avr_plaquette() * 6 * GLB_T * GLB_X * GLB_Y * GLB_Z * NG - 3 * 2 * GLB_X * GLB_Y * GLB_Z * NG) /
+            (avr_plaquette(u_gauge) * 6 * GLB_T * GLB_X * GLB_Y * GLB_Z * NG - 3 * 2 * GLB_X * GLB_Y * GLB_Z * NG) /
                 (3 * NG * GLB_X * GLB_Y * GLB_Z * (2 * (GLB_T - 2) - 1)));
 
     lprintf("MAIN", 0, "mass = %f\n", mass);

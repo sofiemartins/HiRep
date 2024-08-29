@@ -483,7 +483,7 @@ void measure_spectrum_gfwall(int nm, double *m, int conf_num, double precision, 
     lprintf("GFWALL", 0, "Gauge fixed action  %1.6f\n", act);
     double p2 = calc_plaq(u_gauge);
     lprintf("TEST", 0, "fixed_gauge plaq %1.6f\n", p2);
-    full_plaquette();
+    full_plaquette(u_gauge);
     represent_gauge_field();
 
     init_propagator_eo(nm, m, precision);
@@ -531,7 +531,7 @@ void measure_spectrum_gfwall_fixedbc(int dt, int nm, double *m, int conf_num, do
     lprintf("GFWALL", 0, "Gauge fixed action  %1.6f\n", act);
     double p2 = calc_plaq(u_gauge);
     lprintf("TEST", 0, "fixed_gauge plaq %1.6f\n", p2);
-    full_plaquette();
+    full_plaquette(u_gauge);
     represent_gauge_field();
 
     fix_T_bc(tau - dt); // Apply fixed boundaryconditions by zeroing links at time slice tau to direction 0.
@@ -621,7 +621,7 @@ void measure_spectrum_discon_gfwall(int nm, double *m, int conf_num, double prec
     lprintf("GFWALL", 0, "Gauge fixed action  %1.6f\n", act);
     double p2 = calc_plaq(u_gauge);
     lprintf("TEST", 0, "fixed_gauge plaq %1.6f\n", p2);
-    full_plaquette();
+    full_plaquette(u_gauge);
     represent_gauge_field();
     init_propagator_eo(nm, m, precision);
 
@@ -739,10 +739,10 @@ void measure_formfactor_fixed(int ti, int tf, int dt, int nm, double *m, int n_m
     suNf_field *u_gauge_old = alloc_suNf_field(&glattice);
     copy_suNf_field(u_gauge_old, u_gauge_f); // Save the gaugefield
 
-    double p = avr_plaquette();
+    double p = avr_plaquette(u_gauge);
     lprintf("MESON_MEASUREMENTS", 0, "<P> = %g\n", p);
     fix_T_bc(ti - dt); // Apply fixed boundaryconditions by zeroing links at time slice tau to direction 0.
-    p = avr_plaquette();
+    p = avr_plaquette(u_gauge);
     lprintf("MESON_MEASUREMENTS", 0, "<P> = %g\n", p);
 
     source = alloc_spinor_field(4, &glattice);

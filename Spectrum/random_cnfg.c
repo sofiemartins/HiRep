@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
     random_u(u_gauge);
     apply_BCs_on_fundamental_gauge_field();
 
-    plaq = avr_plaquette();
+    plaq = avr_plaquette(u_gauge);
     lprintf("IO", 0, "Configuration generated.  Plaquette=%e\n", plaq);
 
     if (PID == 0) {

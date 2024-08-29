@@ -41,9 +41,9 @@ void read_gauge_field_fortran(char filename[]) {
     }
 
     fclose(fp);
-    full_plaquette();
+    full_plaquette(u_gauge);
 
     double elapsed_sec = timer_lap(&clock) * 1.e-6; //time in seconds
     lprintf("IO", 0, "Configuration [%s] read [%lf sec]\n", filename, elapsed_sec);
-    lprintf("IO", 0, "Plaquette eval(%f) read(%f)\n", avr_plaquette(), info[14]);
+    lprintf("IO", 0, "Plaquette eval(%f) read(%f)\n", avr_plaquette(u_gauge), info[14]);
 }

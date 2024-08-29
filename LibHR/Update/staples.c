@@ -67,7 +67,7 @@ void test_staples()
   double ps=0.0, pl=0.;
   _DECLARE_INT_ITERATOR(ix);
 
-  pa = avr_plaquette();
+  pa = avr_plaquette(u_gauge);
   _MASTER_FOR_SUM(&glattice,ix,ps,pl){
     suNg s, res;
     for (int mu=0; mu<4; ++mu){

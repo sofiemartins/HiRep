@@ -202,7 +202,7 @@ int main(int argc, char *argv[]) {
 
         gettimeofday(&start, 0);
 
-        full_plaquette();
+        full_plaquette(u_gauge);
 
         WF_update_and_measure(WF_var.ittype, u_gauge, &(WF_var.tmax), &(WF_var.eps), &(WF_var.delta), WF_var.nmeas, DONTSTORE);
 

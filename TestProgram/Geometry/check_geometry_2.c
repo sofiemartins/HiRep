@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     complete_sendrecv_suNg_field(u_gauge);
 
     // test plaquette value
-    double p = avr_plaquette();
+    double p = avr_plaquette(u_gauge);
     lprintf("TEST", 1, "Plaquette= %lf\n", p);
     if (isNotZero(1. - p, 1.e-10)) {
         errors++;

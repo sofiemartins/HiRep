@@ -8,6 +8,7 @@
 
 #include "Observables/calc_prop.h"
 #include "Observables/calc_prop_ff.h"
+#include "Observables/gauge.h"
 #include "Observables/glueballs.h"
 #include "Observables/loop_tools.h"
 #include "Observables/measure_baryons.h"

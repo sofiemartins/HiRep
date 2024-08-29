@@ -221,7 +221,7 @@ int main(int argc, char *argv[]) {
         read_gauge_field(cnfg_filename);
         represent_gauge_field();
 
-        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
+        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette(u_gauge));
 
         HYP_span_parameters(mtp);
         mtp0 += min_tplaq(u_gauge);

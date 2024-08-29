@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
             elapsed_sec = timer_lap(&clock) * 1.e-6; //time in seconds
             lprintf("MAIN", 0, "Trajectory #%d: generated in [%lf sec]\n", i, elapsed_sec);
-            lprintf("MAIN", 0, "Plaquette %1.18e\n", avr_plaquette());
+            lprintf("MAIN", 0, "Plaquette %1.18e\n", avr_plaquette(u_gauge));
 
             if ((i % flow.save_freq) == 0) {
                 save_conf(&flow, i);

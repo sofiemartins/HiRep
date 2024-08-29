@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
     lprintf("MAIN", 0, "done.\n");
     represent_gauge_field();
 
-    lprintf("REV TEST", 0, "Initial plaquette: %1.8e\n", avr_plaquette());
+    lprintf("REV TEST", 0, "Initial plaquette: %1.8e\n", avr_plaquette(u_gauge));
 
     par.n = 1;
     par.shift = (double *)malloc(sizeof(double) * (par.n));

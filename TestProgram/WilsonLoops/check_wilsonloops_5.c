@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
                 for (int y = 0; y < Y; y++) {
                     for (int z = 0; z < Z; z++) {
                         int i = ipt(t, x, y, z);
-                        st_plaq[k] += plaq(i, k + 1, 0);
+                        st_plaq[k] += plaq(u_gauge, i, k + 1, 0);
                     }
                 }
             }

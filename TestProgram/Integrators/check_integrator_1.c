@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
         pint = pint->next;
     } while (pint != NULL);
 
-    lprintf("MAIN", 0, "Initial plaquette: %1.16e\n", avr_plaquette());
+    lprintf("MAIN", 0, "Initial plaquette: %1.16e\n", avr_plaquette(u_gauge));
 
     double rr, rr1;
     struct timeval start, end, etime; /* //for trajectory timing */

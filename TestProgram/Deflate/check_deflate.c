@@ -293,9 +293,9 @@ int main(int argc, char *argv[]) {
         // unit_gauge(u_gauge);
         represent_gauge_field();
 
-        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
+        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette(u_gauge));
 
-        full_plaquette();
+        full_plaquette(u_gauge);
 
         init_propagator_eo(1, m, mes_var.precision); // 1 for number of masses
 

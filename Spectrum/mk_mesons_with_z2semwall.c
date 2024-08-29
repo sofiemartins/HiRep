@@ -258,9 +258,9 @@ int main(int argc, char *argv[]) {
         read_gauge_field(cnfg_filename);
         represent_gauge_field();
 
-        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
+        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette(u_gauge));
 
-        full_plaquette();
+        full_plaquette(u_gauge);
 
         z2semwall_mesons(i, mes_var.nhits, nm, m, mes_var.precision);
 

@@ -52,7 +52,7 @@ void write_gauge_field_matrix(char filename[]) {
     apply_BCs_on_represented_gauge_field(); //Save the link variables with periodic boundary conditions
 #endif
 
-    plaq = avr_plaquette(); /* to use as a checksum in the header */
+    plaq = avr_plaquette(u_gauge); /* to use as a checksum in the header */
 
 #ifdef WITH_GPU
     copy_from_gpu_suNg_field(u_gauge);
@@ -380,7 +380,7 @@ void read_gauge_field_matrix(char filename[]) {
     complete_sendrecv_suNg_field(u_gauge);
 
     /* check average plaquette */
-    testplaq = avr_plaquette();
+    testplaq = avr_plaquette(u_gauge);
     if (PID == 0) {
         if (fabs(testplaq - plaq) > 1.e-12) {
             lprintf("WARNING", 0, "Stored plaquette value [%e] do not match the configuration! [diff=%e]\n", plaq,

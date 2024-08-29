@@ -34,11 +34,11 @@ int main(int argc, char *argv[]) {
     init_mc_ghmc(&flow, get_input_filename());
 
     lprintf("MAIN", 0, "MVM during (R)HMC initialization: %ld\n", getMVM());
-    lprintf("MAIN", 0, "Initial plaquette: %1.8e\n", avr_plaquette());
+    lprintf("MAIN", 0, "Initial plaquette: %1.8e\n", avr_plaquette(u_gauge));
 
     /*Vincent */
-    lprintf("REVERSIBILITY TEST", 0, "Plaquette before update: %1.8e\n", avr_plaquette());
-    orig_plaq = avr_plaquette();
+    lprintf("REVERSIBILITY TEST", 0, "Plaquette before update: %1.8e\n", avr_plaquette(u_gauge));
+    orig_plaq = avr_plaquette(u_gauge);
     int rr = update_ghmc();
     /*Vincent */
     if (rr < 0) {
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (rr == 1) {
-        lprintf("REVERSIBILITY TEST", 0, "Plaquette after update: %1.8e\n", avr_plaquette());
+        lprintf("REVERSIBILITY TEST", 0, "Plaquette after update: %1.8e\n", avr_plaquette(u_gauge));
 
         rr = reverse_update_ghmc();
         /*Vincent */
@@ -56,8 +56,8 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        lprintf("REVERSIBILITY TEST", 0, "Plaquette after reverse update: %1.8e\n", avr_plaquette());
-        new_plaq = avr_plaquette();
+        lprintf("REVERSIBILITY TEST", 0, "Plaquette after reverse update: %1.8e\n", avr_plaquette(u_gauge));
+        new_plaq = avr_plaquette(u_gauge);
 
         diff = fabs(new_plaq - orig_plaq);
         lprintf("REVERSIBILITY TEST", 0, "diff: %1.8e\n Should be 10^-12 or so\n", diff);

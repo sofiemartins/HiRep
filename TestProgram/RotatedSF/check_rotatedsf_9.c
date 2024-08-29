@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 
     represent_gauge_field();
 
-    full_plaquette();
+    full_plaquette(u_gauge);
 
     SF_PCAC_wall_corr(mass, acc, NULL);
 

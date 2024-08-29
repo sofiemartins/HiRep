@@ -124,8 +124,8 @@ int main(int argc, char *argv[]) {
         read_gauge_field(cnfg_filename);
 
         represent_gauge_field();
-        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
-        full_plaquette();
+        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette(u_gauge));
+        full_plaquette(u_gauge);
         if (mes_var.isospin == 0) {
             measure_pion_scattering_I0_TS(m, mes_var.nhits, mes_var.precision, mes_var.outpath, cnfg_filename, seq_prop, NULL);
         }

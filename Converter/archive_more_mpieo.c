@@ -33,7 +33,7 @@ void write_gauge_field_mpieo_LE(char filename[]) {
     copy_from_gpu_suNg_field(u_gauge);
 #endif
 
-    plaq = avr_plaquette(); /* to use as a checksum in the header */
+    plaq = avr_plaquette(u_gauge); /* to use as a checksum in the header */
     if (PID == 0) {
         int d[5] = { NG, GLB_T, GLB_X, GLB_Y, GLB_Z };
         error((fp = fopen(filename, "wb")) == NULL, 1, "write_gauge_field", "Failed to open file for writing");
@@ -293,7 +293,7 @@ void read_gauge_field_mpieo_LE(char filename[]) {
     complete_sendrecv_suNg_field(u_gauge);
 
     /* check average plaquette */
-    testplaq = avr_plaquette();
+    testplaq = avr_plaquette(u_gauge);
     if (PID == 0) {
         if (fabs(testplaq - plaq) > 1.e-14) {
             lprintf("ERROR", 0, "Stored plaquette value [%e] do not match the configuration! [diff=%e]\n", plaq,

@@ -478,7 +478,7 @@ int main(int argc, char *argv[]) {
     input_format->read(input_filename.string);
 
     if (check) {
-        full_plaquette();
+        full_plaquette(u_gauge);
 
         int mu;
         suNg A;

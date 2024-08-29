@@ -15,8 +15,8 @@
 #include "utils.h"
 #include "memory.h"
 #include "Update/representation.h"
-#include "Update/avr_plaquette.h"
 #include "inverters.h"
+#include "observables.h"
 
 #if (!defined(BC_T_SF_ROTATED) && !defined(BC_T_SF) && !defined(FERMION_THETA))
 
@@ -320,7 +320,7 @@ void measure_loops(double *m, int nhits, int conf_num, double precision, int sou
         lprintf("GFWALL", 0, "Gauge fixed action  %1.6f\n", act);
         double p2 = calc_plaq(u_gauge);
         lprintf("TEST", 0, "fixed_gauge plaq %1.6f\n", p2);
-        full_plaquette();
+        full_plaquette(u_gauge);
         represent_gauge_field();
     }
 

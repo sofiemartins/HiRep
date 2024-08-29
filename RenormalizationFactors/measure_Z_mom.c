@@ -259,8 +259,8 @@ int main(int argc, char *argv[]) {
         copy_suNg_field(u_gauge_old, u_gauge);
         represent_gauge_field();
 
-        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
-        full_plaquette();
+        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette(u_gauge));
+        full_plaquette(u_gauge);
 
         //Fix Gauge
         double p2 = calc_plaq(u_gauge);
@@ -304,9 +304,9 @@ int main(int argc, char *argv[]) {
             for (tw = -mes_var.n_twist; tw < mes_var.n_twist + 1; tw++) {
                 copy_suNf_field(u_gauge_f, u_gauge_old_f);
                 double twist = (double)tw * 0.5; //(double)tw/(double)(mes_var.n_twist+1);
-                lprintf("TEST", 0, "<p> before twist %1.6f\n", avr_plaquette());
+                lprintf("TEST", 0, "<p> before twist %1.6f\n", avr_plaquette(u_gauge));
                 twist_XYZ_bc(twist * mes_var.px_in, twist * mes_var.py_in, twist * mes_var.pz_in);
-                lprintf("TEST", 0, "<p> after twist %1.6f\n", avr_plaquette());
+                lprintf("TEST", 0, "<p> after twist %1.6f\n", avr_plaquette(u_gauge));
 
                 p_in[0] = mom_in[0] * l;
                 p_in[1] = mom_in[1] * l;

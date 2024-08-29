@@ -42,8 +42,8 @@ int main(int argc, char *argv[]) {
     flopsite = flops_per_site(PLAQUETTE);
     bytesite = bytes_per_site(PLAQUETTE);
     lprintf("REDUCTION BENCHMARKS", 1, "Testing average plaquette\n");
-    _WARMUP_SPEEDTEST(clock, n_warmup, time_target, n_reps, avr_plaquette());
-    _RUN_SPEEDTEST(clock, n_warmup, time_target, n_reps, flopsite, bytesite, avr_plaquette());
+    _WARMUP_SPEEDTEST(clock, n_warmup, time_target, n_reps, avr_plaquette(u_gauge));
+    _RUN_SPEEDTEST(clock, n_warmup, time_target, n_reps, flopsite, bytesite, avr_plaquette(u_gauge));
 
     finalize_process();
     return 0;

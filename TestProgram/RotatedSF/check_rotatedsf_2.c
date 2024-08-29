@@ -125,12 +125,12 @@ int main(int argc, char *argv[]) {
     start_sendrecv_gtransf(g);
     complete_sendrecv_gtransf(g);
 
-    lprintf("MAIN", 0, "Plaquette before the random gauge transf %f\n", avr_plaquette());
+    lprintf("MAIN", 0, "Plaquette before the random gauge transf %f\n", avr_plaquette(u_gauge));
     SF_PCAC_wall_corr(mass, acc, NULL);
 
     transform_u();
 
-    lprintf("MAIN", 0, "Plaquette after the random gauge transf %f\n", avr_plaquette());
+    lprintf("MAIN", 0, "Plaquette after the random gauge transf %f\n", avr_plaquette(u_gauge));
     SF_PCAC_wall_corr(mass, acc, NULL);
 
     free_suNg_field(u_gauge);

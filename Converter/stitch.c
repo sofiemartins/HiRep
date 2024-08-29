@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    double plaq = avr_plaquette();
+    double plaq = avr_plaquette(u_gauge);
     lprintf("PLAQ", 0, "Check output plaquette: %0.15e\n", plaq);
     write_gauge_field(output_var.file);
 

@@ -295,9 +295,9 @@ int main(int argc, char *argv[]) {
         read_gauge_field(cnfg_filename);
         represent_gauge_field();
 
-        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
+        lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette(u_gauge));
 
-        full_plaquette();
+        full_plaquette(u_gauge);
 
         traced_ata_qprop(ata_qprop, 2);
 

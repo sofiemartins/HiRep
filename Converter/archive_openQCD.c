@@ -70,7 +70,7 @@ void read_gauge_field_openQCD(char filename[]) {
     copy_to_gpu_suNg_field(u_gauge);
 #endif
 
-    double new_plaq = avr_plaquette();
+    double new_plaq = avr_plaquette(u_gauge);
 
     if (sqrt((NG * new_plaq - readplaq) * (NG * new_plaq - readplaq)) > 1.e-14) {
         error(1, 1, "read_gauge_field_openQCD", "Wrong plaquette checksum");
@@ -147,7 +147,7 @@ void read_gauge_field_openQCD_SF(char filename[]) {
     copy_to_gpu_suNg_field(u_gauge);
 #endif
 
-    double new_plaq = avr_plaquette();
+    double new_plaq = avr_plaquette(u_gauge);
 
     if (sqrt((NG * new_plaq - readplaq) * (NG * new_plaq - readplaq)) > 1.e-14) {
         lprintf("WARNING", 0, " Plaquette DOES NOT match!  \n");
@@ -170,7 +170,7 @@ void write_gauge_field_openQCD(char filename[]) {
     copy_from_gpu_suNg_field(u_gauge);
 #endif
 
-    double writeplaq = NG * avr_plaquette();
+    double writeplaq = NG * avr_plaquette(u_gauge);
 
     Timer clock;
     timer_set(&clock);
@@ -245,7 +245,7 @@ static void write_gauge_field_hirep(char filename[], double subs) {
     apply_BCs_on_represented_gauge_field(); //Save the link variables with periodic boundary conditions
 #endif
 
-    plaq = avr_plaquette(); /* to use as a checksum in the header */
+    plaq = avr_plaquette(u_gauge); /* to use as a checksum in the header */
 
     double plaqt[GLB_T], plaqs[GLB_T];
     avr_plaquette_time(plaqt, plaqs);

@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
     init_mc_ghmc(&flow, get_input_filename());
     lprintf("MAIN", 0, "MVM during HMC initialization: %ld\n", getMVM());
 
-    lprintf("MAIN", 0, "Initial plaquette: %1.16e\n", avr_plaquette());
+    lprintf("MAIN", 0, "Initial plaquette: %1.16e\n", avr_plaquette(u_gauge));
 
     if (strcmp(mes_var.make, "true") == 0) {
         init_meson_correlators(0);
@@ -212,9 +212,9 @@ int main(int argc, char *argv[]) {
         if ((i % flow.meas_freq) == 0) {
             /* plaquette */
 #ifdef WITH_SMEARING
-            lprintf("MAIN", 0, "Plaquette: %1.8e, Smeared: %1.8e\n", avr_plaquette(), avr_smeared_plaquette());
+            lprintf("MAIN", 0, "Plaquette: %1.8e, Smeared: %1.8e\n", avr_plaquette(u_gauge), avr_smeared_plaquette());
 #else
-            lprintf("MAIN", 0, "Plaquette: %1.16e\n", avr_plaquette());
+            lprintf("MAIN", 0, "Plaquette: %1.16e\n", avr_plaquette(u_gauge));
             /*avr_ts_plaquette();*/
 #endif
 
