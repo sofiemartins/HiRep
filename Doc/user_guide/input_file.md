@@ -64,8 +64,8 @@ rlx_seed = 60718
 The seed is only used when the random number generator is not initialized from a saved random number state. Please be very careful to consider the following notes.
 
 1. It is very important that if you stop and restart a simulation, for example, with the HMC, you do not restart from the same seed; otherwise, unwanted and unphysical correlations will be introduced into your results. 
-2. <span style="color:red">**If you are using MPI, be aware that you are not using only a single seed but a seed range, where the first element is 60718, and the last element is 60718 + the number of processes.**</span> This means that if, for example, you have a parallelized simulation with 16 processes, stop and restart from a seed, and change your seed to 60719, your results will be correlated. You will have to set it to at least 60734.
-3. While you can restart from a saved state, the saved state will only be valid for a specific MPI layout. If you move to more or less processes, you must restart from a new seed.
+2. <span style="color:red">If you are using MPI, be aware that you are not using only a single seed but a seed range, where the first element is 60718, and the last element is 60718 + the number of processes x number of threads.</span> This means that if, for example, you have a parallelized simulation with 16 processes, stop and restart from a seed, and change your seed to 60719, your results will be correlated. You will have to set it to at least 60734.
+3. While you can restart from a saved state, the saved state will only be valid for a specific threading and MPI layout. If you move to more or less processes and/or more or less threads, you must restart from a new seed.
 
 ### Random number state
 
