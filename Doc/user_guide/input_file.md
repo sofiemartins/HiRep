@@ -114,6 +114,16 @@ theta_\<DIR\> = 0.
 
 where 0. has to be replaced by the desired phase.
 
+## Running more than one replica
+
+```
+N_REP = 1
+```
+
+This runs a single replica from the given input file. However, some clusters have minimum job sizes, which means that one might want to add multiple ensembles to a single job. This needs to correctly map input files and output directories, so a specific directory structure is assumed. The processes that are working on creating the replica will change into the directory "Rep_\<REPLICA_NO\>", relative to the root and all information passed to the binary will be considered relative to the new replica root. 
+
+This is at the moment not tested to work with GPU acceleration.
+
 ## HMC variables
 
 ```
@@ -122,12 +132,6 @@ csw = 1.1329500
 ```
 
 `tlen` corresponds to the length of the trajectory, and `csw` is the Sheikholeslami-Wohlert coefficient, which is only available if the code has been compiled with clover improvement, i.e., either with `WITH_CLOVER` or `WITH_EXPCLOVER`.
-
-```
-N_REP = 1
-```
-
-Number of replicas to be generated. With MPI, these are parallelized trivially.
 
 ```
 run name = run1
