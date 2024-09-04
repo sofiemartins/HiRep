@@ -41,7 +41,7 @@ NP_Y = 2
 NP_Z = 2
 ```
 
-cutting the lattice into local lattices of either `3x4x4x4` or `4x4x4x4` using 24 processes. In general, this is discouraged because then the different CPUs have different amounts of work. Further, even-odd preconditioning enforces lattices with even lattice extents, so the highest-performing decomposition will likely be one where all the local lattices are the same size and even. 
+cutting the lattice into local lattices of either `3x4x4x4` or `4x4x4x4` using 24 processes.
 
 ## Random number generator
 
