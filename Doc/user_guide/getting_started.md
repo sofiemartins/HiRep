@@ -167,9 +167,9 @@ Note that this compiles a fat binary but you can also specify a target architect
 For a single AMD GPU `nvcc` needs to be replaced by `hipcc`. For LUMI, the standard C and C++ compilers are `cc` and `CC`.
 
 ```bash
-CC = gcc
+CC = cc
 NVCC = hipcc
-CXX = g++
+CXX = CC
 LDFLAGS = -Wall -O3
 GPUFLAGS = 
 INCLUDE =
