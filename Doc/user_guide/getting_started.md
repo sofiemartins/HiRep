@@ -122,7 +122,7 @@ This performs a check on the geometries of the spinors and is essential for debu
 MACRO += IO_FLUSH
 ``` 
 
-Prints to file immediately.
+Prints to file immediately. If the simulation or analysis prints an unusual amount of data, it may affect performance.
 
 ### Compiler options
 
@@ -153,18 +153,40 @@ LDFLAGS = -O3
 INCLUDE =
 ```
 
-With GPUs: you can set your choice of C, C++, MPI, and CUDA compiler and their options by using the variables:
+With a single NVIDIA GPU and without MPI:
+```bash
+CC = gcc
+NVCC = nvcc
+CXX = g++
+LDFLAGS = -Wall -O3
+GPUFLAGS = 
+INCLUDE =
+```
+Note that this compiles a fat binary but you can also specify a target architecture under the `GPUFLAGS`.
+
+For a single AMD GPU `nvcc` needs to be replaced by `hipcc`. For LUMI, the standard C and C++ compilers are `cc` and `CC`.
+
+```bash
+CC = gcc
+NVCC = hipcc
+CXX = g++
+LDFLAGS = -Wall -O3
+GPUFLAGS = 
+INCLUDE =
+```
+
+Multi-GPU simulations on NVIDIA GPUs: you can set your choice of C, C++, MPI, and CUDA compiler and their options by using the variables:
 ```bash
 CC = gcc
 MPICC = mpicc
 NVCC = nvcc
 CXX = g++
 LDFLAGS = -Wall -O3
-GPUFLAGS = -arch=sm_80 
+GPUFLAGS =
 INCLUDE = 
 ```
 
-For LUMI AMD GPUs, it seems to be favorable to use hipcc
+For LUMI AMD Multi-GPU jobs, it seems to be favorable to use hipcc instead of `CC`.
 ```bash
 ENV = MPICH_CC=hipcc
 CC = gcc
