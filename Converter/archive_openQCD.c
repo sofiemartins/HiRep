@@ -248,7 +248,7 @@ static void write_gauge_field_hirep(char filename[], double subs) {
     plaq = avr_plaquette(u_gauge); /* to use as a checksum in the header */
 
     double plaqt[GLB_T], plaqs[GLB_T];
-    avr_plaquette_time(plaqt, plaqs);
+    avr_plaquette_time(u_gauge, plaqt, plaqs);
     plaq = 0.;
     for (int kk = 1; kk < GLB_T - 1; kk++) {
         plaq += plaqt[kk] + plaqs[kk];
