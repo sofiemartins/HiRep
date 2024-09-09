@@ -32,6 +32,7 @@ typedef struct input_glb {
 
 } input_glb;
 
+#ifdef WITH_MPI
 #define init_input_glb(varname)                       \
     {                                                 \
         .read = {                                     \
@@ -47,6 +48,19 @@ typedef struct input_glb {
             { NULL, NULL, INT_T, NULL }               \
         }                                             \
     }
+#else
+#define init_input_glb(varname)                       \
+    {                                                 \
+        .read = {                                     \
+            { "GLB_T", "GLB_T = %d", INT_T, &GLB_T }, \
+            { "GLB_X", "GLB_X = %d", INT_T, &GLB_X }, \
+            { "GLB_Y", "GLB_Y = %d", INT_T, &GLB_Y }, \
+            { "GLB_Z", "GLB_Z = %d", INT_T, &GLB_Z }, \
+            { "N_REP", "N_REP = %d", INT_T, &N_REP }, \
+            { NULL, NULL, INT_T, NULL }               \
+        }                                             \
+    }
+#endif
 
 /* Global or common variables */
 typedef struct input_rlx {
