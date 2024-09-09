@@ -10,6 +10,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 //#include "Geometry/setup.h"
 //#include "error.h"
 #include "libhr_core.h"
@@ -29,9 +30,13 @@
  * @param name              Function name, where the error was raised
  * @param text              Error message text
  */
-void error(int test, int no, const char *name, const char *text) {
+void error(int test, int no, const char *name, const char *text, ...) {
     if (test != 0) {
-        lprintf("ERROR", 0, "%s:\n%s\n", name, text);
+        va_list args;
+        va_start(args, text);
+        lprintf("ERROR", 0, "%s:\n", name);
+        vlprintf("ERROR", 0, text, args);
+        va_end(args);
         lprintf("ERROR", 0, "Exiting program...\n");
         print_trace();
         if (no < 0) {
