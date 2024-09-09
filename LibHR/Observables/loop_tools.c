@@ -16,7 +16,7 @@
 #include "memory.h"
 #include "Update/representation.h"
 #include "inverters.h"
-#include "observables.h"
+#include "update.h"
 
 #if (!defined(BC_T_SF_ROTATED) && !defined(BC_T_SF) && !defined(FERMION_THETA))
 

@@ -121,7 +121,7 @@ double avr_plaquette_cpu(suNg_field *gauge) {
     return pa;
 }
 
-void local_plaquette_cpu(scalar_field *s, suNg_field *gauge) {
+void local_plaquette_cpu(suNg_field *gauge, scalar_field *s) {
 #ifdef WITH_NEW_GEOMETRY
     complete_sendrecv_suNg_field(gauge);
 #endif

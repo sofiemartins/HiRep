@@ -24,14 +24,6 @@
 static int *timeslices;
 static int init = 0;
 
-#ifdef PLAQ_WEIGHTS
-#define PLAQ_WEIGHT_ARG , plaq_weight
-#define PLAQ_WEIGHT_ARG_DEF , double *plaq_weight
-#else
-#define PLAQ_WEIGHT_ARG
-#define PLAQ_WEIGHT_ARG_DEF
-#endif
-
 template <class T> T global_sum_gpu(T *vector, int size);
 
 #define _CUDA_FOR(s, ixp, body)                                                        \
@@ -39,6 +31,7 @@ template <class T> T global_sum_gpu(T *vector, int size);
         _PIECE_FOR((s)->type, (ixp)) {                                                 \
             int N = (s)->type->master_end[(ixp)] - (s)->type->master_start[(ixp)] + 1; \
             unsigned int grid_size = (N - 1) / BLOCK_SIZE_LINEAR_ALGEBRA + 1;          \
+            int block_start = (s)->type->master_start[(ixp)];                          \
             body;                                                                      \
             CudaCheckError();                                                          \
         }                                                                              \
@@ -52,7 +45,7 @@ double avr_plaquette_gpu(suNg_field *gauge) {
 
     _CUDA_FOR(u_gauge, ixp, resPiece = alloc_double_sum_field(N);
               (_avr_plaquette<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(gauge->gpu_ptr, resPiece, iup_gpu, N,
-                                                                              gauge->type->master_start[ixp] PLAQ_WEIGHT_ARG));
+                                                                              block_start PLAQ_WEIGHT_ARG));
               res += global_sum_gpu(resPiece, N););
 
 #ifdef WITH_MPI
@@ -73,12 +66,12 @@ double avr_plaquette_gpu(suNg_field *gauge) {
 void local_plaquette_gpu(suNg_field *gauge, scalar_field *s) {
     complete_sendrecv_suNg_field(gauge);
 
-    _CUDA_FOR(gauge, ixp, int block_start = gauge->type->master_start[ixp];
+    _CUDA_FOR(gauge, ixp,
               (_avr_plaquette<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(gauge->gpu_ptr, s->gpu_ptr + block_start, iup_gpu,
                                                                               N, block_start PLAQ_WEIGHT_ARG)););
 }
 
-void init_avr_plaquette_time(u_gauge) {
+void init_avr_plaquette_time() {
     int nts[GLB_VOLUME];
 
     for (int nt = 0; nt < T; nt++) {
@@ -104,7 +97,7 @@ void avr_plaquette_time_gpu(suNg_field *gauge, double *plaqt, double *plaqs) {
     }
 
     if (!init) {
-        init_avr_plaquette_time(u_gauge);
+        init_avr_plaquette_time();
         init = 1;
     }
 
@@ -113,9 +106,8 @@ void avr_plaquette_time_gpu(suNg_field *gauge, double *plaqt, double *plaqs) {
 
     _CUDA_FOR(
         u_gauge, ixp, resPiece = alloc_double_sum_field(N * GLB_T * 2); cudaMemset(resPiece, 0, N * GLB_T * 2 * sizeof(double));
-        (_avr_plaquette_time<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(gauge->gpu_ptr, resPiece, zerocoord[0], GLB_T,
-                                                                             iup_gpu, timeslices, N, T,
-                                                                             gauge->type->master_start[ixp] PLAQ_WEIGHT_ARG));
+        (_avr_plaquette_time<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(
+            gauge->gpu_ptr, resPiece, zerocoord[0], GLB_T, iup_gpu, timeslices, N, T, block_start PLAQ_WEIGHT_ARG));
         for (int nt = 0; nt < GLB_T; nt++) {
             int tc = (zerocoord[0] + nt + GLB_T) % GLB_T;
             plaqt[tc] += global_sum_gpu(resPiece + N * tc, N) / 3.0 / NG / GLB_VOL3;
@@ -147,7 +139,7 @@ void full_plaquette_gpu(suNg_field *gauge) {
 
     _CUDA_FOR(gauge, ixp, resPiece = alloc_complex_sum_field(N * 6); cudaMemset(resPiece, 0, N * 6 * sizeof(hr_complex));
               (_full_plaquette<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(gauge->gpu_ptr, resPiece, iup_gpu, N,
-                                                                               gauge->type->master_start[ixp] PLAQ_WEIGHT_ARG));
+                                                                               block_start PLAQ_WEIGHT_ARG));
               r0 += global_sum_gpu(resPiece, N); r1 += global_sum_gpu(resPiece + N, N);
               r2 += global_sum_gpu(resPiece + 2 * N, N); r3 += global_sum_gpu(resPiece + 3 * N, N);
               r4 += global_sum_gpu(resPiece + 4 * N, N); r5 += global_sum_gpu(resPiece + 5 * N, N););
@@ -201,7 +193,7 @@ void E_T_gpu(double *E, suNg_field *V) {
     memset(E, 0, GLB_T * sizeof(double));
 
     if (!init) {
-        init_avr_plaquette_time(u_gauge);
+        init_avr_plaquette_time();
         init = 1;
     }
 
@@ -210,16 +202,15 @@ void E_T_gpu(double *E, suNg_field *V) {
 
     _CUDA_FOR(
         u_gauge, ixp, resPiece = alloc_double_sum_field(N * GLB_T * 4); cudaMemset(resPiece, 0, N * GLB_T * 4 * sizeof(double));
-        (_E_T_gpu<<<grid_size, BLOCK_SIZE, 0, 0>>>(V->gpu_ptr, resPiece, zerocoord[0], GLB_T, iup_gpu, timeslices, N,
+        (_E_T_gpu<<<grid_size, BLOCK_SIZE, 0, 0>>>(V->gpu_ptr, resPiece, iup_gpu, timeslices, zerocoord[0], GLB_T, N,
                                                    block_start));
         for (int nt = 0; nt < GLB_T; nt++) {
             int gt = (zerocoord[0] + nt + GLB_T) % GLB_T;
-            E[2 * gt] += global_sum_gpu(resPiece + N * gt);
-            E[2 * gt + 1] += global_sum_gpu(resPiece + N * gt * 2);
+            E[2 * gt] += global_sum_gpu(resPiece + N * gt, N);
+            E[2 * gt + 1] += global_sum_gpu(resPiece + N * gt * 2, N);
+            E[2 * gt] /= 0.5 * (GLB_VOL3);
+            E[2 * gt + 1] /= 0.5 * (GLB_VOL3);
         });
-
-    E[2 * gt] /= 0.5 * (GLB_VOL3);
-    E[2 * gt + 1] /= 0.5 * (GLB_VOL3);
 
 #ifdef WITH_MPI
     global_sum(E, 2 * GLB_T);
@@ -244,7 +235,7 @@ void Esym_T_gpu(double *E, suNg_field *V) {
     memset(E, 0, GLB_T * sizeof(double));
 
     if (!init) {
-        init_avr_plaquette_time(u_gauge);
+        init_avr_plaquette_time();
         init = 1;
     }
 
@@ -253,16 +244,15 @@ void Esym_T_gpu(double *E, suNg_field *V) {
 
     _CUDA_FOR(
         u_gauge, ixp, resPiece = alloc_double_sum_field(N * GLB_T * 4); cudaMemset(resPiece, 0, N * GLB_T * 4 * sizeof(double));
-        (_Esym_T_gpu<<<grid_size, BLOCK_SIZE, 0, 0>>>(V->gpu_ptr, resPiece, zerocoord[0], GLB_T, iup_gpu, idn_gpu, timeslices,
+        (_Esym_T_gpu<<<grid_size, BLOCK_SIZE, 0, 0>>>(V->gpu_ptr, resPiece, iup_gpu, idn_gpu, timeslices, zerocoord[0], GLB_T,
                                                       N, block_start));
         for (int nt = 0; nt < GLB_T; nt++) {
             int gt = (zerocoord[0] + nt + GLB_T) % GLB_T;
-            E[2 * gt] += global_sum_gpu(resPiece + N * gt);
-            E[2 * gt + 1] += global_sum_gpu(resPiece + N * gt * 2);
+            E[2 * gt] += global_sum_gpu(resPiece + N * gt, N);
+            E[2 * gt + 1] += global_sum_gpu(resPiece + N * gt * 2, N);
+            E[2 * gt] /= 0.5 * (GLB_VOL3);
+            E[2 * gt + 1] /= 0.5 * (GLB_VOL3);
         });
-
-    E[2 * gt] /= 0.5 * (GLB_VOL3);
-    E[2 * gt + 1] /= 0.5 * (GLB_VOL3);
 
 #ifdef WITH_MPI
     global_sum(E, 2 * GLB_T);
@@ -275,7 +265,7 @@ double topo_gpu(suNg_field *V) {
     start_sendrecv_suNg_field(V);
     complete_sendrecv_suNg_field(V);
     _CUDA_FOR(V, ixp, resPiece = alloc_double_sum_field(N);
-              (_topo_gpu<<<grid_size, BLOCK_SIZE, 0, 0>>>(V->gpu_ptr, resPiece, iup_gpu, idn_gpu, N, block_start));
+              (_topo_gpu<<<grid_size, BLOCK_SIZE, 0, 0>>>(resPiece, V->gpu_ptr, iup_gpu, idn_gpu, N, block_start));
               res += global_sum_gpu(resPiece, N););
     res *= _FUND_NORM2 / (4. * M_PI * M_PI);
     global_sum(&res, 1);

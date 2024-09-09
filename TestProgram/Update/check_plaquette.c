@@ -19,15 +19,15 @@ int main(int argc, char *argv[]) {
 
     /* Average plaquette */
     start_sendrecv_suNg_field(u_gauge);
-    double plaq_cpu = avr_plaquette_cpu();
+    double plaq_cpu = avr_plaquette_cpu(u_gauge);
     start_sendrecv_suNg_field(u_gauge);
-    double plaq_gpu = avr_plaquette_gpu();
+    double plaq_gpu = avr_plaquette_gpu(u_gauge);
     compare_diff(errors, plaq_cpu, plaq_gpu, "CHECK PLAQUETTE", EPSILON_TEST);
 
     /* full plaquette */
     // Compare output by eye
-    full_plaquette_gpu();
-    full_plaquette_cpu();
+    full_plaquette_gpu(u_gauge);
+    full_plaquette_cpu(u_gauge);
 
     double plaqt_cpu[GLB_T];
     double plaqt_gpu[GLB_T];
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
     local_plaquette(u_gauge, sgpu);
     _MASTER_FOR(&glattice, ix) {
-        *_FIELD_AT(scpu, ix) = local_plaq(ix);
+        *_FIELD_AT(scpu, ix) = local_plaq(u_gauge, ix);
     }
 
     copy_to_gpu_scalar_field(scpu);
@@ -47,8 +47,8 @@ int main(int argc, char *argv[]) {
     sub_assign(scpu, sgpu);
     lprintf("LOCAL PLAQUETTE", 0, "L2 diff: %0.15e\n", sqnorm(scpu));
 
-    avr_plaquette_time_cpu(plaqt_cpu, plaqs_cpu);
-    avr_plaquette_time_gpu(plaqt_gpu, plaqs_gpu);
+    avr_plaquette_time_cpu(u_gauge, plaqt_cpu, plaqs_cpu);
+    avr_plaquette_time_gpu(u_gauge, plaqt_gpu, plaqs_gpu);
 
     for (int nt = 0; nt < GLB_T; nt++) {
         compare_diff(errors, plaqt_cpu[nt], plaqt_gpu[nt], "CHECK PLAQUETTE", EPSILON_TEST);

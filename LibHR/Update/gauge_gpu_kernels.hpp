@@ -1,3 +1,14 @@
+#include "geometry.h"
+#include "libhr_core.h"
+
+#ifdef PLAQ_WEIGHTS
+#define PLAQ_WEIGHT_ARG , plaq_weight
+#define PLAQ_WEIGHT_ARG_DEF , double *plaq_weight
+#else
+#define PLAQ_WEIGHT_ARG
+#define PLAQ_WEIGHT_ARG_DEF
+#endif
+
 // TODO: all device functions into the header + forceinline
 
 // Based on the implementation in avr_plaquette.c
@@ -133,12 +144,12 @@ __device__ static void _clover_F_gpu(suNg_algebra_vector *F, suNg *V, int ix, in
     _suNg_add_assign(w3, w1);
 
     iy = idn_gpu[4 * ix + mu];
-    iz = iup_gpu[4 * iy + nu]
+    iz = iup_gpu[4 * iy + nu];
 
-        read_gpu<double>(0, v1, V, ix, nu, 4);
-    read_gpu<double>(0, v2, V, iz, mu, 4);
-    read_gpu<double>(0, v3, V, iy, nu, 4);
-    read_gpu<double>(0, v4, V, iy, mu, 4);
+    read_gpu<double>(0, &v1, V, ix, nu, 4);
+    read_gpu<double>(0, &v2, V, iz, mu, 4);
+    read_gpu<double>(0, &v3, V, iy, nu, 4);
+    read_gpu<double>(0, &v4, V, iy, mu, 4);
 
     _suNg_times_suNg_dagger(w1, v1, v2);
     _suNg_times_suNg_dagger(w2, w1, v3);
@@ -149,10 +160,10 @@ __device__ static void _clover_F_gpu(suNg_algebra_vector *F, suNg *V, int ix, in
     iz = idn_gpu[4 * iy + nu];
     iw = idn_gpu[4 * ix + nu];
 
-    read_gpu<double>(0, v1, V, iy, mu, 4);
-    read_gpu<double>(0, v2, V, iz, nu, 4);
-    read_gpu<double>(0, v3, V, iz, mu, 4);
-    read_gpu<double>(0, v4, V, iw, nu, 4);
+    read_gpu<double>(0, &v1, V, iy, mu, 4);
+    read_gpu<double>(0, &v2, V, iz, nu, 4);
+    read_gpu<double>(0, &v3, V, iz, mu, 4);
+    read_gpu<double>(0, &v4, V, iw, nu, 4);
 
     _suNg_times_suNg(w1, v2, v1);
     _suNg_dagger_times_suNg(w2, w1, v3);
@@ -162,10 +173,10 @@ __device__ static void _clover_F_gpu(suNg_algebra_vector *F, suNg *V, int ix, in
     iy = idn_gpu[4 * ix + nu];
     iz = iup_gpu[4 * iy + mu];
 
-    read_gpu<double>(0, v1, V, iy, nu, 4);
-    read_gpu<double>(0, v2, V, iy, mu, 4);
-    read_gpu<double>(0, v3, V, iz, nu, 4);
-    read_gpu<double>(0, v4, V, ix, mu, 4);
+    read_gpu<double>(0, &v1, V, iy, nu, 4);
+    read_gpu<double>(0, &v2, V, iy, mu, 4);
+    read_gpu<double>(0, &v3, V, iz, nu, 4);
+    read_gpu<double>(0, &v4, V, ix, mu, 4);
 
     _suNg_dagger_times_suNg(w1, v1, v2);
     _suNg_times_suNg(w2, w1, v3);
@@ -176,14 +187,14 @@ __device__ static void _clover_F_gpu(suNg_algebra_vector *F, suNg *V, int ix, in
     _algebra_vector_mul_g(*F, 1 / 4., *F);
 }
 
-__global__ void _E_gpu(suNg *v, double *resField, int *iup_gpu, int block_start) {
+__global__ void _E_gpu(suNg *v, double *resField, int *iup_gpu, int N, int block_start) {
     for (int id = blockIdx.x * blockDim.x + threadIdx.x; id < N; id += blockDim.x * gridDim.x) {
         const int ix = id + block_start;
         double p = 0.0;
         resField[ix] = 0.0;
         for (int mu = 0; mu < 4; mu++) {
             for (int nu = mu + 1; nu < 4; nu++) {
-                p = plaq_dev(v, ix, mu, nu, v, iup_gpu);
+                p = plaq_dev(ix, mu, nu, v, iup_gpu);
                 resField[ix] += NG - p;
             }
         }
@@ -197,15 +208,15 @@ __global__ void _E_T_gpu(suNg *v, double *resField, int *iup_gpu, int *timeslice
         int nt = timeslices[ix];
         const int tc = (zero + nt + global_T) % global_T;
         double p = 0.0;
-        mu = 0;
-        for (nu = 1; nu < 4; nu++) {
-            p = plaq_gpu(v, ix, mu, nu, iup_gpu);
-            resPiece[id + N * tc] += NG - p;
+        int mu = 0;
+        for (int nu = 1; nu < 4; nu++) {
+            p = plaq_dev(ix, mu, nu, v, iup_gpu);
+            resField[id + N * tc] += NG - p;
         }
         for (mu = 1; mu < 3; mu++) {
-            for (nu = mu + 1; nu < 4; nu++) {
-                p = plaq_gpu(v, ix, mu, nu, iup_gpu);
-                resPiece[id + 2 * N * tc] += NG - p;
+            for (int nu = mu + 1; nu < 4; nu++) {
+                p = plaq_dev(ix, mu, nu, v, iup_gpu);
+                resField[id + 2 * N * tc] += NG - p;
             }
         }
     }
@@ -235,27 +246,27 @@ __global__ void _Esym_T_gpu(suNg *v, double *resField, int *iup_gpu, int *idn_gp
         const int tc = (zero + nt + global_T) % global_T;
         suNg_algebra_vector clover;
         double p = 0.0;
-        mu = 0;
-        for (nu = 1; nu < 4; nu++) {
-            _clover_F_gpu(&clover, V, ix, mu, nu, iup_gpu, idn_gpu);
+        int mu = 0;
+        for (int nu = 1; nu < 4; nu++) {
+            _clover_F_gpu(&clover, v, ix, mu, nu, iup_gpu, idn_gpu);
             _algebra_vector_sqnorm_g(p, clover);
-            resPiece[id + N * tc] += p;
+            resField[id + N * tc] += p;
         }
         for (mu = 1; mu < 3; mu++) {
-            for (nu = mu + 1; nu < 4; nu++) {
-                _clover_F_gpu(&clover, V, ix, mu, nu, iup_gpu, idn_gpu);
-                algebra_vector_sqnorm_g(p, clover);
-                resPiece[id + 2 * N * tc] += p;
+            for (int nu = mu + 1; nu < 4; nu++) {
+                _clover_F_gpu(&clover, v, ix, mu, nu, iup_gpu, idn_gpu);
+                _algebra_vector_sqnorm_g(p, clover);
+                resField[id + 2 * N * tc] += p;
             }
         }
     }
 }
 
-__global__ void _topo_gpu(double *Q, suNg_field *V) {
+__global__ void _topo_gpu(double *resField, suNg *v, int *iup_gpu, int *idn_gpu, int N, int block_start) {
     for (int id = blockIdx.x * blockDim.x + threadIdx.x; id < N; id += blockDim.x * gridDim.x) {
         const int ix = id + block_start;
         resField[ix] = 0.0;
-        suNg_algbera_vector F1, F2;
+        suNg_algebra_vector F1, F2;
         _clover_F_gpu(&F1, v, ix, 1, 2, iup_gpu, idn_gpu);
         _clover_F_gpu(&F2, v, ix, 0, 3, iup_gpu, idn_gpu);
         for (int i = 0; i < NG * NG - 1; i++) {

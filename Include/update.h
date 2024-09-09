@@ -9,6 +9,7 @@
 #include "Update/cabmar.h"
 #include "Update/clover_tools.h"
 #include "Update/dirac.h"
+#include "Update/gauge.h"
 #include "Update/field_update.h"
 #include "Update/find_spec_limits.h"
 #include "Update/forces.h"

@@ -11,16 +11,6 @@
  *
  *******************************************************************************/
 #include "libhr.h"
-/*#include "Core/global.h"
-#include "Geometry/communications.h"
-#include "Utils/boundary_conditions.h"
-#include "Utils/timing.h"
-#include "Update/avr_plaquette.h"
-#include "Random/ranlux.h"
-#include "io.h"
-#include "geometry.h"
-//#include "inverters.h"
-#include "Inverters/global_sum.h"*/
 
 void write_gauge_field(char filename[]) {
 #if NG == 2 && !defined(WITH_QUATERNIONS)
