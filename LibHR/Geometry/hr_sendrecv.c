@@ -9,6 +9,7 @@
  * 
 */
 
+#ifdef WITH_MPI
 #include "geometry.h"
 #include "memory.h"
 #include "libhr_core.h"
@@ -192,4 +193,5 @@ void hr_sendrecv(void *sendbuffer, void *recvbuffer, geometry_descriptor *type, 
     }
 }
 
+#endif
 #endif
