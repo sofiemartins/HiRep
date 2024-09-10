@@ -367,13 +367,7 @@ visible static void doublehornerNF3(double *C, suNfc *A, int lNNexp) {
 
     int i, j, k;
     double q[2 * NF], qlast;
-
-    double **q2 = (double **)malloc((lNNexp + 1) * sizeof(double *));
-    for (int l = 0; l < lNNexp + 1; ++l) {
-        q2[l] = (double *)malloc((2 * NF) * sizeof(double));
-    }
-
-    //  for(i=0; i<2*NF-1;i++)printf("p[%d] = %2.20e\n", i, creal(p[i]));
+    double q2[MAX_FACTORIAL + 1][2 * NF];
 
     for (j = 0; j <= lNNexp; j++) {
         q[0] = inverse_fact(lNNexp + 2);
@@ -415,11 +409,6 @@ visible static void doublehornerNF3(double *C, suNfc *A, int lNNexp) {
             C[2 * NF * j + i] = q[j];
         }
     }
-
-    for (int l = 0; l < lNNexp + 1; ++l) {
-        free(q2[l]);
-    }
-    free(q2);
 }
 
 #endif
@@ -441,13 +430,7 @@ visible static void doublehornerNF2(double *C, suNfc *A, int lNNexp) {
 
     int i, j, k;
     double q[2 * NF], qlast;
-
-    double **q2 = (double **)malloc((lNNexp + 1) * sizeof(double *));
-    for (int l = 0; l < lNNexp + 1; ++l) {
-        q2[l] = (double *)malloc((2 * NF) * sizeof(double));
-    }
-
-    //  for(i=0; i<2*NF-1;i++)printf("p[%d] = %2.20e\n", i, creal(p[i]));
+    double q2[MAX_FACTORIAL + 1][2 * NF];
 
     for (j = 0; j <= lNNexp; j++) {
         q[0] = inverse_fact(lNNexp + 2);
@@ -489,11 +472,6 @@ visible static void doublehornerNF2(double *C, suNfc *A, int lNNexp) {
             C[2 * NF * j + i] = q[j];
         }
     }
-
-    for (int l = 0; l < lNNexp + 1; ++l) {
-        free(q2[l]);
-    }
-    free(q2);
 }
 #endif
 
@@ -506,7 +484,9 @@ visible void doublehorner(double *C, suNfc *A, int lNNexp) {
     // TODO: this does not work because error is not a host
     // device function. There is now a compile time
     // check that forbids NF > 3 to compile WITH_EXPCLOVER
-    //error(0, 1, "doublehorner " __FILE__, "Force only implemented for NF=2 and NF=3");
+#ifndef __CUDA_ARCH__
+    error(0, 1, "doublehorner " __FILE__, "Force only implemented for NF=2 and NF=3");
+#endif
 #endif
 }
 
