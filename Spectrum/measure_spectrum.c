@@ -19,7 +19,6 @@
 /* Mesons parameters */
 typedef struct input_mesons {
     char configlist[256], mstring[1024];
-    int use_input_mass;
     double precision;
     int meas_mixed;
     int nhits_2pt;
@@ -49,7 +48,7 @@ typedef struct input_mesons {
 
     //Currently only implemented for ff
     int nhits_hopping; //Multiplies the number of hits in the fast part of the hopping parameter expansion
-    int degree_hopping; // The degree of the hopping parameter expasion
+    int degree_hopping; // The degree of the hopping parameter expansion
 
     /* for the reading function */
     input_record_t read[33];
@@ -58,8 +57,7 @@ typedef struct input_mesons {
 #define init_input_mesons(varname)                                                                                        \
     {                                                                                                                     \
         .read = {                                                                                                         \
-            { "quark quenched masses", "mes:masses = %s", STRING_T, (varname).mstring },                                  \
-            { "use input mass", "mes:use_input_mass = %d", INT_T, &(varname).use_input_mass },                            \
+            { "quark quenched masses", "mes:mass = %s", STRING_T, (varname).mstring },                                    \
             { "inverter precision", "mes:precision = %lf", DOUBLE_T, &(varname).precision },                              \
             { "measure mixed correlators", "mes:meas_mixed = %d", INT_T, &(varname).meas_mixed },                         \
             { "number of noisy sources per cnfg for 2pt fn", "mes:nhits_2pt = %d", INT_T, &(varname).nhits_2pt },         \
@@ -183,7 +181,7 @@ int main(int argc, char *argv[]) {
     if (mes_var.n_mom > 1) {
         lprintf("MAIN", 0, "Number of maximum monentum component %d\n", mes_var.n_mom - 1);
         if (mes_var.def_semwall || mes_var.ext_semwall || mes_var.fixed_semwall) {
-            lprintf("MAIN", 0, "WARGING: wall sources measure only with zero momenta\n");
+            lprintf("MAIN", 0, "WARNING: wall sources measure only with zero momenta\n");
         }
     }
     if (mes_var.n_mom == 0) { mes_var.n_mom++; }

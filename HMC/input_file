@@ -21,13 +21,6 @@ log:default = -1
 log:inverter = -1
 log:forcestat = -1
 
-//Fermion twisting
-theta_T = 0.
-theta_X = 0.
-theta_Y = 0.
-theta_Z = 0.
-
-
 // HMC variables
 tlen = 1.0
 csw = 1.1329500 
@@ -46,7 +39,7 @@ SF_sign = 1
 rho_s = 0.0
 rho_t = 0.0
 
-//needed only if compiled with FERMION_THETA
+//needed only if compiled with BC_<DIR>_THETA
 theta_T = 0.0
 theta_X = 0.0
 theta_Y = 0.0
@@ -62,12 +55,10 @@ last conf = +1
 
 //Mesons
 mes:make = false
-mes:mesmass = -0.60
 mes:precision = 1.e-24
 mes:nhits = 3
 mes:mass = -0.60
 mes:csw = 1.0
-
 
 //Polyakov
 poly:make = false
