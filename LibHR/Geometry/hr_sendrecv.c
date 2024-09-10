@@ -28,8 +28,6 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 pthread_barrier_t barrier;
 
-#ifdef WITH_MPI
-
 #define _GET_RECV_BUFFER(_buffer, _i, _field_dim, _type, _chars_per_site) \
     ((_buffer) + _chars_per_site * _field_dim * ((_type->rbuf_start[(_i)]) - (_type->master_shift)))
 
@@ -193,5 +191,4 @@ void hr_sendrecv(void *sendbuffer, void *recvbuffer, geometry_descriptor *type, 
     }
 }
 
-#endif
 #endif
