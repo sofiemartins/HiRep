@@ -88,28 +88,6 @@ typedef struct {
  * @author Tadeusz Janowski
  */
 
-/**
- * @brief Sets the configuration to unit gauge
- */
-void unit_gauge(suNg_field *gauge) {
-    int mu;
-    int x, y, z, t, ix;
-    for (t = 0; t < T; t++) {
-        for (x = 0; x < X; x++) {
-            for (y = 0; y < Y; y++) {
-                for (z = 0; z < Z; z++) {
-                    ix = ipt(t, x, y, z);
-                    for (mu = 0; mu < 4; ++mu) {
-                        _suNg_unit(*_4FIELD_AT(gauge, ix, mu));
-                    }
-                }
-            }
-        }
-    }
-    start_sendrecv_suNg_field(gauge);
-    complete_sendrecv_suNg_field(gauge);
-}
-
 typedef struct fourvector {
     double v[4];
 } fourvec;
@@ -575,7 +553,6 @@ int main(int argc, char *argv[]) {
     error(!(GLB_X == GLB_Y && GLB_X == GLB_Z), 1, "main", "This test works only for GLB_X=GLB_Y=GLB_Z");
 
     setup_process(&argc, &argv);
-
     setup_gauge_fields();
 
     read_input(glb_var.read, get_input_filename());

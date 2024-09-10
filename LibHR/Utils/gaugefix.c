@@ -24,7 +24,6 @@ void unit_gauge(suNg_field *gauge) {
     }
 #ifdef WITH_GPU
     copy_to_gpu(gauge);
-    gauge->comm_type = ALL_COMMS;
 #endif
     start_sendrecv_suNg_field(gauge);
     complete_sendrecv_suNg_field(gauge);
