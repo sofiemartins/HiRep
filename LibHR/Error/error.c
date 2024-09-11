@@ -36,6 +36,7 @@ void error(int test, int no, const char *name, const char *text, ...) {
         va_start(args, text);
         lprintf("ERROR", 0, "%s:\n", name);
         vlprintf("ERROR", 0, text, args);
+        lprintf("ERROR", 0, "\n");
         va_end(args);
         lprintf("ERROR", 0, "Exiting program...\n");
         print_trace();

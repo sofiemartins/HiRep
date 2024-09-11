@@ -452,66 +452,9 @@ void logger_disable() {
 
 int lprintf(const char *name, int level, const char *format, ...) {
     va_list args;
-    static record *lastrec = 0;
-    static char lastname[512] = { 0 };
-    static FILE *lastfd = 0;
-    static char buf[4096];
-    static char alevel[16];
-    char *cur = &buf[0];
-    int ret;
-    lrecord *vrd;
-    static int lastvlevel;
-    static int newline = 1;
-    int islast = 1;
-
-    if (logger_inactive || name == 0) { /* no name: print nothing and return and error */
-        return -1;
-    }
-
-    /* compare current name with last name if map has not changed */
-    if (mapchanged || strcmp(name, lastname) != 0) {
-        islast = 0;
-        mapchanged = 0;
-        lastrec = findname(filemap, name);
-        if (lastrec == 0) {
-            lastfd = (default_out == 0) ? stdout : default_out->file;
-        } else {
-            lastfd = lastrec->file;
-        }
-        strcpy(&lastname[0], name);
-        vrd = lfindname(levels, name);
-        lastvlevel = verblevel;
-        if (vrd != 0) { lastvlevel = vrd->level; }
-    }
-
-    /* check verbosity level */
-    if (lastvlevel < level) { return 0; }
-
     va_start(args, format);
-
-    sprintf(alevel, "%d", level);
-    if (newline) {
-        mycpyname(&cur, name);
-        mycpyname(&cur, alevel);
-    } else if (!islast) {
-        *(cur++) = '\n';
-        mycpyname(&cur, name);
-        mycpyname(&cur, alevel);
-    }
-    while (mycpytonl(&cur, &format)) {
-        mycpyname(&cur, name);
-        mycpyname(&cur, alevel);
-    }
-    newline = (*(cur - 1) == '\n') ? 1 : 0;
-    *cur = '\0';
-
-    ret = vfprintf(lastfd, &buf[0], args);
-#ifdef IO_FLUSH
-    fflush(lastfd);
-#endif
-
+    int ret = vlprintf(name, level, format, args);
     va_end(args);
-
     return ret;
 }
 
