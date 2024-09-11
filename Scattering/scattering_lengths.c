@@ -70,7 +70,7 @@ typedef struct {
 
 int main(int argc, char *argv[]) {
     int k;
-    FILE *list;
+    FILE *list = NULL;
     int nm;
     double m[256];
     int seq_prop = 0;
@@ -79,9 +79,7 @@ int main(int argc, char *argv[]) {
 
     setup_gauge_fields();
 
-    read_input(glb_var.read, get_input_filename());
     read_input(mes_var.read, get_input_filename());
-    read_input(rlx_var.read, get_input_filename());
     if (strcmp(mes_var.seq_prop, "true") == 0) { seq_prop = 1; }
     if (strcmp(mes_var.seq_prop, "none") == 0) { seq_prop = 2; }
     if (strcmp(mes_var.seq_prop, "false") == 0) { seq_prop = 0; }

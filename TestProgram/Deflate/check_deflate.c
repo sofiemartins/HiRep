@@ -189,28 +189,9 @@ int main(int argc, char *argv[]) {
 
     /* setup process id and communications */
     logger_map("DEBUG", "debug");
-
-    read_cmdline(argc, argv);
     setup_process(&argc, &argv);
-
     setup_gauge_fields();
-
-    /* setup process id and communications */
-    setup_process(&argc, &argv);
-
-    read_input(glb_var.read, input_filename);
-
-    /* read & broadcast parameters */
-    parse_cnfg_filename(cnfg_filename, &fpars);
-
     read_input(mes_var.read, input_filename);
-    GLB_T = fpars.t;
-    GLB_X = fpars.x;
-    GLB_Y = fpars.y;
-    GLB_Z = fpars.z;
-    error(fpars.type == UNKNOWN_CNFG, 1, "check_propagator.c", "Bad name for a configuration file");
-    error(fpars.nc != NG, 1, "check_propagator.c", "Bad NG");
-
     nm = 0;
     if (fpars.type == DYNAMICAL_CNFG) {
         nm = 1;

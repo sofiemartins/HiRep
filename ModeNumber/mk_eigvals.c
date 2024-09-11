@@ -66,7 +66,6 @@ int main(int argc, char *argv[]) {
     /* setup process id and communications */
     setup_process(&argc, &argv);
     setup_gauge_fields();
-    read_input(glb_var.read, get_input_filename());
     read_input(eig_var.read, get_input_filename());
     lprintf("MAIN", 0, "list file: [%s]\n", eig_var.configlist);
     if (strcmp(eig_var.configlist, "") != 0) {

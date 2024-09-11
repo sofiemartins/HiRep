@@ -176,62 +176,8 @@ int main(int argc, char *argv[]) {
     FILE *list;
     filename_t fpars;
 
-    read_cmdline(argc, argv);
-
     /* setup process communications */
     setup_process(&argc, &argv);
-
-    /* read global variables file */
-    read_input(glb_var.read, input_filename);
-
-    setup_replicas();
-
-    /* logger setup */
-    read_input(logger_var.read, input_filename);
-    logger_set_input(&logger_var);
-    if (PID != 0) {
-        logger_disable();
-    } /* disable logger for MPI processes != 0 */
-    else {
-        FILE *stderrp;
-        sprintf(sbuf, ">>%s", output_filename);
-        logger_stdout(sbuf);
-        stderrp = freopen(error_filename, "w", stderr);
-        error(stderrp == NULL, 1, "main [hmc.c]", "Cannot redirect the stderr");
-    }
-
-    print_compiling_info_short();
-    lprintf("MAIN", 0, "[RepID: %d][world_size: %d]\n[MPI_ID: %d][MPI_size: %d]\n\n", RID, WORLD_SIZE, MPI_PID, MPI_WORLD_SIZE);
-
-    //  lprintf("MAIN",0,"Logger lelvel: %d\n",logger_getlevel(0));
-
-    /* setup lattice geometry */
-    if (geometry_init() == 1) {
-        finalize_process();
-        return 0;
-    }
-    geometry_mpi_eo();
-    /* test_geometry_mpi_eo(); */
-    /* setup random numbers */
-    read_input(rlx_var.read, input_filename);
-    //slower(rlx_var.rlxd_start); //convert start variable to lowercase
-    if (strcmp(rlx_var.rlxd_start, "continue") == 0 && rlx_var.rlxd_state[0] != '\0') {
-        /*load saved state*/
-        lprintf("MAIN", 0, "Loading rlxd state from file [%s]\n", rlx_var.rlxd_state);
-        read_ranlxd_state(rlx_var.rlxd_state);
-    } else {
-        lprintf("MAIN", 0, "RLXD [%d,%d]\n", rlx_var.rlxd_level, rlx_var.rlxd_seed + MPI_PID);
-        rlxd_init(rlx_var.rlxd_level, rlx_var.rlxd_seed);
-    }
-
-#ifdef GAUGE_SUN
-    lprintf("MAIN", 0, "Gauge group: SU(%d)\n", NG);
-#elif GAUGE_SON
-    lprintf("MAIN", 0, "Gauge group: SO(%d)\n", NG);
-#else
-    lprintf("MAIN", 0, "Default gauge group: SU(%d)\n", NG);
-#endif
-    lprintf("MAIN", 0, "Fermion representation: " REPR_NAME " [dim=%d]\n", NF);
 
     /* Init Monte Carlo */
     init_mc(&flow, input_filename);
@@ -240,25 +186,6 @@ int main(int argc, char *argv[]) {
     if (strcmp(list_filename, "") != 0) {
         error((list = fopen(list_filename, "r")) == NULL, 1, "main [mk_mesons.c]", "Failed to open list file\n");
     }
-
-    print_compiling_info_short();
-    lprintf("MAIN", 0, "PId =  %d [world_size: %d]\n\n", PID, WORLD_SIZE);
-    lprintf("MAIN", 0, "input file [%s]\n", input_filename);
-    lprintf("MAIN", 0, "output file [%s]\n", output_filename);
-    if (list_filename[0] != 0) {
-        lprintf("MAIN", 0, "list file [%s]\n", list_filename);
-    } else {
-        lprintf("MAIN", 0, "cnfg file [%s]\n", cnfg_filename);
-    }
-
-    parse_cnfg_filename(cnfg_filename, &fpars);
-
-    GLB_T = fpars.t;
-    GLB_X = fpars.x;
-    GLB_Y = fpars.y;
-    GLB_Z = fpars.z;
-    error(fpars.type == UNKNOWN_CNFG, 1, "measure_spectrum.c", "Bad name for a configuration file");
-    error(fpars.nc != NG, 1, "measure_spectrum.c", "Bad NG");
 
     int i = 0;
     while (1) {

@@ -170,8 +170,6 @@ int main(int argc, char *argv[]) {
     read_cmdline(argc, argv);
     setup_process(&argc, &argv);
 
-    read_input(glb_var.read, input_filename);
-
     /* logger setup */
     /* disable logger for MPI processes != 0 */
     logger_setlevel(0, 30);

@@ -257,9 +257,7 @@ int main(int argc, char *argv[]) {
     spinor_field *prop = alloc_spinor_field(4, &glattice);
     spinor_field *propmu0 = alloc_spinor_field(4, &glattice);
 
-    read_input(glb_var.read, get_input_filename());
     read_input(cor_var.read, get_input_filename());
-    read_input(rlx_var.read, get_input_filename());
 
     m = atof(cor_var.mstring);
     mu = atof(cor_var.mustring);

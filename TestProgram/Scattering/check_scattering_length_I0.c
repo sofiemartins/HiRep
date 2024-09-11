@@ -459,12 +459,8 @@ int main(int argc, char *argv[]) {
     error(!(GLB_X == GLB_Y && GLB_X == GLB_Z), 1, "main", "This test works only for GLB_X=GLB_Y=GLB_Z");
 
     setup_process(&argc, &argv);
-
     setup_gauge_fields();
-
-    read_input(glb_var.read, get_input_filename());
     read_input(mes_var.read, get_input_filename());
-    read_input(rlx_var.read, get_input_filename());
 
     int numsources = mes_var.nhits;
 

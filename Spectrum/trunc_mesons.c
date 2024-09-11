@@ -169,49 +169,10 @@ int main(int argc, char *argv[]) {
     double disc;
 
     /* setup process id and communications */
-    read_cmdline(argc, argv);
     setup_process(&argc, &argv);
+    setup_gauge_fields();
 
-    /* logger setup */
-    /* disable logger for MPI processes != 0 */
-    logger_setlevel(0, 30);
-    if (PID != 0) { logger_disable(); }
-    if (PID == 0) {
-        sprintf(tmp, ">%s", output_filename);
-        logger_stdout(tmp);
-        sprintf(tmp, "err_%d", PID);
-        freopen(tmp, "w", stderr);
-    }
-
-    print_compiling_info_short();
-    lprintf("MAIN", 0, "PId =  %d [world_size: %d]\n\n", PID, WORLD_SIZE);
-    lprintf("MAIN", 0, "input file [%s]\n", input_filename);
-    lprintf("MAIN", 0, "output file [%s]\n", output_filename);
-    if (list_filename != NULL) {
-        lprintf("MAIN", 0, "list file [%s]\n", list_filename);
-    } else {
-        lprintf("MAIN", 0, "cnfg file [%s]\n", cnfg_filename);
-    }
-
-    /* read & broadcast parameters */
-    parse_cnfg_filename(cnfg_filename, &fpars);
-
-    read_input(glb_var.read, input_filename);
     read_input(ata_qprop_var.read, input_filename);
-    GLB_T = fpars.t;
-    GLB_X = fpars.x;
-    GLB_Y = fpars.y;
-    GLB_Z = fpars.z;
-    error(fpars.type == UNKNOWN_CNFG, 1, "mk_hairpins.c", "Bad name for a configuration file");
-    error(fpars.nc != NG, 1, "mk_hairpins.c", "Bad NG");
-
-    lprintf("MAIN", 0, "RLXD [%d,%d]\n", glb_var.rlxd_level, glb_var.rlxd_seed);
-    rlxd_init(glb_var.rlxd_level, glb_var.rlxd_seed);
-    srand(glb_var.rlxd_seed + PID);
-
-    lprintf("MAIN", 0, "Gauge group: SU(%d)\n", NG);
-    lprintf("MAIN", 0, "Fermion representation: " REPR_NAME " [dim=%d]\n", NF);
-
     ata_qprop_var.pars.n_masses = 0;
     if (fpars.type == DYNAMICAL_CNFG) {
         ata_qprop_var.pars.n_masses = 1;
@@ -226,16 +187,6 @@ int main(int argc, char *argv[]) {
             cptr = strtok(NULL, ";");
         }
     }
-
-    /* setup communication geometry */
-    if (geometry_init() == 1) {
-        finalize_process();
-        return 0;
-    }
-
-    /* setup lattice geometry */
-    geometry_mpi_eo();
-    /* test_geometry_mpi_eo(); */
 
     /* Print inversion/truncation parameters */
     lprintf("MAIN", 0, "Simulation masses:");
@@ -252,12 +203,6 @@ int main(int argc, char *argv[]) {
     lprintf("MAIN", 0, "Number of correction sources: %d\n", ata_qprop_var.pars.n_sources_correction);
     lprintf("MAIN", 0, "Inverter precision: %e\n", ata_qprop_var.pars.inverter_precision);
     lprintf("MAIN", 0, "Dilution: %d\n", ata_qprop_var.pars.dilution);
-
-    /* alloc global gauge fields */
-    u_gauge = alloc_suNg_field(&glattice);
-#ifndef REPR_FUNDAMENTAL
-    u_gauge_f = alloc_suNf_field(&glattice);
-#endif
 
     ata_qprop_init(&(ata_qprop_var.pars));
 

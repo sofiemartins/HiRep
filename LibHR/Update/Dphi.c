@@ -371,7 +371,9 @@ void Dphi_cpu_(spinor_field *restrict out, spinor_field *restrict in) {
         // this is achieved with comparing the condition to be different than repeat=0,1
 
         _MASTER_FOR(out->type, ix) {
+#ifdef _OPENMP
             register int thread0 = hr_threadId();
+#endif
             register suNf_spinor *r = _FIELD_AT(out, ix);
             if (repeat == 0) { _spinor_zero_f(*r); }
 

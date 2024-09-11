@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
     double acc = 1.e-26, tau, sig;
     spinor_field *s0, *s1, *s2, *s3;
     setup_process(&argc, &argv);
+    setup_gauge_fields();
 
     BCs_pars_t BCs_pars = { .fermion_twisting_theta = { 0., M_PI / 5., M_PI / 5., M_PI / 5. },
                             .gauge_boundary_improvement_cs = 1.,
@@ -97,25 +98,8 @@ int main(int argc, char *argv[]) {
         freopen(sbuf, "w", stderr);
     }
 
-    lprintf("MAIN", 0, "PId =  %d [world_size: %d]\n\n", PID, WORLD_SIZE);
-
-    read_input(glb_var.read, "test_input");
-    read_input(rlx_var.read, "test_input");
-
-    rlxd_init(rlx_var.rlxd_level, rlx_var.rlxd_seed);
-
-    /* setup communication geometry */
-    if (geometry_init() == 1) {
-        finalize_process();
-        return 0;
-    }
-
-    geometry_mpi_eo();
-
     init_BCs(&BCs_pars);
 
-    u_gauge = alloc_suNg_field(&glattice);
-    u_gauge_f = alloc_suNf_field(&glattice);
     s0 = alloc_spinor_field(4, &glattice);
     s1 = s0 + 1;
     s2 = s1 + 1;
