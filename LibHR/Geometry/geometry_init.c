@@ -297,7 +297,7 @@ int geometry_init() {
     MPI_Cart_coords(cart_comm, CID, 4, COORD);
     lprintf("GEOMETRY", 0, "CId = %d (%d,%d,%d,%d)\n", CID, COORD[0], COORD[1], COORD[2], COORD[3]);
     if (CART_SIZE != WORLD_SIZE) {
-        lprintf("GEOMETRY", 0, "WARNING: Cartesian size %d != world size %d\n", CART_SIZE, WORLD_SIZE);
+        error(1, 1, __func__, "WARNING: Cartesian size %d != world size %d\n", CART_SIZE, WORLD_SIZE);
     }
     /* this is for the parity of this process */
     compute_psign();

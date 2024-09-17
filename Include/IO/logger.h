@@ -12,6 +12,7 @@
 #define LOGGER_H
 
 #include "input_par.h"
+#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -118,6 +119,8 @@ void logger_disable();
  *
  */
 int lprintf(const char *name, int level, const char *format, ...);
+
+int vlprintf(const char *name, int level, const char *format, va_list args);
 
 #ifdef __cplusplus
 }

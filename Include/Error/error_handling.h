@@ -34,7 +34,7 @@ extern "C" {
     * @param name              Function name, where the error was raised
     * @param text              Error message text
     */
-void error(int test, int no, const char *name, const char *text);
+void error(int test, int no, const char *name, const char *text, ...);
 
 //print_trace.c
 void print_trace(void);

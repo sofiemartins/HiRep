@@ -452,6 +452,13 @@ void logger_disable() {
 
 int lprintf(const char *name, int level, const char *format, ...) {
     va_list args;
+    va_start(args, format);
+    int ret = vlprintf(name, level, format, args);
+    va_end(args);
+    return ret;
+}
+
+int vlprintf(const char *name, int level, const char *format, va_list args) {
     static record *lastrec = 0;
     static char lastname[512] = { 0 };
     static FILE *lastfd = 0;
@@ -487,8 +494,6 @@ int lprintf(const char *name, int level, const char *format, ...) {
     /* check verbosity level */
     if (lastvlevel < level) { return 0; }
 
-    va_start(args, format);
-
     sprintf(alevel, "%d", level);
     if (newline) {
         mycpyname(&cur, name);
@@ -509,8 +514,6 @@ int lprintf(const char *name, int level, const char *format, ...) {
 #ifdef IO_FLUSH
     fflush(lastfd);
 #endif
-
-    va_end(args);
 
     return ret;
 }
