@@ -77,9 +77,7 @@ int main(int argc, char *argv[]) {
 
     setup_gauge_fields();
 
-    read_input(glb_var.read, get_input_filename());
     read_input(mes_var.read, get_input_filename());
-    read_input(rlx_var.read, get_input_filename());
 
 #ifdef WITH_CLOVER
     clover_init(mes_var.csw);

@@ -180,40 +180,14 @@ int main(int argc, char *argv[]) {
     char sbuf[512];
     char rbuf[512];
 
-    // Read commandline
-    read_cmdline(argc, argv);
-
     // Setup process
     setup_process(&argc, &argv);
+    setup_gauge_fields();
     logger_setlevel(0, 10);
 
-    if (PID != 0) {
-        logger_disable();
-    } else {
-        sprintf(sbuf, ">>%s", output_filename);
-        logger_stdout(sbuf);
-        sprintf(sbuf, "err_%d", PID);
-        freopen(sbuf, "w", stderr);
-    }
-
     // Read settings
-    read_input(glb_var.read, input_filename);
-    read_input(rlx_var.read, input_filename);
     read_input(rw_var.read, input_filename);
 
-    // Initialize stuff
-    rlxd_init(rlx_var.rlxd_level, rlx_var.rlxd_seed);
-
-    if (geometry_init() == 1) {
-        finalize_process();
-        return 0;
-    }
-
-    geometry_mpi_eo();
-
-    // Allocate gauge field
-    u_gauge = alloc_suNg_field(&glattice);
-    u_gauge_f = alloc_suNf_field(&glattice);
     unit_u(u_gauge);
     represent_gauge_field();
 

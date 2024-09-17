@@ -135,9 +135,7 @@ int main(int argc, char *argv[]) {
 
     setup_gauge_fields();
 
-    read_input(glb_var.read, get_input_filename());
     read_input(mes_var.read, get_input_filename());
-    read_input(rlx_var.read, get_input_filename());
     read_input(ff_var.read, get_input_filename());
     strcpy(list_filename, mes_var.configlist);
 

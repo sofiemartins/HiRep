@@ -79,9 +79,7 @@ int main(int argc, char *argv[]) {
     setup_process(&argc, &argv);
     setup_gauge_fields();
 
-    read_input(glb_var.read, get_input_filename());
     read_input(disc_var.read, get_input_filename());
-    read_input(rlx_var.read, get_input_filename());
     strcpy(list_filename, disc_var.configlist);
     lprintf("MAIN", 0, "list_filename = %s \n", list_filename, disc_var.configlist);
 

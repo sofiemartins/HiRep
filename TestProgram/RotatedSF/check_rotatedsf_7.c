@@ -11,30 +11,9 @@ int main(int argc, char *argv[]) {
     char tmp[256];
 
     setup_process(&argc, &argv);
-
-    logger_setlevel(0, 100); /* log all */
-    if (PID != 0) {
-        logger_disable();
-    } else {
-        sprintf(tmp, ">out_%d", PID);
-        logger_stdout(tmp);
-        sprintf(tmp, "err_%d", PID);
-        freopen(tmp, "w", stderr);
-    }
+    setup_gauge_fields();
 
     logger_map("DEBUG", "debug");
-
-    lprintf("MAIN", 0, "PId =  %d [world_size: %d]\n\n", PID, WORLD_SIZE);
-
-    read_input(glb_var.read, "test_input");
-
-    rlxd_init(rlx_var.rlxd_level, rlx_var.rlxd_seed);
-
-    /* setup communication geometry */
-    if (geometry_init() == 1) {
-        finalize_process();
-        return 0;
-    }
 
     BCs_pars_t BCs_pars = { /*     .fermion_twisting_theta = {0.,M_PI/5.,M_PI/5.,M_PI/5.}, */
 
@@ -59,14 +38,9 @@ int main(int argc, char *argv[]) {
 #error "Can work only with NC=3 and Nf==3"
 #endif
 
-    geometry_mpi_eo();
-
     init_BCs(&BCs_pars);
 
     lprintf("MAIN", 0, "This test implements a comparison with a working code of Stefan Sint\n");
-
-    u_gauge = alloc_suNg_field(&glattice);
-    u_gauge_f = alloc_suNf_field(&glattice);
 
     unit_u(u_gauge);
     /*   read_gauge_field_nocheck("suNg_field_sint.dat");  */

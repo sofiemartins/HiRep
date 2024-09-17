@@ -63,6 +63,7 @@ static void transform_u(void) {
 
 int main(int argc, char *argv[]) {
     setup_process(&argc, &argv);
+    setup_gauge_fields();
 
     double acc = 1.e-20;
 
@@ -72,49 +73,13 @@ int main(int argc, char *argv[]) {
                             .chiSF_boundary_improvement_ds = 0.5,
                             .SF_BCs = 0 };
 
-    char tmp[256];
-    logger_setlevel(0, 100); /* log all */
-    if (PID != 0) {
-        logger_disable();
-    } else {
-        sprintf(tmp, ">out_%d", PID);
-        logger_stdout(tmp);
-        sprintf(tmp, "err_%d", PID);
-        freopen(tmp, "w", stderr);
-    }
-
-    lprintf("MAIN", 0, "PId =  %d [world_size: %d]\n\n", PID, WORLD_SIZE);
-
-    read_input(glb_var.read, "test_input");
-    read_input(rlx_var.read, "test_input");
-
-    rlxd_init(rlx_var.rlxd_level, rlx_var.rlxd_seed);
-
-    /* setup communication geometry */
-    if (geometry_init() == 1) {
-        finalize_process();
-        return 0;
-    }
-
-    geometry_mpi_eo();
-
     init_BCs(&BCs_pars);
-
-    lprintf("MAIN", 0, "Gauge group: SU(%d)\n", NG);
-    lprintf("MAIN", 0, "Fermion representation: dim = %d\n", NF);
-    lprintf("MAIN", 0, "The lattice size is %dx%dx%dx%d\n", T, X, Y, Z);
-    lprintf("MAIN", 0, "The lattice global size is %dx%dx%dx%d\n", GLB_T, GLB_X, GLB_Y, GLB_Z);
-    lprintf("MAIN", 0, "The lattice borders are (%d,%d,%d,%d)\n", T_BORDER, X_BORDER, Y_BORDER, Z_BORDER);
-    lprintf("MAIN", 0, "\n");
-    fflush(stdout);
 
     double mass = 0.0;
     _update_par.SF_zf = 6.;
     _update_par.SF_ds = 3.;
     _update_par.SF_sign = 1;
 
-    u_gauge = alloc_suNg_field(&glattice);
-    u_gauge_f = alloc_suNf_field(&glattice);
     random_u(u_gauge);
     apply_BCs_on_fundamental_gauge_field();
 

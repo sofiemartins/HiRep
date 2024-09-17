@@ -54,7 +54,7 @@ input_nu nu_var = init_input_nu(nu_var);
 
 int main(int argc, char *argv[]) {
     char tmp[1024];
-    FILE *list;
+    FILE *list = NULL;
     char *cptr;
     int neig;
     double M[1024];
@@ -62,7 +62,6 @@ int main(int argc, char *argv[]) {
     /* setup process id and communications */
     setup_process(&argc, &argv);
     setup_gauge_fields();
-    read_input(glb_var.read, get_input_filename());
     read_input(nu_var.read, get_input_filename());
     hevamass = nu_var.mass;
     strcpy(tmp, nu_var.list);
