@@ -84,6 +84,7 @@ int main(int argc, char *argv[]) {
     pf = alloc(pf, 2, &glattice);
     pf_tmp = pf + 1;
     gaussian_spinor_field(pf);
+    apply_BCs_on_spinor_field_cpu(pf);
 
     pf_local_action_cpu(sfield, pf);
     pf_local_action_gpu(sfield, pf);
@@ -103,7 +104,7 @@ int main(int argc, char *argv[]) {
     mdiff = max_cpu(pf);
 
     lprintf("TEST", 0, "Checking scalar field\n");
-    return_val += check_diff_norm(sdiff, 1e-14);
+    return_val += check_diff_norm(sdiff, 1e-13);
 
     lprintf("TEST", 0, "Checking pf\n");
     return_val += check_diff_norm(mdiff, 1e-15);

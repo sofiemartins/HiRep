@@ -20,7 +20,7 @@
     in_gauge_field<REAL>(&u, (gauge), (ix), (iy), 0, UP); \
                                                           \
     _vector_add_assign_f((sn).c[0], (sn).c[1]);           \
-    _suNf_theta_T_multiply((sn).c[1], u, (sn).c[0]);      \
+    _suNf_theta_T_multiply_gpu((sn).c[1], u, (sn).c[0]);  \
     _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);  \
     _vector_mul_add_assign_f((r).c[2], -0.5, (sn).c[1]);  \
                                                           \
@@ -28,26 +28,26 @@
     in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);   \
                                                           \
     _vector_add_assign_f((sn).c[0], (sn).c[1]);           \
-    _suNf_theta_T_multiply((sn).c[1], u, (sn).c[0]);      \
+    _suNf_theta_T_multiply_gpu((sn).c[1], u, (sn).c[0]);  \
     _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);  \
     _vector_mul_add_assign_f((r).c[3], -0.5, (sn).c[1]);
 
-#define DPHI_T_DN_GPU(ix, iy, in, gauge, r, sn, u)             \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);        \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);        \
-    in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 0, DOWN);  \
-                                                               \
-    _vector_sub_assign_f((sn).c[0], (sn).c[1]);                \
-    _suNf_theta_T_inverse_multiply((sn).c[1], (u), (sn).c[0]); \
-    _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);       \
-    _vector_mul_sub_assign_f((r).c[2], -0.5, (sn).c[1]);       \
-                                                               \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 1);        \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);        \
-                                                               \
-    _vector_sub_assign_f((sn).c[0], (sn).c[1]);                \
-    _suNf_theta_T_inverse_multiply((sn).c[1], (u), (sn).c[0]); \
-    _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);       \
+#define DPHI_T_DN_GPU(ix, iy, in, gauge, r, sn, u)                 \
+    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);            \
+    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);            \
+    in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 0, DOWN);      \
+                                                                   \
+    _vector_sub_assign_f((sn).c[0], (sn).c[1]);                    \
+    _suNf_theta_T_inverse_multiply_gpu((sn).c[1], (u), (sn).c[0]); \
+    _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);           \
+    _vector_mul_sub_assign_f((r).c[2], -0.5, (sn).c[1]);           \
+                                                                   \
+    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 1);            \
+    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);            \
+                                                                   \
+    _vector_sub_assign_f((sn).c[0], (sn).c[1]);                    \
+    _suNf_theta_T_inverse_multiply_gpu((sn).c[1], (u), (sn).c[0]); \
+    _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);           \
     _vector_mul_sub_assign_f((r).c[3], -0.5, (sn).c[1]);
 
 #define DPHI_X_UP_GPU(ix, iy, in, gauge, r, sn, u)          \
@@ -56,7 +56,7 @@
     in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 1, UP); \
                                                             \
     _vector_i_add_assign_f((sn).c[0], (sn).c[1]);           \
-    _suNf_theta_X_multiply((sn).c[1], (u), (sn).c[0]);      \
+    _suNf_theta_X_multiply_gpu((sn).c[1], (u), (sn).c[0]);  \
     _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);    \
     _vector_i_mul_sub_assign_f((r).c[3], -0.5, (sn).c[1]);  \
                                                             \
@@ -64,26 +64,26 @@
     in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);     \
                                                             \
     _vector_i_add_assign_f((sn).c[0], (sn).c[1]);           \
-    _suNf_theta_X_multiply((sn).c[1], (u), (sn).c[0]);      \
+    _suNf_theta_X_multiply_gpu((sn).c[1], (u), (sn).c[0]);  \
     _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);    \
     _vector_i_mul_sub_assign_f((r).c[2], -0.5, (sn).c[1]);
 
-#define DPHI_X_DN_GPU(ix, iy, in, gauge, r, sn, u)             \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);        \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);        \
-    in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 1, DOWN);  \
-                                                               \
-    _vector_i_sub_assign_f((sn).c[0], (sn).c[1]);              \
-    _suNf_theta_X_inverse_multiply((sn).c[1], (u), (sn).c[0]); \
-    _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);       \
-    _vector_i_mul_add_assign_f((r).c[3], -0.5, (sn).c[1]);     \
-                                                               \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 1);        \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);        \
-                                                               \
-    _vector_i_sub_assign_f((sn).c[0], (sn).c[1]);              \
-    _suNf_theta_X_inverse_multiply((sn).c[1], (u), (sn).c[0]); \
-    _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);       \
+#define DPHI_X_DN_GPU(ix, iy, in, gauge, r, sn, u)                 \
+    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);            \
+    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);            \
+    in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 1, DOWN);      \
+                                                                   \
+    _vector_i_sub_assign_f((sn).c[0], (sn).c[1]);                  \
+    _suNf_theta_X_inverse_multiply_gpu((sn).c[1], (u), (sn).c[0]); \
+    _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);           \
+    _vector_i_mul_add_assign_f((r).c[3], -0.5, (sn).c[1]);         \
+                                                                   \
+    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 1);            \
+    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);            \
+                                                                   \
+    _vector_i_sub_assign_f((sn).c[0], (sn).c[1]);                  \
+    _suNf_theta_X_inverse_multiply_gpu((sn).c[1], (u), (sn).c[0]); \
+    _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);           \
     _vector_i_mul_add_assign_f((r).c[2], -0.5, (sn).c[1]);
 
 #define DPHI_Y_UP_GPU(ix, iy, in, gauge, r, sn, u)          \
@@ -92,7 +92,7 @@
     in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 2, UP); \
                                                             \
     _vector_add_assign_f((sn).c[0], (sn).c[1]);             \
-    _suNf_theta_Y_multiply((sn).c[1], (u), (sn).c[0]);      \
+    _suNf_theta_Y_multiply_gpu((sn).c[1], (u), (sn).c[0]);  \
     _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);    \
     _vector_mul_add_assign_f((r).c[3], -0.5, (sn).c[1]);    \
                                                             \
@@ -100,26 +100,26 @@
     in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);     \
                                                             \
     _vector_sub_assign_f((sn).c[0], (sn).c[1]);             \
-    _suNf_theta_Y_multiply((sn).c[1], (u), (sn).c[0]);      \
+    _suNf_theta_Y_multiply_gpu((sn).c[1], (u), (sn).c[0]);  \
     _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);    \
     _vector_mul_sub_assign_f((r).c[2], -0.5, (sn).c[1]);
 
-#define DPHI_Y_DN_GPU(ix, iy, in, gauge, r, sn, u)             \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);        \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);        \
-    in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 2, DOWN);  \
-                                                               \
-    _vector_sub_assign_f((sn).c[0], (sn).c[1]);                \
-    _suNf_theta_Y_inverse_multiply((sn).c[1], (u), (sn).c[0]); \
-    _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);       \
-    _vector_mul_sub_assign_f((r).c[3], -0.5, (sn).c[1]);       \
-                                                               \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 1);        \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);        \
-                                                               \
-    _vector_add_assign_f((sn).c[0], (sn).c[1]);                \
-    _suNf_theta_Y_inverse_multiply((sn).c[1], (u), (sn).c[0]); \
-    _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);       \
+#define DPHI_Y_DN_GPU(ix, iy, in, gauge, r, sn, u)                 \
+    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);            \
+    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);            \
+    in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 2, DOWN);      \
+                                                                   \
+    _vector_sub_assign_f((sn).c[0], (sn).c[1]);                    \
+    _suNf_theta_Y_inverse_multiply_gpu((sn).c[1], (u), (sn).c[0]); \
+    _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);           \
+    _vector_mul_sub_assign_f((r).c[3], -0.5, (sn).c[1]);           \
+                                                                   \
+    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 1);            \
+    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);            \
+                                                                   \
+    _vector_add_assign_f((sn).c[0], (sn).c[1]);                    \
+    _suNf_theta_Y_inverse_multiply_gpu((sn).c[1], (u), (sn).c[0]); \
+    _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);           \
     _vector_mul_add_assign_f((r).c[2], -0.5, (sn).c[1]);
 
 #define DPHI_Z_UP_GPU(ix, iy, in, gauge, r, sn, u)          \
@@ -128,7 +128,7 @@
     in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 3, UP); \
                                                             \
     _vector_i_add_assign_f((sn).c[0], (sn).c[1]);           \
-    _suNf_theta_Z_multiply((sn).c[1], (u), (sn).c[0]);      \
+    _suNf_theta_Z_multiply_gpu((sn).c[1], (u), (sn).c[0]);  \
     _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);    \
     _vector_i_mul_sub_assign_f((r).c[2], -0.5, (sn).c[1]);  \
                                                             \
@@ -136,26 +136,26 @@
     in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);     \
                                                             \
     _vector_i_sub_assign_f((sn).c[0], (sn).c[1]);           \
-    _suNf_theta_Z_multiply((sn).c[1], (u), (sn).c[0]);      \
+    _suNf_theta_Z_multiply_gpu((sn).c[1], (u), (sn).c[0]);  \
     _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);    \
     _vector_i_mul_add_assign_f((r).c[3], -0.5, (sn).c[1]);
 
-#define DPHI_Z_DN_GPU(ix, iy, in, gauge, r, sn, u)             \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);        \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);        \
-    in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 3, DOWN);  \
-                                                               \
-    _vector_i_sub_assign_f((sn).c[0], (sn).c[1]);              \
-    _suNf_theta_Z_inverse_multiply((sn).c[1], (u), (sn).c[0]); \
-    _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);       \
-    _vector_i_mul_add_assign_f((r).c[2], -0.5, (sn).c[1]);     \
-                                                               \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 1);        \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);        \
-                                                               \
-    _vector_i_add_assign_f((sn).c[0], (sn).c[1]);              \
-    _suNf_theta_Z_inverse_multiply((sn).c[1], (u), (sn).c[0]); \
-    _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);       \
+#define DPHI_Z_DN_GPU(ix, iy, in, gauge, r, sn, u)                 \
+    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);            \
+    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);            \
+    in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 3, DOWN);      \
+                                                                   \
+    _vector_i_sub_assign_f((sn).c[0], (sn).c[1]);                  \
+    _suNf_theta_Z_inverse_multiply_gpu((sn).c[1], (u), (sn).c[0]); \
+    _vector_mul_add_assign_f((r).c[0], -0.5, (sn).c[1]);           \
+    _vector_i_mul_add_assign_f((r).c[2], -0.5, (sn).c[1]);         \
+                                                                   \
+    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 1);            \
+    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);            \
+                                                                   \
+    _vector_i_add_assign_f((sn).c[0], (sn).c[1]);                  \
+    _suNf_theta_Z_inverse_multiply_gpu((sn).c[1], (u), (sn).c[0]); \
+    _vector_mul_add_assign_f((r).c[1], -0.5, (sn).c[1]);           \
     _vector_i_mul_sub_assign_f((r).c[3], -0.5, (sn).c[1]);
 
 #else

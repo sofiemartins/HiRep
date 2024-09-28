@@ -54,9 +54,6 @@ extern void (*calculate_stfld)(int comm);
 double lw_action_density(int ix, double beta, double c0, double c1);
 
 //fermion_force_core.c
-#ifdef WITH_CLOVER
-void force_clover_logdet(double mass, double residue); //TODO: this simply forwards to compute_force_logdet. can we remove it?
-#endif
 #ifdef WITH_EXPCLOVER
 extern void (*force_clover_fermion)(spinor_field *Xs, spinor_field *Ys, double residue);
 void force_clover_fermion_taylor(spinor_field *Xs, spinor_field *Ys, double residue);

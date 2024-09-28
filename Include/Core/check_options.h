@@ -58,6 +58,7 @@
 #endif
 
 #ifdef BC_T_SF_ROTATED
+#error BC_T_SF_ROTATED: This option is no longer supported.
 
 #undef BC_T_PERIODIC
 #undef BC_T_ANTIPERIODIC
@@ -233,11 +234,6 @@
 
 #if NF > 3 && WITH_EXPCLOVER
 #error "Exponential clover on GPU not implemented for NF>3"
-#endif
-
-#if !((defined(BC_T_PERIODIC) || defined(BC_T_ANTIPERIODIC)) && (defined(BC_X_PERIODIC) || defined(BC_X_ANTIPERIODIC)) && \
-      (defined(BC_Y_PERIODIC) || defined(BC_Y_ANTIPERIODIC)) && (defined(BC_Z_PERIODIC) || defined(BC_Z_ANTIPERIODIC)))
-#error "WITH_GPU only supports periodic or antiperiodic boundary conditions."
 #endif
 
 #endif

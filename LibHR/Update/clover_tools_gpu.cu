@@ -14,8 +14,10 @@
 #if defined(WITH_CLOVER) || defined(WITH_EXPCLOVER)
 static double sigma;
 static double csw_value;
+#ifdef WITH_EXPCLOVER
 static double cphi_exp_mass = 0;
 static double cphi_invexp_mass = 0;
+#endif
 
 #define c_idx(i, j) ((i) * ((i) + 1) / 2 + (j))
 
@@ -249,7 +251,7 @@ __global__ static void _compute_clover_force(ldl_t *cl_ldl_gpu, suNf *cl_force_g
                 write_force(&c, cl_force_gpu, ix, 4, i, j);
 
                 read_force(&c, cl_force_gpu, ix, 5, i, j);
-                c -= cimag(a12) + cimag(a21) + cimag(a34) + cimag(a43); // X_23*/
+                c -= cimag(a12) + cimag(a21) + cimag(a34) + cimag(a43); // X_23
                 write_force(&c, cl_force_gpu, ix, 5, i, j);
 #else
                 read_force(&c, cl_force_gpu, ix, 0, i, j);
@@ -402,7 +404,6 @@ void compute_force_logdet_gpu(double mass, double coeff) {
     _CUDA_CALL((&glat_odd), grid, N, block_start, ixp,
                (_compute_clover_force<<<grid, BLOCK_SIZE, 0, 0>>>(cl_ldl->gpu_ptr, cl_force->gpu_ptr, coeff, N, block_start)));
 }
-
 #if defined(WITH_GPU) && defined(WITH_EXPCLOVER)
 
 __global__ void Cphi_init_(suNfc *cl_term, suNfc *cl_term_expAplus, suNfc *cl_term_expAminus, double mass, double invexpmass,

@@ -466,15 +466,14 @@ _DECLARE(void, g5Dphi_eopre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
     _CHECK_GEOMETRY_EVEN(in);
     _CHECK_GEOMETRY_EVEN(out);
 
-#if defined(BC_T_SF) || defined(BC_T_SF_ROTATED)
-    _CALL(SF_spinor_bcs)(in);
-#endif
-
     // alloc memory for temporary spinor field
     if (_VAR(init, _SUFFIX)) { _GPU_F_NAME(init_Dirac, _SUFFIX)(); }
 
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(in);
+
     // Operation
     _GPU_F_NAME_(Dphi, _SUFFIX)(_VAR(otmp, _SUFFIX), in);
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(_VAR(otmp, _SUFFIX));
     _GPU_F_NAME_(Dphi, _SUFFIX)(out, _VAR(otmp, _SUFFIX));
     double rho = 4. + m0;
     rho *= -rho; /* this minus sign is taken into account below */
@@ -482,9 +481,7 @@ _DECLARE(void, g5Dphi_eopre, (double m0, _FIELD_TYPE *out, _FIELD_TYPE *in)) {
     _F_NAME(minus_spinor_field, _REP_SUFFIX)(out, out);
     _F_NAME(g5_assign_spinor_field, _REP_SUFFIX)(out);
 
-#if defined(BC_T_SF) || defined(BC_T_SF_ROTATED)
-    _F_NAME(SF_spinor_bcs)(out);
-#endif
+    _F_NAME(apply_BCs_on_, _FIELD_TYPE)(out);
 }
 
 /**

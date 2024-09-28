@@ -26,7 +26,8 @@ static suNg **stflt_gpu_ptr_d;
 // These are from the linear algebra
 template <class T> T global_sum_gpu(T *vector, int size);
 
-__host__ __device__ double _lw_action_density(suNg **stfld, suNg *gauge, int ix, double beta, double c0, double c1) {
+__host__ __device__ double _lw_action_density(suNg **stfld, suNg *gauge, int ix, double beta, double c0, double c1,
+                                              int *idn_gpu, double *plaq_weight, double *rect_weight) {
     double plaqs = 0;
     double rects = 0;
     double p;
@@ -56,7 +57,7 @@ __host__ __device__ double _lw_action_density(suNg **stfld, suNg *gauge, int ix,
             _suNg_trace_re(p, w1);
 #ifdef PLAQ_WEIGHTS
             int mu = (nu + i + 1) & 0x3;
-            ixpnu = idn(ix, nu);
+            ixpnu = idn_gpu[4 * ix + nu];
             p *= rect_weight[16 * ixpnu + 4 * mu + nu];
 #endif
             rects -= p;
@@ -100,7 +101,7 @@ __global__ void _calculate_stfld(suNg **stfld, suNg *gauge, int N, int block_sta
 }
 
 __global__ void _lw_force(suNg **stfld, suNg *gauge, suNg_algebra_vector *force, int N, int block_start, double dt, double beta,
-                          double c0, double c1, int *iup_gpu, int *idn_gpu) {
+                          double c0, double c1, int *iup_gpu, int *idn_gpu, double *plaq_weight, double *rect_weight) {
     suNg ws[4], wu1, wu2;
     suNg s;
     suNg u, u1;
@@ -118,9 +119,21 @@ __global__ void _lw_force(suNg **stfld, suNg *gauge, suNg_algebra_vector *force,
             for (int i = 0; i < 3; i++) {
                 int mu = (nu + i + 1) & 0x3;
                 read_gpu<double>(0, &s, stfld[2 * nu + 0], ix, i, 3);
+#ifdef PLAQ_WEIGHTS
+                int ixmnu = idn_gpu[4 * ix + nu];
+                _suNg_mul(wu1, plaq_weight[16 * ixmnu + 4 * mu + nu], s);
+                _suNg_add_assign(ws[mu], wu1);
+#else
                 _suNg_add_assign(ws[mu], s);
+#endif
+
                 read_gpu<double>(0, &s, stfld[2 * nu + 1], ix, i, 3);
+#ifdef PLAQ_WEIGHTS
+                _suNg_mul(wu1, plaq_weight[16 * ix + 4 * mu + nu], s);
+                _suNg_add_assign(ws[mu], wu1);
+#else
                 _suNg_add_assign(ws[mu], s);
+#endif
             }
         }
 
@@ -148,6 +161,10 @@ __global__ void _lw_force(suNg **stfld, suNg *gauge, suNg_algebra_vector *force,
                 _suNg_dagger_times_suNg(wu1, u, s);
                 read_gpu<double>(0, &u, gauge, ixpmunnu, nu, 4);
                 _suNg_times_suNg(wu2, wu1, u);
+#ifdef PLAQ_WEIGHTS
+                int ixmnumnu = idn_gpu[4 * ixmnu + nu];
+                _suNg_mul(wu2, rect_weight[16 * ixmnumnu + 4 * mu + nu], wu2);
+#endif
                 _suNg_add_assign(ws[mu], wu2);
 
                 read_gpu<double>(0, &u, gauge, ix, nu, 4);
@@ -155,18 +172,27 @@ __global__ void _lw_force(suNg **stfld, suNg *gauge, suNg_algebra_vector *force,
                 _suNg_times_suNg(wu1, u, s);
                 read_gpu<double>(0, &u, gauge, ixpmu, nu, 4);
                 _suNg_times_suNg_dagger(wu2, wu1, u);
+#ifdef PLAQ_WEIGHTS
+                _suNg_mul(wu2, rect_weight[16 * ix + 4 * mu + nu], wu2);
+#endif
                 _suNg_add_assign(ws[mu], wu2);
             }
         }
 
         for (int mu = 0; mu < 4; mu++) {
             int ixpmu = iup_gpu[4 * ix + mu];
+#ifdef PLAQ_WEIGHTS
+            int ixmmu = idn_gpu[4 * ix + mu];
+#endif
 
             for (int i = 0; i < 3; i++) {
                 int nu = (mu + i + 1) & 0x3;
                 int ixpnu = iup_gpu[4 * ix + nu];
                 int ixmnu = idn_gpu[4 * ix + nu];
                 int ixmnupmu = iup_gpu[4 * ixmnu + mu];
+#ifdef PLAQ_WEIGHTS
+                int ixmnummu = idn_gpu[4 * ixmnu + mu];
+#endif
 
                 // one
                 read_gpu<double>(0, &u, gauge, ixmnu, nu, 4);
@@ -174,6 +200,9 @@ __global__ void _lw_force(suNg **stfld, suNg *gauge, suNg_algebra_vector *force,
                 _suNg_dagger_times_suNg(wu1, u, u1);
                 read_gpu<double>(0, &s, stfld[2 * mu + 1], ixmnupmu, i, 3);
                 _suNg_times_suNg(wu2, wu1, s);
+#ifdef PLAQ_WEIGHTS
+                _suNg_mul(wu2, rect_weight[16 * ixmnu + 4 * nu + mu], wu2);
+#endif
                 _suNg_add_assign(ws[mu], wu2);
 
                 // two
@@ -182,6 +211,9 @@ __global__ void _lw_force(suNg **stfld, suNg *gauge, suNg_algebra_vector *force,
                 _suNg_times_suNg(wu1, u, u1);
                 read_gpu<double>(0, &s, stfld[2 * mu + 1], ixpmu, i, 3);
                 _suNg_times_suNg_dagger(wu2, wu1, s);
+#ifdef PLAQ_WEIGHTS
+                _suNg_mul(wu2, rect_weight[16 * ix + 4 * nu + mu], wu2);
+#endif
                 _suNg_add_assign(ws[mu], wu2);
 
                 // three
@@ -190,6 +222,9 @@ __global__ void _lw_force(suNg **stfld, suNg *gauge, suNg_algebra_vector *force,
                 _suNg_dagger_times_suNg(wu1, s, u);
                 read_gpu<double>(0, &u, gauge, ixmnupmu, nu, 4);
                 _suNg_times_suNg(wu2, wu1, u);
+#ifdef PLAQ_WEIGHTS
+                _suNg_mul(wu2, rect_weight[16 * ixmnummu + 4 * nu + mu], wu2);
+#endif
                 _suNg_add_assign(ws[mu], wu2);
 
                 // four
@@ -198,6 +233,9 @@ __global__ void _lw_force(suNg **stfld, suNg *gauge, suNg_algebra_vector *force,
                 _suNg_times_suNg(wu1, s, u);
                 read_gpu<double>(0, &u, gauge, ixpmu, nu, 4);
                 _suNg_times_suNg_dagger(wu2, wu1, u);
+#ifdef PLAQ_WEIGHTS
+                _suNg_mul(wu2, rect_weight[16 * ixmmu + 4 * nu + mu], wu2);
+#endif
                 _suNg_add_assign(ws[mu], wu2);
             }
         }
@@ -213,10 +251,11 @@ __global__ void _lw_force(suNg **stfld, suNg *gauge, suNg_algebra_vector *force,
     }
 }
 
-__global__ void _lw_action(suNg **stfld, suNg *gauge, double beta, double c0, double c1, double *s, int N, int block_start) {
+__global__ void _lw_action(suNg **stfld, suNg *gauge, double beta, double c0, double c1, double *s, int N, int block_start,
+                           int *idn_gpu, double *plaq_weight, double *rect_weight) {
     for (int id = blockDim.x * blockIdx.x + threadIdx.x; id < N; id += blockDim.x * gridDim.x) {
         const int ix = id + block_start;
-        s[id] = _lw_action_density(stfld, gauge, ix, beta, c0, c1);
+        s[id] = _lw_action_density(stfld, gauge, ix, beta, c0, c1, idn_gpu, plaq_weight, rect_weight);
     }
 }
 
@@ -286,8 +325,13 @@ void lw_force_gpu(double dt, void *vpar) {
         const int N = glattice.master_end[ixp] - glattice.master_start[ixp] + 1;
         const int block_start = glattice.master_start[ixp];
         const int grid = (N - 1) / BLOCK_SIZE + 1;
+#ifdef PLAQ_WEIGHTS
         _lw_force<<<grid, BLOCK_SIZE, 0, 0>>>(stflt_gpu_ptr_d, u_gauge->gpu_ptr, force->gpu_ptr, N, block_start, dt, beta, c0,
-                                              c1, iup_gpu, idn_gpu);
+                                              c1, iup_gpu, idn_gpu, plaq_weight_gpu, rect_weight_gpu);
+#else
+        _lw_force<<<grid, BLOCK_SIZE, 0, 0>>>(stflt_gpu_ptr_d, u_gauge->gpu_ptr, force->gpu_ptr, N, block_start, dt, beta, c0,
+                                              c1, iup_gpu, idn_gpu, NULL, NULL);
+#endif
         CudaCheckError();
     }
 
@@ -304,7 +348,13 @@ double lw_action_gpu(double beta, double c0, double c1) {
         resPiece = alloc_double_sum_field(N);
         const int block_start = glattice.master_start[ixp];
         const int grid = (N - 1) / BLOCK_SIZE + 1;
-        _lw_action<<<grid, BLOCK_SIZE, 0, 0>>>(stflt_gpu_ptr_d, u_gauge->gpu_ptr, beta, c0, c1, resPiece, N, block_start);
+#ifdef PLAQ_WEIGHTS
+        _lw_action<<<grid, BLOCK_SIZE, 0, 0>>>(stflt_gpu_ptr_d, u_gauge->gpu_ptr, beta, c0, c1, resPiece, N, block_start,
+                                               idn_gpu, plaq_weight_gpu, rect_weight_gpu);
+#else
+        _lw_action<<<grid, BLOCK_SIZE, 0, 0>>>(stflt_gpu_ptr_d, u_gauge->gpu_ptr, beta, c0, c1, resPiece, N, block_start,
+                                               idn_gpu, NULL, NULL);
+#endif
         res += global_sum_gpu(resPiece, N);
         CudaCheckError();
     }
@@ -325,7 +375,13 @@ void lw_local_action_gpu(scalar_field *loc_action, double beta, double c0, doubl
         const int block_start = glattice.master_start[ixp];
         const int grid = (N - 1) / BLOCK_SIZE + 1;
         resPiece = alloc_double_sum_field(N);
-        _lw_action<<<grid, BLOCK_SIZE, 0, 0>>>(stflt_gpu_ptr_d, u_gauge->gpu_ptr, beta, c0, c1, resPiece, N, block_start);
+#ifdef PLAQ_WEIGHTS
+        _lw_action<<<grid, BLOCK_SIZE, 0, 0>>>(stflt_gpu_ptr_d, u_gauge->gpu_ptr, beta, c0, c1, resPiece, N, block_start,
+                                               idn_gpu, plaq_weight_gpu, rect_weight_gpu);
+#else
+        _lw_action<<<grid, BLOCK_SIZE, 0, 0>>>(stflt_gpu_ptr_d, u_gauge->gpu_ptr, beta, c0, c1, resPiece, N, block_start,
+                                               idn_gpu, NULL, NULL);
+#endif
         res += global_sum_gpu(resPiece, N);
         CudaCheckError();
     }

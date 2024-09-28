@@ -17,6 +17,14 @@ int main(int argc, char *argv[]) {
     setup_process(&argc, &argv);
     setup_random_gauge_fields();
 
+    /* initialize boundary conditions */
+    BCs_pars_t BCs_pars = { .fermion_twisting_theta = { 0., 0., 0., 0. },
+                            .gauge_boundary_improvement_cs = 1.,
+                            .gauge_boundary_improvement_ct = 1.,
+                            .chiSF_boundary_improvement_ds = 1.,
+                            .SF_BCs = 0 };
+    init_BCs(&BCs_pars);
+
     /* Average plaquette */
     start_sendrecv_suNg_field(u_gauge);
     double plaq_cpu = avr_plaquette_cpu();

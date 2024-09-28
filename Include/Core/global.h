@@ -136,7 +136,7 @@ GLB_VAR(coord4 *, sb_icoord_gpu, );
 #define STD_MEM_TYPE (CPU_MEM | GPU_MEM)
 #include "gpu.h"
 #define BLOCK_SIZE 256
-#define BLOCK_SIZE_LINEAR_ALGEBRA 512
+#define BLOCK_SIZE_LINEAR_ALGEBRA 256
 #define BLOCK_SIZE_GLOBAL_SUM 512
 #define BLOCK_SIZE_DIRAC 256
 #define BLOCK_SIZE_CLOVER 256
@@ -217,6 +217,7 @@ GLB_VAR(input_logger, logger_var, = init_input_logger(logger_var));
 GLB_VAR(double, *plaq_weight, = NULL);
 GLB_VAR(double, *rect_weight, = NULL);
 GLB_VAR(double, *plaq_weight_gpu, = NULL);
+GLB_VAR(double, *rect_weight_gpu, = NULL);
 #endif
 
 /* Theta Boundary conditions */

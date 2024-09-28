@@ -22,7 +22,7 @@
 
 #ifdef BC_T_SF_ROTATED
 #include "update.h"
-extern rhmc_par _update_par; /* Update/update_rhmc.c */
+extern ghmc_par _update_par; /* Update/update_rhmc.c */
 #endif /* BC_T_SF_ROTATED */
 
 /*
@@ -94,16 +94,32 @@ unsigned long int getMVM_cpu() {
     return res;
 }
 
+#if defined(BC_T_THETA)
+#define _USING_THETA_T suNf_vector vtmp[2]
+#else
+#define _USING_THETA_T (void)(0)
+#endif
+
+#if defined(BC_X_THETA)
+#define _USING_THETA_X suNf_vector vtmp[2]
+#else
+#define _USING_THETA_X (void)(0)
+#endif
+
+#if defined(BC_Y_THETA)
+#define _USING_THETA_Y suNf_vector vtmp[2]
+#else
+#define _USING_THETA_Y (void)(0)
+#endif
+
+#if defined(BC_Z_THETA)
+#define _USING_THETA_Z suNf_vector vtmp[2]
+#else
+#define _USING_THETA_Z (void)(0)
+#endif
+
 /* r=t*u*s */
 #ifdef BC_T_THETA
-
-#define _suNf_theta_T_multiply(r, u, s) \
-    _suNf_multiply(vtmp[0], (u), (s));  \
-    _vector_mulc_f((r), eitheta[0], vtmp[0])
-
-#define _suNf_theta_T_inverse_multiply(r, u, s) \
-    _suNf_inverse_multiply(vtmp[0], (u), (s));  \
-    _vector_mulc_star_f((r), eitheta[0], vtmp[0])
 
 #define _suNf_double_theta_T_multiply(r1, r2, u, s1, s2)      \
     _suNf_double_multiply(vtmp[0], vtmp[1], (u), (s1), (s2)); \
@@ -127,14 +143,6 @@ unsigned long int getMVM_cpu() {
 /* r=t*u*s */
 #ifdef BC_X_THETA
 
-#define _suNf_theta_X_multiply(r, u, s) \
-    _suNf_multiply(vtmp[0], (u), (s));  \
-    _vector_mulc_f((r), eitheta[1], vtmp[0])
-
-#define _suNf_theta_X_inverse_multiply(r, u, s) \
-    _suNf_inverse_multiply(vtmp[0], (u), (s));  \
-    _vector_mulc_star_f((r), eitheta[1], vtmp[0])
-
 #define _suNf_double_theta_X_multiply(r1, r2, u, s1, s2)      \
     _suNf_double_multiply(vtmp[0], vtmp[1], (u), (s1), (s2)); \
     _vector_mulc_f((r1), eitheta[1], vtmp[0]);                \
@@ -155,14 +163,6 @@ unsigned long int getMVM_cpu() {
 
 /* r=t*u*s */
 #ifdef BC_Y_THETA
-
-#define _suNf_theta_Y_multiply(r, u, s) \
-    _suNf_multiply(vtmp[0], (u), (s));  \
-    _vector_mulc_f((r), eitheta[2], vtmp[0])
-
-#define _suNf_theta_Y_inverse_multiply(r, u, s) \
-    _suNf_inverse_multiply(vtmp[0], (u), (s));  \
-    _vector_mulc_star_f((r), eitheta[2], vtmp[0])
 
 #define _suNf_double_theta_Y_multiply(r1, r2, u, s1, s2)      \
     _suNf_double_multiply(vtmp[0], vtmp[1], (u), (s1), (s2)); \
@@ -186,20 +186,12 @@ unsigned long int getMVM_cpu() {
 /* r=t*u*s */
 #ifdef BC_Z_THETA
 
-#define _suNf_theta_Z_multiply(r, u, s) \
-    _suNf_multiply(vtmp[0], (u), (s));  \
-    _vector_mulc_f((r), eitheta[3], vtmp[0])
-
-#define _suNf_theta_Z_inverse_multiply(r, u, s) \
-    _suNf_inverse_multiply(vtmp[0], (u), (s));  \
-    _vector_mulc_star_f((r), eitheta[3], vtmp[0])
-
-#define _suNf_double_theta_T_multiply(r1, r2, u, s1, s2)      \
+#define _suNf_double_theta_Z_multiply(r1, r2, u, s1, s2)      \
     _suNf_double_multiply(vtmp[0], vtmp[1], (u), (s1), (s2)); \
     _vector_mulc_f((r1), eitheta[3], vtmp[0]);                \
     _vector_mulc_f((r2), eitheta[3], vtmp[1])
 
-#define _suNf_double_theta_T_inverse_multiply(r1, r2, u, s1, s2)      \
+#define _suNf_double_theta_Z_inverse_multiply(r1, r2, u, s1, s2)      \
     _suNf_double_inverse_multiply(vtmp[0], vtmp[1], (u), (s1), (s2)); \
     _vector_mulc_star_f((r1), eitheta[3], vtmp[0]);                   \
     _vector_mulc_star_f((r2), eitheta[3], vtmp[1])
@@ -213,19 +205,13 @@ unsigned long int getMVM_cpu() {
 
 #endif
 
-#if defined(BC_T_THETA) || defined(BC_X_THETA) || defined(BC_Y_THETA) || defined(BC_Z_THETA)
-#define _USING_THETA suNf_vector vtmp[2]
-#else
-#define _USING_THETA (void)(0)
-#endif
-
 // Macros for Dphi directions
 #define DPHI_T_UP(ix, iy, in, r)                                    \
     do {                                                            \
         const suNf_spinor *sp = _FIELD_AT(in, iy);                  \
         const suNf *up = pu_gauge_f(ix, 0);                         \
         suNf_vector psi, chi, psi2, chi2;                           \
-        _USING_THETA;                                               \
+        _USING_THETA_T;                                             \
         _vector_add_f(psi, (*sp).c[0], (*sp).c[2]);                 \
         _vector_add_f(psi2, (*sp).c[1], (*sp).c[3]);                \
         _suNf_double_theta_T_multiply(chi, chi2, (*up), psi, psi2); \
@@ -240,7 +226,7 @@ unsigned long int getMVM_cpu() {
         const suNf_spinor *sm = _FIELD_AT(in, iy);                          \
         const suNf *um = pu_gauge_f(iy, 0);                                 \
         suNf_vector psi, chi, psi2, chi2;                                   \
-        _USING_THETA;                                                       \
+        _USING_THETA_T;                                                     \
         _vector_sub_f(psi, (*sm).c[0], (*sm).c[2]);                         \
         _vector_sub_f(psi2, (*sm).c[1], (*sm).c[3]);                        \
         _suNf_double_theta_T_inverse_multiply(chi, chi2, (*um), psi, psi2); \
@@ -255,7 +241,7 @@ unsigned long int getMVM_cpu() {
         const suNf_spinor *sp = _FIELD_AT(in, iy);                  \
         const suNf *up = pu_gauge_f(ix, 1);                         \
         suNf_vector psi, chi, psi2, chi2;                           \
-        _USING_THETA;                                               \
+        _USING_THETA_X;                                             \
         _vector_i_add_f(psi, (*sp).c[0], (*sp).c[3]);               \
         _vector_i_add_f(psi2, (*sp).c[1], (*sp).c[2]);              \
         _suNf_double_theta_X_multiply(chi, chi2, (*up), psi, psi2); \
@@ -270,7 +256,7 @@ unsigned long int getMVM_cpu() {
         const suNf_spinor *sm = _FIELD_AT(in, iy);                          \
         const suNf *um = pu_gauge_f(iy, 1);                                 \
         suNf_vector psi, chi, psi2, chi2;                                   \
-        _USING_THETA;                                                       \
+        _USING_THETA_X;                                                     \
         _vector_i_sub_f(psi, (*sm).c[0], (*sm).c[3]);                       \
         _vector_i_sub_f(psi2, (*sm).c[1], (*sm).c[2]);                      \
         _suNf_double_theta_X_inverse_multiply(chi, chi2, (*um), psi, psi2); \
@@ -285,7 +271,7 @@ unsigned long int getMVM_cpu() {
         const suNf_spinor *sp = _FIELD_AT(in, iy);                  \
         const suNf *up = pu_gauge_f(ix, 2);                         \
         suNf_vector psi, chi, psi2, chi2;                           \
-        _USING_THETA;                                               \
+        _USING_THETA_Y;                                             \
         _vector_add_f(psi, (*sp).c[0], (*sp).c[3]);                 \
         _vector_sub_f(psi2, (*sp).c[1], (*sp).c[2]);                \
         _suNf_double_theta_Y_multiply(chi, chi2, (*up), psi, psi2); \
@@ -300,7 +286,7 @@ unsigned long int getMVM_cpu() {
         const suNf_spinor *sm = _FIELD_AT(in, iy);                          \
         const suNf *um = pu_gauge_f(iy, 2);                                 \
         suNf_vector psi, chi, psi2, chi2;                                   \
-        _USING_THETA;                                                       \
+        _USING_THETA_Y;                                                     \
         _vector_sub_f(psi, (*sm).c[0], (*sm).c[3]);                         \
         _vector_add_f(psi2, (*sm).c[1], (*sm).c[2]);                        \
         _suNf_double_theta_Y_inverse_multiply(chi, chi2, (*um), psi, psi2); \
@@ -315,7 +301,7 @@ unsigned long int getMVM_cpu() {
         const suNf_spinor *sp = _FIELD_AT(in, iy);                  \
         const suNf *up = pu_gauge_f(ix, 3);                         \
         suNf_vector psi, chi, psi2, chi2;                           \
-        _USING_THETA;                                               \
+        _USING_THETA_Z;                                             \
         _vector_i_add_f(psi, (*sp).c[0], (*sp).c[2]);               \
         _vector_i_sub_f(psi2, (*sp).c[1], (*sp).c[3]);              \
         _suNf_double_theta_Z_multiply(chi, chi2, (*up), psi, psi2); \
@@ -330,7 +316,7 @@ unsigned long int getMVM_cpu() {
         const suNf_spinor *sm = _FIELD_AT(in, iy);                          \
         const suNf *um = pu_gauge_f(iy, 3);                                 \
         suNf_vector psi, chi, psi2, chi2;                                   \
-        _USING_THETA;                                                       \
+        _USING_THETA_Z;                                                     \
         _vector_i_sub_f(psi, (*sm).c[0], (*sm).c[2]);                       \
         _vector_i_add_f(psi2, (*sm).c[1], (*sm).c[3]);                      \
         _suNf_double_theta_Z_inverse_multiply(chi, chi2, (*um), psi, psi2); \
@@ -1084,7 +1070,7 @@ void Dphi_cpu(double m0, spinor_field *out, spinor_field *in) {
 
     error(in == out, 1, "Dphi_cpu [Dphi.c]", "Input and output fields must be different");
 
-    apply_BCs_on_spinor_field(in);
+    apply_BCs_on_spinor_field_cpu(in);
 
 #ifdef CHECK_SPINOR_MATCHING
     error(out->type != &glattice || in->type != &glattice, 1, "Dphi_cpu [Dphi.c]",
@@ -1111,7 +1097,7 @@ void Dphi_cpu(double m0, spinor_field *out, spinor_field *in) {
                     _spinor_mul_add_assign_f(*r, SFrho, *sp);
 
                     _spinor_pminus_f(tmp, *sp);
-                    _spinor_g5_assign_f_cpu(tmp);
+                    _spinor_g5_assign_f(tmp);
                     if (_update_par.SF_sign == 1) {
                         _spinor_i_add_assign_f(*r, tmp);
                     } else {
@@ -1131,7 +1117,7 @@ void Dphi_cpu(double m0, spinor_field *out, spinor_field *in) {
                     _spinor_mul_add_assign_f(*r, SFrho, *sp);
 
                     _spinor_pplus_f(tmp, *sp);
-                    _spinor_g5_assign_f_cpu(tmp);
+                    _spinor_g5_assign_f(tmp);
                     if (_update_par.SF_sign == 1) {
                         _spinor_i_add_assign_f(*r, tmp);
                     } else {
@@ -1143,7 +1129,7 @@ void Dphi_cpu(double m0, spinor_field *out, spinor_field *in) {
     }
 #endif /* BC_T_SF_ROTATED */
 
-    apply_BCs_on_spinor_field(out);
+    apply_BCs_on_spinor_field_cpu(out);
 }
 
 void g5Dphi_cpu(double m0, spinor_field *out, spinor_field *in) {
@@ -1164,7 +1150,7 @@ void g5Dphi_cpu(double m0, spinor_field *out, spinor_field *in) {
           "Spinors are not defined on all the lattice!");
 #endif /* CHECK_SPINOR_MATCHING */
 
-    apply_BCs_on_spinor_field(in);
+    apply_BCs_on_spinor_field_cpu(in);
     Dphi_cpu_(out, in);
     rho = 4. + m0;
     mul_add_assign_spinor_field_cpu(out, rho, in);
@@ -1182,9 +1168,9 @@ void g5Dphi_cpu(double m0, spinor_field *out, spinor_field *in) {
                     _spinor_mul_add_assign_f(*r, SFrho, *sp);
 
                     _spinor_pminus_f(tmp, *sp);
-                    _spinor_g5_assign_f_cpu(tmp);
+                    _spinor_g5_assign_f(tmp);
                     if (_update_par.SF_sign == 1) {
-                        _spinor_i_add_assign_f_cpu(*r, tmp);
+                        _spinor_i_add_assign_f(*r, tmp);
                     } else {
                         _spinor_i_sub_assign_f(*r, tmp);
                     }
@@ -1199,12 +1185,12 @@ void g5Dphi_cpu(double m0, spinor_field *out, spinor_field *in) {
                     index = ipt(T - 1, ix, iy, iz);
                     r = _FIELD_AT(out, index);
                     sp = _FIELD_AT(in, index);
-                    _spinor_mul_add_assign_f_cpu(*r, SFrho, *sp);
+                    _spinor_mul_add_assign_f(*r, SFrho, *sp);
 
                     _spinor_pplus_f(tmp, *sp);
-                    _spinor_g5_assign_f_cpu(tmp);
+                    _spinor_g5_assign_f(tmp);
                     if (_update_par.SF_sign == 1) {
-                        _spinor_i_add_assign_f_cpu(*r, tmp);
+                        _spinor_i_add_assign_f(*r, tmp);
                     } else {
                         _spinor_i_sub_assign_f(*r, tmp);
                     }
@@ -1216,7 +1202,7 @@ void g5Dphi_cpu(double m0, spinor_field *out, spinor_field *in) {
 
     g5_assign_spinor_field_cpu(out);
 
-    apply_BCs_on_spinor_field(out);
+    apply_BCs_on_spinor_field_cpu(out);
 }
 
 /* Even/Odd preconditioned dirac operator
@@ -1236,13 +1222,13 @@ void Dphi_eopre_cpu(double m0, spinor_field *out, spinor_field *in) {
           "Spinors are not defined on even lattice!");
 #endif /* CHECK_SPINOR_MATCHING */
 
-    apply_BCs_on_spinor_field(in);
+    apply_BCs_on_spinor_field_cpu(in);
 
     /* alloc memory for temporary spinor field */
     if (init_dirac) { init_Dirac(); }
 
     Dphi_cpu_(otmp, in);
-    apply_BCs_on_spinor_field(otmp);
+    apply_BCs_on_spinor_field_cpu(otmp);
     Dphi_cpu_(out, otmp);
 
     rho = 4.0 + m0;
@@ -1250,7 +1236,7 @@ void Dphi_eopre_cpu(double m0, spinor_field *out, spinor_field *in) {
 
     mul_add_assign_spinor_field_cpu(out, rho, in);
     minus_spinor_field_cpu(out, out);
-    apply_BCs_on_spinor_field(out);
+    apply_BCs_on_spinor_field_cpu(out);
 }
 
 /* Even/Odd preconditioned dirac operator
@@ -1270,13 +1256,13 @@ void Dphi_oepre_cpu(double m0, spinor_field *out, spinor_field *in) {
           "Spinors are not defined on odd lattice!");
 #endif /* CHECK_SPINOR_MATCHING */
 
-    apply_BCs_on_spinor_field(in);
+    apply_BCs_on_spinor_field_cpu(in);
 
     /* alloc memory for temporary spinor field */
     if (init_dirac) { init_Dirac(); }
 
     Dphi_cpu_(etmp, in);
-    apply_BCs_on_spinor_field(etmp);
+    apply_BCs_on_spinor_field_cpu(etmp);
     Dphi_cpu_(out, etmp);
 
     rho = 4.0 + m0;
@@ -1286,7 +1272,7 @@ void Dphi_oepre_cpu(double m0, spinor_field *out, spinor_field *in) {
     mul_add_assign_spinor_field_cpu(out, rho, in);
     minus_spinor_field_cpu(out, out);
 
-    apply_BCs_on_spinor_field(out);
+    apply_BCs_on_spinor_field_cpu(out);
 }
 
 void g5Dphi_eopre_cpu(double m0, spinor_field *out, spinor_field *in) {
@@ -1294,31 +1280,29 @@ void g5Dphi_eopre_cpu(double m0, spinor_field *out, spinor_field *in) {
 
     error((in == NULL) || (out == NULL), 1, "g5Dphi_eopre_cpu [Dphi.c]", "Attempt to access unallocated memory space");
 
-    error(in == out, 1, "Dphi_eopre_cpu [Dphi.c]", "Input and output fields must be different");
+    error(in == out, 1, "g5Dphi_eopre_cpu [Dphi.c]", "Input and output fields must be different");
 
 #ifdef CHECK_SPINOR_MATCHING
     error(out->type != &glat_even || in->type != &glat_even, 1, "g5Dphi_eopre_cpu " __FILE__,
           "Spinors are not defined on even lattice!");
 #endif /* CHECK_SPINOR_MATCHING */
 
-    apply_BCs_on_spinor_field(in);
+    apply_BCs_on_spinor_field_cpu(in);
 
     /* alloc memory for temporary spinor field */
     if (init_dirac) { init_Dirac(); }
 
     Dphi_cpu_(otmp, in);
-    apply_BCs_on_spinor_field(otmp);
+    apply_BCs_on_spinor_field_cpu(otmp);
     Dphi_cpu_(out, otmp);
 
     rho = 4.0 + m0;
-
     rho *= -rho; /* this minus sign is taken into account below */
 
     mul_add_assign_spinor_field_cpu(out, rho, in);
     minus_spinor_field_cpu(out, out);
     g5_assign_spinor_field_cpu(out);
-
-    apply_BCs_on_spinor_field(out);
+    apply_BCs_on_spinor_field_cpu(out);
 }
 
 /* g5Dphi_eopre ^2 */
@@ -1391,7 +1375,7 @@ void Qhat_eopre_sq(double m0, double mu, spinor_field *out, spinor_field *in) {
 
 #ifdef BC_T_SF_ROTATED
     /*the switch of the SF_sign is needed to take care of the antihermiticity of the boundary term of the dirac operator*/
-    error(1, "Qhat_eopre_sq", __FILE__, "Not implemented\n");
+    error(1, 1, __func__, "Not implemented\n");
 #else
     Qhat_eopre(m0, -mu, etmp, in);
     Qhat_eopre(m0, mu, out, etmp);
@@ -1588,17 +1572,17 @@ void Cphi_diag_inv(double mass, spinor_field *dptr, spinor_field *sptr) {
 void Cphi_diag_flt(double mass, spinor_field_flt *dptr, spinor_field_flt *sptr) {
     // Here (dptr == sptr) is allowed
     // TODO: boundary conditions other than periodic not supported yet
-    //apply_BCs_on_spinor_field(sptr);
+    apply_BCs_on_spinor_field_flt(sptr);
     Cphi_flt_(mass, dptr, sptr, 0);
-    //apply_BCs_on_spinor_field(dptr);
+    apply_BCs_on_spinor_field_flt(dptr);
 }
 
 void Cphi_diag_inv_flt(double mass, spinor_field_flt *dptr, spinor_field_flt *sptr) {
     // Here (dptr == sptr) is allowed
     // TODO: boundary conditions other than periodic not supported yet
-    //apply_BCs_on_spinor_field(sptr);
+    apply_BCs_on_spinor_field_flt(sptr);
     Cphi_inv_flt_(mass, dptr, sptr, 0);
-    //apply_BCs_on_spinor_field(dptr);
+    apply_BCs_on_spinor_field_flt(dptr);
 }
 #endif
 
@@ -1718,10 +1702,10 @@ void Cphi(double mass, spinor_field *dptr, spinor_field *sptr) {
 
 #ifdef WITH_GPU
 void Cphi_flt(double mass, spinor_field_flt *dptr, spinor_field_flt *sptr) {
-    //apply_BCs_on_spinor_field(sptr);
+    apply_BCs_on_spinor_field_flt(sptr);
     Dphi_flt_(dptr, sptr);
     Cphi_flt_(mass, dptr, sptr, 1, 0);
-    //apply_BCs_on_spinor_field(dptr);
+    apply_BCs_on_spinor_field_flt(dptr);
 }
 #endif
 
@@ -1779,16 +1763,16 @@ void Cphi_diag_inv(double mass, spinor_field *dptr, spinor_field *sptr) {
 #ifdef WITH_GPU
 void Cphi_diag_flt(double mass, spinor_field_flt *dptr, spinor_field_flt *sptr) {
     // Here (dptr == sptr) is allowed
-    //apply_BCs_on_spinor_field(sptr);
+    apply_BCs_on_spinor_field_flt(sptr);
     Cphi_flt_(mass, dptr, sptr, 0, 0);
-    //apply_BCs_on_spinor_field(dptr);
+    apply_BCs_on_spinor_field_flt(dptr);
 }
 
 void Cphi_diag_inv_flt(double mass, spinor_field_flt *dptr, spinor_field_flt *sptr) {
     // Here (dptr == sptr) is allowed
-    //apply_BCs_on_spinor_field(sptr);
+    apply_BCs_on_spinor_field_flt(sptr);
     Cphi_flt_(mass, dptr, sptr, 0, 1);
-    //apply_BCs_on_spinor_field(dptr);
+    apply_BCs_on_spinor_field_flt(dptr);
 }
 #endif
 

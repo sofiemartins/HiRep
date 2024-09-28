@@ -306,7 +306,7 @@ void compute_clover_term_cpu() {
 #endif
             _compute_clover_term(id);
         }
-        apply_BCs_on_clover_term(cl_term);
+        apply_BCs_on_clover_term_cpu(cl_term);
         stale_clover_cpu = 0;
     }
 }

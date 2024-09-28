@@ -175,7 +175,11 @@ __device__ __forceinline__ void read_force(hr_complex *c, const suNf *in, int ix
     iz += ix % THREADSIZE;
     // Move by j hr complexes (containing 2 doubles)
     // also offset by half the components if you want to read down
+#ifdef REPR_IS_REAL
+    iz += (i * NF + j) * THREADSIZE + comp * n_components * THREADSIZE;
+#else
     iz += 2 * (i * NF + j) * THREADSIZE + comp * n_components * THREADSIZE;
+#endif
 
     double *in_cpx = (double *)in;
     double *in_comp_cpx = (double *)c;
@@ -189,7 +193,11 @@ __device__ __forceinline__ void write_force(hr_complex *c, suNf *out, int ix, in
     const int n_components = sizeof(suNf) / sizeof(double);
     int iz = ((ix / THREADSIZE) * THREADSIZE) * n_components * 6;
     iz += ix % THREADSIZE;
+#ifdef REPR_IS_REAL
+    iz += (i * NF + j) * THREADSIZE + comp * n_components * THREADSIZE;
+#else
     iz += 2 * (i * NF + j) * THREADSIZE + comp * n_components * THREADSIZE;
+#endif
     double *out_cpx = (double *)out;
     double *out_comp_cpx = (double *)c;
     for (int i = 0; i < 2; ++i) {
