@@ -19,26 +19,7 @@
 #include "libhr.h"
 #include <string.h>
 
-// TODO: add this to suN.h
-#define _suNg_star(u, v)                 \
-    _complex_star((u).c[0], (v).c[0]);   \
-    _complex_star((u).c[1], (v).c[1]);   \
-    _complex_star((u).c[2], (v).c[2]);   \
-    _complex_star((u).c[3], (v).c[3]);   \
-    _complex_star((u).c[4], (v).c[4]);   \
-    _complex_star((u).c[5], (v).c[5]);   \
-    _complex_star((u).c[6], (v).c[6]);   \
-    _complex_star((u).c[7], (v).c[7]);   \
-    _complex_star((u).c[8], (v).c[8]);   \
-    _complex_star((u).c[9], (v).c[9]);   \
-    _complex_star((u).c[10], (v).c[10]); \
-    _complex_star((u).c[11], (v).c[11]); \
-    _complex_star((u).c[12], (v).c[12]); \
-    _complex_star((u).c[13], (v).c[13]); \
-    _complex_star((u).c[14], (v).c[14]); \
-    _complex_star((u).c[15], (v).c[15])
-
-int GLB_T_OUT, GLB_X_OUT, GLB_Y_OUT, GLB_Z_OUT, CP_T;
+int GLB_T_OUT, GLB_X_OUT, GLB_Y_OUT, GLB_Z_OUT, ptransf;
 
 #define init_input_config(varname)                                         \
     {                                                                      \
@@ -54,7 +35,7 @@ int GLB_T_OUT, GLB_X_OUT, GLB_Y_OUT, GLB_Z_OUT, CP_T;
             { "GLB_X_OUT", "GLB_X_OUT = %d", INT_T, &GLB_X_OUT },           \
             { "GLB_Y_OUT", "GLB_Y_OUT = %d", INT_T, &GLB_Y_OUT },           \
             { "GLB_Z_OUT", "GLB_Z_OUT = %d", INT_T, &GLB_Z_OUT },           \
-            { "CP_transform", "CP_transform = %d", INT_T, &CP_T },          \
+            { "P_transform", "P_transform = %d", INT_T, &ptransform },      \
             { "file_in", "file_out = %s", STRING_T, &((varname).file[0]) }, \
         }                                                                   \
     }
@@ -78,29 +59,33 @@ static int *ipt_old;
     (((((_t) % (_T)) * (_X) + ((_x) % (_X))) * (_Y) + ((_y) % (_Y))) * (_Z) + ((_z) % (_Z)))
 #define ipt_box(_T, _X, _Y, _Z, _t, _x, _y, _z) ipt_old[_lexi_convert(_T, _X, _Y, _Z, _t, _x, _y, _z)];
 
-static int p_transformed_index(int t, int x, int y, int z, int T, int X, int Y, int Z, int p1, int p2, int p3, int mu) {
+static int p_transformed_index(int t, int x, int y, int z, int T, int X, int Y, int Z, int p0, int p1, int p2, int p3) {
+    int t_loc = t;
     int x_loc = x;
     int y_loc = y;
     int z_loc = z;
-    if (mu == 0) {
-        if (p1) { x_loc = X - 1 - (x % X); }
-        if (p2) { y_loc = Y - 1 - (y % Y); }
-        if (p3) { z_loc = Z - 1 - (z % Z); }
+    if (p0) {
+        t_loc = T - 1 - ((t + 1) % T);
     } else {
-        if (p1) {
-            x_loc = X - 2 - (x % X);
-            if (x_loc < 0) { x_loc = X - 1; }
-        }
-        if (p2) {
-            y_loc = Y - 2 - (y % Y);
-            if (y_loc < 0) { y_loc = Y - 1; }
-        }
-        if (p3) {
-            z_loc = Z - 2 - (z % Z);
-            if (z_loc) { z_loc = Z - 1; }
-        }
+        t_loc = t % T;
     }
-    return ipt_box(T, X, Y, Z, t, x_loc, y_loc, z_loc);
+    if (p1) {
+        x_loc = X - 1 - ((x + 1) % X);
+    } else {
+        x_loc = x % T;
+    }
+    if (p2) {
+        y_loc = Y - 1 - ((y + 1) % Y);
+    } else {
+        y_loc = y % Y;
+    }
+    if (p3) {
+        z_loc = Z - 1 - ((z + 1) % Z);
+    } else {
+        z_loc = z % Z;
+    }
+
+    return ipt_box(T, X, Y, Z, t_loc, x_loc, y_loc, z_loc);
 }
 
 int main(int argc, char *argv[]) {
@@ -138,6 +123,17 @@ int main(int argc, char *argv[]) {
 
     memcpy(tmp, u_gauge->ptr, 4 * glattice.gsize_gauge * sizeof(suNg));
 
+    // Done with old lattice size, redefine
+
+    // First free everything related to the old size
+    free_suNg_field(u_gauge);
+#ifdef ALLOCATE_REPR_GAUGE_FIELD
+    free_suNf_field(u_gauge_f);
+#endif
+    if (u_scalar != NULL) { free_suNg_scalar_field(u_scalar); }
+
+    if (u_gauge_f_flt != NULL) { free_suNf_field_flt(u_gauge_f_flt); }
+
     GLB_T = GLB_T_OUT;
     GLB_X = GLB_X_OUT;
     GLB_Y = GLB_Y_OUT;
@@ -162,13 +158,10 @@ int main(int argc, char *argv[]) {
     Z_EXT = Z;
     T_EXT = T;
 
-#ifdef WITH_NEW_GEOMETRY
-    define_geometry();
-#else
-    geometry_mpi_eo();
-#endif
+    geometry_init();
     setup_gauge_fields();
-    random_u(u_gauge);
+
+    suNg_field *check = alloc_suNg_field(&glattice);
 
     for (int t = 0; t < T; t++) {
         for (int x = 0; x < X; x++) {
@@ -178,23 +171,74 @@ int main(int argc, char *argv[]) {
                     int b1 = x / X_old;
                     int b2 = y / Y_old;
                     int b3 = z / Z_old;
+                    int p0 = b0 % 2;
                     int p1 = b1 % 2;
                     int p2 = b2 % 2;
                     int p3 = b3 % 2;
-                    int sublat_parity = 0;
-                    if (CP_T) { sublat_parity = (b0 + b1 + b2 + b3) % 2; }
+                    if (!CP_T) {
+                        p0 = 0;
+                        p1 = 0;
+                        p2 = 0;
+                        p3 = 0;
+                    }
 
                     for (int mu = 0; mu < 4; mu++) {
-                        int idx = p_transformed_index(t, x, y, z, T_old, X_old, Y_old, Z_old, p1, p2, p3, mu);
+                        int idx = p_transformed_index(t, x, y, z, T_old, X_old, Y_old, Z_old, p0, p1, p2, p3);
                         int idx_new = ipt(t, x, y, z);
                         suNg in = *_4FIELD_AT_PTR(tmp, idx, mu, 0);
                         suNg out;
-                        out = in;
-                        if (mu == 0) { out = in; }
-                        if ((mu == 1) && p1) { _suNg_minus(out, in); }
-                        if (mu == 2 && p2) { _suNg_minus(out, in); }
-                        if (mu == 3 && p3) { _suNg_minus(out, in); }
+                        memcpy(&out, &in, sizeof(suNg));
+                        if (mu == 0 && p0) {
+                            _suNg_dagger(out, in);
+                            idx_new = ipt(t - 1, x, y, z);
+                        }
+                        if (mu == 1 && p1) {
+                            _suNg_dagger(out, in);
+                            idx_new = ipt(t, x - 1, y, z);
+                        }
+                        if (mu == 2 && p2) {
+                            _suNg_dagger(out, in);
+                            idx_new = ipt(t, x, y - 1, z);
+                        }
+                        if (mu == 3 && p3) {
+                            _suNg_dagger(out, in);
+                            idx_new = ipt(t, x, y, z - 1);
+                        }
                         *_4FIELD_AT(u_gauge, idx_new, mu) = out;
+
+                        // Preserve periodicity
+                        if ((t % (2 * T_old - 1)) == 0) {
+                            if (mu == 0 && p0) {
+                                int idx = p_transformed_index(T_old - 1, x, y, z, T_old, X_old, Y_old, Z_old, p0, p1, p2, p3);
+                                suNg in = *_4FIELD_AT_PTR(tmp, idx, mu, 0);
+                                int idx_new = ipt(t, x, y, z);
+                                *_4FIELD_AT(u_gauge, idx_new, mu) = in;
+                            }
+                        }
+                        if ((x % (2 * X_old - 1)) == 0) {
+                            if (mu == 1 && p1) {
+                                int idx = p_transformed_index(t, X_old - 1, y, z, T_old, X_old, Y_old, Z_old, p0, p1, p2, p3);
+                                suNg in = *_4FIELD_AT_PTR(tmp, idx, mu, 0);
+                                int idx_new = ipt(t, x, y, z);
+                                *_4FIELD_AT(u_gauge, idx_new, mu) = in;
+                            }
+                        }
+                        if ((y % (2 * Y_old - 1)) == 0) {
+                            if (mu == 2 && p2) {
+                                int idx = p_transformed_index(t, x, Y_old - 1, z, T_old, X_old, Y_old, Z_old, p0, p1, p2, p3);
+                                suNg in = *_4FIELD_AT_PTR(tmp, idx, mu, 0);
+                                int idx_new = ipt(t, x, y, z);
+                                *_4FIELD_AT(u_gauge, idx_new, mu) = in;
+                            }
+                        }
+                        if ((z % (2 * Z_old - 1)) == 0) {
+                            if (mu == 3 && p3) {
+                                int idx = p_transformed_index(t, x, y, Z_old - 1, T_old, X_old, Y_old, Z_old, p0, p1, p2, p3);
+                                suNg in = *_4FIELD_AT_PTR(tmp, idx, mu, 0);
+                                int idx_new = ipt(t, x, y, z);
+                                *_4FIELD_AT(u_gauge, idx_new, mu) = in;
+                            }
+                        }
                     }
                 }
             }
@@ -203,6 +247,7 @@ int main(int argc, char *argv[]) {
 
     double plaq = avr_plaquette();
     lprintf("PLAQ", 0, "Check output plaquette: %0.15e\n", plaq);
+    copy(check, u_gauge);
     write_gauge_field(output_var.file);
 
     finalize_process();
