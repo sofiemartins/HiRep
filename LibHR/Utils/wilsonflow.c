@@ -163,12 +163,7 @@ static void Zeta(suNg_field *Zu, const suNg_field *U, const double alpha) {
 }
 
 void WilsonFlow1(suNg_field *V, const double epsilon) {
-    _MASTER_FOR(&glattice, ix) {
-        for (int mu = 0; mu < 4; ++mu) {
-            _suNg_zero(*_4FIELD_AT(ws_gf, ix, mu));
-        }
-    }
-
+    zero(V);
     Zeta(ws_gf, V, epsilon);
 
     _MASTER_FOR(&glattice, ix) {
@@ -213,14 +208,8 @@ double max_distance(suNg_field *V, suNg_field *Vprimel) {
 int WilsonFlow3_adaptative(suNg_field *V, double *epsilon, double *epsilon_new, double *delta) {
     double varepsilon, d;
     copy_suNg_field(Vtmp, V);
-
-    _MASTER_FOR(&glattice, ix) {
-        for (int mu = 0; mu < 4; ++mu) {
-            _suNg_zero(*_4FIELD_AT(ws_gf, ix, mu));
-            _suNg_zero(*_4FIELD_AT(ws_gf_tmp, ix, mu));
-        }
-    }
-
+    zero(ws_gf);
+    zero(ws_gf_tmp);
     start_sendrecv_suNg_field(V);
     complete_sendrecv_suNg_field(V);
 #if defined(BC_T_SF_ROTATED) || defined(BC_T_SF)
@@ -310,12 +299,7 @@ int WilsonFlow3_adaptative(suNg_field *V, double *epsilon, double *epsilon_new, 
 }
 
 void WilsonFlow3(suNg_field *V, const double epsilon) {
-    _MASTER_FOR(&glattice, ix) {
-        for (int mu = 0; mu < 4; ++mu) {
-            _suNg_zero(*_4FIELD_AT(ws_gf, ix, mu));
-        }
-    }
-
+    zero(ws_gf);
     start_sendrecv_suNg_field(V);
     complete_sendrecv_suNg_field(V);
 #if defined(BC_T_SF_ROTATED) || defined(BC_T_SF)
@@ -376,265 +360,11 @@ void WilsonFlow3(suNg_field *V, const double epsilon) {
 #endif
 }
 
-static void WF_plaq(double *ret, suNg_field *V, int ix, int mu, int nu) {
-    int iy, iz;
-    suNg *v1, *v2, *v3, *v4, w1, w2, w3;
-
-    iy = iup(ix, mu);
-    iz = iup(ix, nu);
-
-    v1 = _4FIELD_AT(V, ix, mu);
-    v2 = _4FIELD_AT(V, iy, nu);
-    v3 = _4FIELD_AT(V, iz, mu);
-    v4 = _4FIELD_AT(V, ix, nu);
-
-    _suNg_times_suNg(w1, (*v1), (*v2));
-    _suNg_times_suNg(w2, (*v4), (*v3));
-    _suNg_times_suNg_dagger(w3, w1, w2);
-
-    _suNg_trace_re(*ret, w3);
-}
-
-double WF_E(suNg_field *V) {
-    double E = 0.;
-
-    _MASTER_FOR_SUM(&glattice, ix, E) {
-        double p;
-        for (int mu = 0; mu < 4; mu++) {
-            for (int nu = mu + 1; nu < 4; nu++) {
-                WF_plaq(&p, V, ix, mu, nu);
-                E += NG - p;
-            }
-        }
-    }
-
-    E *= 2. / ((double)GLB_VOLUME);
-
-    global_sum(&E, 1);
-
-    return E;
-}
-
-void WF_E_T(double *E, suNg_field *V) {
-    int gt, t, x, y, z, ix;
-    int mu, nu;
-    double p;
-
-    for (t = 0; t < 2 * GLB_T; t++) {
-        E[t] = 0.;
-    }
-
-    for (t = 0; t < T; t++) {
-        gt = t + zerocoord[0];
-        for (x = 0; x < X; x++) {
-            for (y = 0; y < Y; y++) {
-                for (z = 0; z < Z; z++) {
-                    mu = 0;
-                    ix = ipt(t, x, y, z);
-                    for (nu = 1; nu < 4; nu++) {
-                        WF_plaq(&p, V, ix, mu, nu);
-                        E[2 * gt] += NG - p;
-                    }
-                    for (mu = 1; mu < 3; mu++) {
-                        for (nu = mu + 1; nu < 4; nu++) {
-                            WF_plaq(&p, V, ix, mu, nu);
-                            E[2 * gt + 1] += NG - p;
-                        }
-                    }
-                }
-            }
-        }
-        E[2 * gt] /= 0.5 * (GLB_VOL3);
-        E[2 * gt + 1] /= 0.5 * (GLB_VOL3);
-    }
-
-    global_sum(E, 2 * GLB_T);
-}
-
-/* This gives F_{\mu\nu}^A */
-static void WF_clover_F(suNg_algebra_vector *F, suNg_field *V, int ix, int mu, int nu) {
-    int iy, iz, iw;
-    suNg *v1, *v2, *v3, *v4, w1, w2, w3;
-
-    _suNg_unit(w3);
-    _suNg_mul(w3, -4., w3);
-
-    iy = iup(ix, mu);
-    iz = iup(ix, nu);
-
-    v1 = _4FIELD_AT(V, ix, mu);
-    v2 = _4FIELD_AT(V, iy, nu);
-    v3 = _4FIELD_AT(V, iz, mu);
-    v4 = _4FIELD_AT(V, ix, nu);
-
-    _suNg_times_suNg(w1, (*v1), (*v2));
-    _suNg_times_suNg_dagger(w2, w1, (*v3));
-    _suNg_times_suNg_dagger(w1, w2, (*v4));
-    _suNg_add_assign(w3, w1);
-
-    iy = idn(ix, mu);
-    iz = iup(iy, nu);
-
-    v1 = _4FIELD_AT(V, ix, nu);
-    v2 = _4FIELD_AT(V, iz, mu);
-    v3 = _4FIELD_AT(V, iy, nu);
-    v4 = _4FIELD_AT(V, iy, mu);
-
-    _suNg_times_suNg_dagger(w1, (*v1), (*v2));
-    _suNg_times_suNg_dagger(w2, w1, (*v3));
-    _suNg_times_suNg(w1, w2, (*v4));
-    _suNg_add_assign(w3, w1);
-
-    iy = idn(ix, mu);
-    iz = idn(iy, nu);
-    iw = idn(ix, nu);
-
-    v1 = _4FIELD_AT(V, iy, mu);
-    v2 = _4FIELD_AT(V, iz, nu);
-    v3 = _4FIELD_AT(V, iz, mu);
-    v4 = _4FIELD_AT(V, iw, nu);
-
-    _suNg_times_suNg(w1, (*v2), (*v1));
-    _suNg_dagger_times_suNg(w2, w1, (*v3));
-    _suNg_times_suNg(w1, w2, (*v4));
-    _suNg_add_assign(w3, w1);
-
-    iy = idn(ix, nu);
-    iz = iup(iy, mu);
-
-    v1 = _4FIELD_AT(V, iy, nu);
-    v2 = _4FIELD_AT(V, iy, mu);
-    v3 = _4FIELD_AT(V, iz, nu);
-    v4 = _4FIELD_AT(V, ix, mu);
-
-    _suNg_dagger_times_suNg(w1, (*v1), (*v2));
-    _suNg_times_suNg(w2, w1, (*v3));
-    _suNg_times_suNg_dagger(w1, w2, (*v4));
-    _suNg_add_assign(w3, w1);
-
-    _fund_algebra_project(*F, w3);
-
-    _algebra_vector_mul_g(*F, 1 / 4., *F);
-}
-
-double WF_Esym(suNg_field *V) {
-    double E = 0.;
-
-    _MASTER_FOR_SUM(&glattice, ix, E) {
-        suNg_algebra_vector clover;
-        double p;
-        for (int mu = 0; mu < 4; mu++) {
-            for (int nu = mu + 1; nu < 4; nu++) {
-                WF_clover_F(&clover, V, ix, mu, nu);
-                _algebra_vector_sqnorm_g(p, clover);
-                E += p;
-            }
-        }
-    }
-
-    E *= _FUND_NORM2 / ((double)GLB_VOLUME);
-
-    global_sum(&E, 1);
-    return E;
-}
-
-void WF_Esym_T(double *E, suNg_field *V) {
-    int gt, t, x, y, z, ix;
-    int mu, nu;
-    suNg_algebra_vector clover;
-    double p;
-
-    for (t = 0; t < 2 * GLB_T; t++) {
-        E[t] = 0.;
-    }
-
-    for (t = 0; t < T; t++) {
-        gt = t + zerocoord[0];
-        for (x = 0; x < X; x++) {
-            for (y = 0; y < Y; y++) {
-                for (z = 0; z < Z; z++) {
-                    mu = 0;
-                    ix = ipt(t, x, y, z);
-                    for (nu = 1; nu < 4; nu++) {
-                        WF_clover_F(&clover, V, ix, mu, nu);
-                        _algebra_vector_sqnorm_g(p, clover);
-                        E[2 * gt] += p;
-                    }
-
-                    for (mu = 1; mu < 4; mu++) {
-                        for (nu = mu + 1; nu < 4; nu++) {
-                            WF_clover_F(&clover, V, ix, mu, nu);
-                            _algebra_vector_sqnorm_g(p, clover);
-                            E[2 * gt + 1] += p;
-                        }
-                    }
-                }
-            }
-        }
-        E[2 * gt] *= _FUND_NORM2 / (GLB_VOL3);
-        E[2 * gt + 1] *= _FUND_NORM2 / (GLB_VOL3);
-    }
-
-    global_sum(E, 2 * GLB_T);
-}
-
-/*
-  q = 1/(16 \pi^2) \epsilon_{\mu\nu\rho\sigma} \tr F_{\mu\nu} F_{\rho\sigma}
-*/
-
-double WF_topo(suNg_field *V) {
-    double TC = 0.;
-    int x, y, z, t, ix;
-    suNg_algebra_vector F1, F2;
-
-    int t0 = 0, t1 = T;
-#if defined(BC_T_OPEN)
-    if (COORD[0] == 0) { t0 = 1; }
-    if (COORD[0] == NP_T - 1) { t1 = T - 1; }
-#elif (defined(BC_T_SF) || defined(BC_T_SF_ROTATED))
-    if (COORD[0] == 0) { t0 = 2; }
-#endif
-
-    for (t = t0; t < t1; t++) {
-        for (x = 0; x < X; x++) {
-            for (y = 0; y < Y; y++) {
-                for (z = 0; z < Z; z++) {
-                    ix = ipt(t, x, y, z);
-
-                    WF_clover_F(&F1, V, ix, 1, 2);
-                    WF_clover_F(&F2, V, ix, 0, 3);
-                    for (int i = 0; i < NG * NG - 1; i++) {
-                        TC += F1.c[i] * F2.c[i];
-                    }
-
-                    WF_clover_F(&F1, V, ix, 1, 3);
-                    WF_clover_F(&F2, V, ix, 0, 2);
-                    for (int i = 0; i < NG * NG - 1; i++) {
-                        TC -= F1.c[i] * F2.c[i];
-                    }
-
-                    WF_clover_F(&F1, V, ix, 0, 1);
-                    WF_clover_F(&F2, V, ix, 2, 3);
-                    for (int i = 0; i < NG * NG - 1; i++) {
-                        TC += F1.c[i] * F2.c[i];
-                    }
-                }
-            }
-        }
-    }
-
-    TC *= _FUND_NORM2 / (4. * M_PI * M_PI);
-
-    global_sum(&TC, 1);
-
-    return TC;
-}
-
 static void WF_measure_and_store(suNg_field *V, storage_switch swc, data_storage_array **ret, int nmeas, int idmeas,
                                  double *t) {
     double TC;
 #if defined(BC_T_ANTIPERIODIC) || defined(BC_T_PERIODIC) && !defined(PURE_GAUGE_ANISOTROPY)
-    double E, Esym;
+    double E_density, Esym_density;
     int idx[2] = { nmeas + 1, 4 };
     if (swc == STORE && *ret == NULL) {
         *ret = allocate_data_storage_array(1);
@@ -642,51 +372,53 @@ static void WF_measure_and_store(suNg_field *V, storage_switch swc, data_storage
     }
 #else
     int j;
-    double E[2 * GLB_T];
-    double Esym[2 * GLB_T];
-    double Eavg[2];
-    double Esymavg[2];
+    double E_density[2 * GLB_T];
+    double Esym_density[2 * GLB_T];
+    double E_densityavg[2];
+    double Esym_densityavg[2];
     int idx[3] = { nmeas + 1, GLB_T, 5 };
     if (swc == STORE && *ret == NULL) {
         *ret = allocate_data_storage_array(2);
-        allocate_data_storage_element(*ret, 0, 3,
-                                      idx); // ( nmeas+1 ) * ( GLB_T ) * ( 5 <=> t, Etime, Espace, Esymtime, Esymspace)
+        allocate_data_storage_element(
+            *ret, 0, 3,
+            idx); // ( nmeas+1 ) * ( GLB_T ) * ( 5 <=> t, Etime, Espace, Esym_densitytime, Esym_densityspace)
         idx[1] = 6;
         allocate_data_storage_element(
-            *ret, 1, 2, idx); // ( nmeas+1 ) * ( 6 <=> t, Etime_tsum, Espace_tsum, Esymtime_tsum, Esymspace_tsum, TC)
+            *ret, 1, 2,
+            idx); // ( nmeas+1 ) * ( 6 <=> t, Etime_tsum, Espace_tsum, Esym_densitytime_tsum, Esym_densityspace_tsum, TC)
     }
 #endif
 
-    TC = WF_topo(V);
+    TC = topo(V);
 
 #if defined(BC_T_ANTIPERIODIC) || defined(BC_T_PERIODIC) && !defined(PURE_GAUGE_ANISOTROPY)
 
-    E = WF_E(V);
-    Esym = WF_Esym(V);
-    lprintf("WILSONFLOW", 0, "WF (t,E,t2*E,Esym,t2*Esym,TC) = %1.8e %1.16e %1.16e %1.16e %1.16e %1.16e\n", *t, E, *t * *t * E,
-            Esym, *t * *t * Esym, TC);
+    E_density = E(V);
+    Esym_density = Esym(V);
+    lprintf("WILSONFLOW", 0, "WF (t,E,t2*E,Esym,t2*Esym,TC) = %1.8e %1.16e %1.16e %1.16e %1.16e %1.16e\n", *t, E_density,
+            *t * *t * E_density, Esym_density, *t * *t * Esym_density, TC);
     if (swc == STORE) {
         idx[0] = idmeas - 1;
         idx[1] = 0;
         *data_storage_element(*ret, 0, idx) = *t;
         idx[1] = 1;
-        *data_storage_element(*ret, 0, idx) = E;
+        *data_storage_element(*ret, 0, idx) = E_density;
         idx[1] = 2;
-        *data_storage_element(*ret, 0, idx) = Esym;
+        *data_storage_element(*ret, 0, idx) = Esym_density;
         idx[1] = 3;
         *data_storage_element(*ret, 0, idx) = TC;
     }
 #else
 
-    WF_E_T(E, V);
-    WF_Esym_T(Esym, V);
+    E_T(E_density, V);
+    Esym_T(Esym_density, V);
 
 #if defined(BC_T_SF) || defined(BC_T_SF_ROTATED)
-    E[0] = E[1] = Esym[0] = Esym[1] = Esym[2] = Esym[3] = 0.0;
-    E[2 * GLB_T - 2] = E[2 * GLB_T - 1] = Esym[2 * GLB_T - 2] = Esym[2 * GLB_T - 1] = 0.0;
+    E_density[0] = E_density[1] = Esym_density[0] = Esym_density[1] = Esym_density[2] = Esym_density[3] = 0.0;
+    E_density[2 * GLB_T - 2] = E_density[2 * GLB_T - 1] = Esym_density[2 * GLB_T - 2] = Esym_density[2 * GLB_T - 1] = 0.0;
 #elif defined(BC_T_OPEN)
-    E[2 * (GLB_T - 1)] = 0.0;
-    Esym[0] = Esym[1] = Esym[2 * GLB_T - 2] = Esym[2 * GLB_T - 1] = 0.0;
+    E_density[2 * (GLB_T - 1)] = 0.0;
+    Esym_density[0] = Esym_density[1] = Esym_density[2 * GLB_T - 2] = Esym_density[2 * GLB_T - 1] = 0.0;
 #endif
 
     if (swc == STORE) {
@@ -696,54 +428,55 @@ static void WF_measure_and_store(suNg_field *V, storage_switch swc, data_storage
             idx[2] = 0;
             *data_storage_element(*ret, 0, idx) = *t;
             idx[2] = 1;
-            *data_storage_element(*ret, 0, idx) = E[2 * j];
+            *data_storage_element(*ret, 0, idx) = E_density[2 * j];
             idx[2] = 2;
-            *data_storage_element(*ret, 0, idx) = E[2 * j + 1];
+            *data_storage_element(*ret, 0, idx) = E_density[2 * j + 1];
             idx[2] = 3;
-            *data_storage_element(*ret, 0, idx) = Esym[2 * j];
+            *data_storage_element(*ret, 0, idx) = Esym_density[2 * j];
             idx[2] = 4;
-            *data_storage_element(*ret, 0, idx) = Esym[2 * j + 1];
+            *data_storage_element(*ret, 0, idx) = Esym_density[2 * j + 1];
         }
     }
 
-    Eavg[0] = Eavg[1] = Esymavg[0] = Esymavg[1] = 0.0;
+    E_densityavg[0] = E_densityavg[1] = Esym_densityavg[0] = Esym_densityavg[1] = 0.0;
     for (j = 0; j < GLB_T; j++) {
         lprintf("WILSONFLOW", 0, "WF (T,t,Etime,Espace,Esymtime,Esymspace) = %d %1.8e %1.16e %1.16e %1.16e %1.16e\n", j, *t,
-                E[2 * j], E[2 * j + 1], Esym[2 * j], Esym[2 * j + 1]);
-        Eavg[0] += E[2 * j];
-        Eavg[1] += E[2 * j + 1];
-        Esymavg[0] += Esym[2 * j];
-        Esymavg[1] += Esym[2 * j + 1];
+                E_density[2 * j], E_density[2 * j + 1], Esym_density[2 * j], Esym_density[2 * j + 1]);
+        E_densityavg[0] += E_density[2 * j];
+        E_densityavg[1] += E_density[2 * j + 1];
+        Esym_densityavg[0] += Esym_density[2 * j];
+        Esym_densityavg[1] += Esym_density[2 * j + 1];
     }
 
 #if defined(BC_T_SF) || defined(BC_T_SF_ROTATED)
-    Eavg[0] /= GLB_T - 2;
-    Eavg[1] /= GLB_T - 3;
-    Esymavg[0] /= GLB_T - 3;
-    Esymavg[1] /= GLB_T - 3;
+    E_densityavg[0] /= GLB_T - 2;
+    E_densityavg[1] /= GLB_T - 3;
+    Esym_densityavg[0] /= GLB_T - 3;
+    Esym_densityavg[1] /= GLB_T - 3;
 #else
-    Eavg[0] /= GLB_T;
-    Eavg[1] /= GLB_T;
-    Esymavg[0] /= GLB_T;
-    Esymavg[1] /= GLB_T;
+    E_densityavg[0] /= GLB_T;
+    E_densityavg[1] /= GLB_T;
+    Esym_densityavg[0] /= GLB_T;
+    Esym_densityavg[1] /= GLB_T;
 #endif
 
     lprintf(
         "WILSONFLOW", 0,
         "WF avg (t,Etime,Espace,Esymtime,Esymspace,Pltime,Plspace,TC) = %1.8e %1.16e %1.16e %1.16e %1.16e %1.16e %1.16e %1.16e\n",
-        *t, Eavg[0], Eavg[1], Esymavg[0], Esymavg[1], (NG - Eavg[0]), (NG - Eavg[1]), TC);
+        *t, E_densityavg[0], E_densityavg[1], Esym_densityavg[0], Esym_densityavg[1], (NG - E_densityavg[0]),
+        (NG - E_densityavg[1]), TC);
     if (swc == STORE) {
         idx[0] = idmeas - 1;
         idx[1] = 0;
         *data_storage_element(*ret, 1, idx) = *t;
         idx[1] = 1;
-        *data_storage_element(*ret, 1, idx) = Eavg[0];
+        *data_storage_element(*ret, 1, idx) = E_densityavg[0];
         idx[1] = 2;
-        *data_storage_element(*ret, 1, idx) = Eavg[1];
+        *data_storage_element(*ret, 1, idx) = E_densityavg[1];
         idx[1] = 3;
-        *data_storage_element(*ret, 1, idx) = Esymavg[0];
+        *data_storage_element(*ret, 1, idx) = Esym_densityavg[0];
         idx[1] = 4;
-        *data_storage_element(*ret, 1, idx) = Esymavg[1];
+        *data_storage_element(*ret, 1, idx) = Esym_densityavg[1];
         idx[1] = 5;
         *data_storage_element(*ret, 1, idx) = TC;
     }

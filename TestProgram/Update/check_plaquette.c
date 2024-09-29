@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     scalar_field *sgpu = alloc_scalar_field(1, &glattice);
     scalar_field *scpu = alloc_scalar_field(1, &glattice);
 
-    local_plaquette(sgpu);
+    local_plaquette(u_gauge, sgpu);
     _MASTER_FOR(&glattice, ix) {
         *_FIELD_AT(scpu, ix) = local_plaq(ix);
     }

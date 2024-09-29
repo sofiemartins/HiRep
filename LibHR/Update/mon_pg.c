@@ -5,7 +5,6 @@
 
 #include "update.h"
 #include "libhr_core.h"
-#include "Update/avr_plaquette.h"
 #include "memory.h"
 #include "inverters.h"
 
@@ -30,7 +29,7 @@ static const spinor_field *pg_pseudofermion(monomial const *m) {
 static void pg_add_local_action(monomial const *m, scalar_field *loc_action) {
     mon_pg_par *par = (mon_pg_par *)(m->data.par);
     if (local_plaq_tmp == NULL) { local_plaq_tmp = alloc(local_plaq_tmp, 1, &glattice); }
-    local_plaquette(local_plaq_tmp);
+    local_plaquette(u_gauge, local_plaq_tmp);
     mul_add_assign(loc_action, -(par->beta / ((double)NG)), local_plaq_tmp);
 }
 

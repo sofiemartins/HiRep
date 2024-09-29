@@ -14,8 +14,7 @@
 #include "io.h"
 #include "utils.h"
 #include "memory.h"
-#include "Update/representation.h"
-#include "Update/avr_plaquette.h"
+#include "update.h"
 #include "inverters.h"
 
 #if (!defined(BC_T_SF_ROTATED) && !defined(BC_T_SF) && !defined(FERMION_THETA))

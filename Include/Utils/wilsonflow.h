@@ -35,12 +35,6 @@ void WilsonFlow1(suNg_field *V, const double epsilon);
 void WilsonFlow3(suNg_field *V, const double epsilon);
 int WilsonFlow3_adaptative(suNg_field *V, double *epsilon, double *epsilon_new, double *delta);
 
-double WF_E(suNg_field *V);
-double WF_Esym(suNg_field *V);
-double WF_topo(suNg_field *V);
-
-void WF_E_T(double *E, suNg_field *V);
-void WF_Esym_T(double *Esym, suNg_field *V);
 data_storage_array *WF_update_and_measure(WF_integrator_type wft, suNg_field *V, double *tmax, double *eps, double *delta,
                                           int nmeas, storage_switch swc);
 
