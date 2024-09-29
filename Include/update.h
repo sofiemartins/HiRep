@@ -6,7 +6,6 @@
 #ifndef UPDATE_H
 #define UPDATE_H
 
-#include "Update/avr_plaquette.h"
 #include "Update/cabmar.h"
 #include "Update/clover_tools.h"
 #include "Update/dirac.h"
@@ -23,5 +22,6 @@
 #include "Update/stout_smearing.h"
 #include "Update/update_algo.h"
 #include "Update/twisted_bc.h"
+#include "Update/gauge_observables.h"
 
 #endif

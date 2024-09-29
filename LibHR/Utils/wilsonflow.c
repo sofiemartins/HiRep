@@ -5,6 +5,7 @@
 #include "memory.h"
 #include "IO/logger.h"
 #include "inverters.h"
+#include "update.h"
 
 static suNg_field *ws_gf = NULL;
 static suNg_field *ws_gf_tmp = NULL;
