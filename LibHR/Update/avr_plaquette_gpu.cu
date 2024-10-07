@@ -117,15 +117,9 @@ __global__ void _avr_plaquette(suNg *u, double *resField, int *iup_gpu, int N, i
 void local_plaquette_gpu(scalar_field *s) {
     complete_sendrecv_suNg_field(u_gauge);
 
-#ifdef PLAQ_WEIGHTS
     _CUDA_FOR(u_gauge, ixp, int block_start = u_gauge->type->master_start[ixp];
               (_avr_plaquette<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(u_gauge->gpu_ptr, s->gpu_ptr + block_start,
                                                                               iup_gpu, N, block_start, plaq_weight_gpu)););
-#else
-    _CUDA_FOR(u_gauge, ixp, int block_start = u_gauge->type->master_start[ixp];
-              (_avr_plaquette<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(u_gauge->gpu_ptr, s->gpu_ptr + block_start,
-                                                                              iup_gpu, N, block_start, NULL)););
-#endif
 }
 
 double avr_plaquette_gpu() {
@@ -134,17 +128,10 @@ double avr_plaquette_gpu() {
 
     complete_sendrecv_suNg_field(u_gauge);
 
-#ifdef PLAQ_WEIGHTS
     _CUDA_FOR(u_gauge, ixp, resPiece = alloc_double_sum_field(N);
               (_avr_plaquette<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(
                   u_gauge->gpu_ptr, resPiece, iup_gpu, N, u_gauge->type->master_start[ixp], plaq_weight_gpu));
               res += global_sum_gpu(resPiece, N););
-#else
-    _CUDA_FOR(u_gauge, ixp, resPiece = alloc_double_sum_field(N);
-              (_avr_plaquette<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(u_gauge->gpu_ptr, resPiece, iup_gpu, N,
-                                                                              u_gauge->type->master_start[ixp], NULL));
-              res += global_sum_gpu(resPiece, N););
-#endif
 
 #ifdef WITH_MPI
     global_sum(&res, 1);
@@ -213,15 +200,10 @@ void avr_plaquette_time_gpu(double *plaqt, double *plaqs) {
 
     _CUDA_FOR(
         u_gauge, ixp, resPiece = alloc_double_sum_field(N * GLB_T * 2); cudaMemset(resPiece, 0, N * GLB_T * 2 * sizeof(double));
-#ifdef PLAQ_WEIGHTS
         (_avr_plaquette_time<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(
             u_gauge->gpu_ptr, resPiece, zerocoord[0], GLB_T, iup_gpu, timeslices, N, T, u_gauge->type->master_start[ixp],
             plaq_weight_gpu));
-#else
-        (_avr_plaquette_time<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(u_gauge->gpu_ptr, resPiece, zerocoord[0], GLB_T,
-                                                                             iup_gpu, timeslices, N, T,
-                                                                             u_gauge->type->master_start[ixp], NULL));
-#endif
+
         for (int nt = 0; nt < GLB_T; nt++) {
             int tc = (zerocoord[0] + nt + GLB_T) % GLB_T;
             plaqt[tc] += global_sum_gpu(resPiece + N * tc, N) / 3.0 / NG / GLB_VOL3;
@@ -276,21 +258,12 @@ void full_plaquette_gpu(void) {
 
     hr_complex *resPiece;
 
-#ifdef PLAQ_WEIGHTS
     _CUDA_FOR(u_gauge, ixp, resPiece = alloc_complex_sum_field(N * 6); cudaMemset(resPiece, 0, N * 6 * sizeof(hr_complex));
               (_full_plaquette<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(
                   u_gauge->gpu_ptr, resPiece, iup_gpu, N, u_gauge->type->master_start[ixp], plaq_weight_gpu));
               r0 += global_sum_gpu(resPiece, N); r1 += global_sum_gpu(resPiece + N, N);
               r2 += global_sum_gpu(resPiece + 2 * N, N); r3 += global_sum_gpu(resPiece + 3 * N, N);
               r4 += global_sum_gpu(resPiece + 4 * N, N); r5 += global_sum_gpu(resPiece + 5 * N, N););
-#else
-    _CUDA_FOR(u_gauge, ixp, resPiece = alloc_complex_sum_field(N * 6); cudaMemset(resPiece, 0, N * 6 * sizeof(hr_complex));
-              (_full_plaquette<<<grid_size, BLOCK_SIZE_LINEAR_ALGEBRA, 0, 0>>>(u_gauge->gpu_ptr, resPiece, iup_gpu, N,
-                                                                               u_gauge->type->master_start[ixp], NULL));
-              r0 += global_sum_gpu(resPiece, N); r1 += global_sum_gpu(resPiece + N, N);
-              r2 += global_sum_gpu(resPiece + 2 * N, N); r3 += global_sum_gpu(resPiece + 3 * N, N);
-              r4 += global_sum_gpu(resPiece + 4 * N, N); r5 += global_sum_gpu(resPiece + 5 * N, N););
-#endif
 
     pa[0] = r0;
     pa[1] = r1;

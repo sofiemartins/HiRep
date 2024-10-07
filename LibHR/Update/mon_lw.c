@@ -34,6 +34,14 @@ static void lw_free(monomial *m) {
 }
 
 monomial *lw_create(monomial_data const *data) {
+#ifdef BC_T_OPEN
+    error(1, 1, __func__, "The Luescher-Weisz Gauge Action is unsupported with open boundary conditions.\n");
+#endif
+
+#ifdef BC_T_SF
+    error(1, 1, __func__, "The Luescher-Weisz Gauge Action is unsupported with Schroedinger functional boundary conditions.\n");
+#endif
+
     monomial *m = malloc(sizeof(*m));
     mon_lw_par *par = (mon_lw_par *)(data->par);
 

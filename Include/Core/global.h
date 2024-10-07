@@ -213,12 +213,10 @@ GLB_VAR(input_logger, logger_var, = init_input_logger(logger_var));
 #define ALLOCATE_REPR_GAUGE_FIELD
 #endif
 
-#ifdef PLAQ_WEIGHTS
 GLB_VAR(double, *plaq_weight, = NULL);
 GLB_VAR(double, *rect_weight, = NULL);
 GLB_VAR(double, *plaq_weight_gpu, = NULL);
 GLB_VAR(double, *rect_weight_gpu, = NULL);
-#endif
 
 /* Theta Boundary conditions */
 #ifdef FERMION_THETA
