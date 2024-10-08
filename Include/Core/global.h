@@ -98,6 +98,7 @@ GLB_VAR(int, *iup, = NULL);
 GLB_VAR(int, *idn, = NULL);
 GLB_VAR(char, *imask, = NULL);
 GLB_VAR(int, zerocoord[4], = { 0, 0, 0, 0 });
+GLB_VAR(int, *timeslices, = NULL);
 
 GLB_VAR(int, BLK_T, = 4);
 GLB_VAR(int, BLK_X, = 4);
@@ -154,6 +155,7 @@ GLB_VAR(int, *iup_gpu, = NULL);
 GLB_VAR(int, *idn_gpu, = NULL);
 GLB_VAR(char, *imask_gpu, = NULL);
 GLB_VAR(unsigned int, grid_size_max_gpu, = 65535);
+GLB_VAR(int, *timeslices_gpu, = NULL);
 #else
 #define STD_MEM_TYPE (CPU_MEM)
 #endif

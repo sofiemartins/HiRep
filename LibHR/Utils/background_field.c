@@ -82,7 +82,7 @@ void apply_background_field_zdir(suNg_field *V, double Q, int n) {
                     index = ipt(c[0], c[1], c[2], c[3]);
 
                     // calculate new plaquettes in direction 3,4
-                    cplaq(&tmp, index, 3, 0);
+                    cplaq(&tmp, u_gauge, index, 3, 0);
 
                     // now divide by e^{iQE}
                     phase = cos(Q * E) + I * sin(Q * E);
@@ -94,7 +94,7 @@ void apply_background_field_zdir(suNg_field *V, double Q, int n) {
                     start_sendrecv_suNg_field(V);
                     complete_sendrecv_suNg_field(V);
 
-                    cplaq(&tmp, index, 3, 0);
+                    cplaq(&tmp, u_gauge, index, 3, 0);
 
                     // compute absolute value of the difference between old and new for the real and imaginary parts independantly
                     diff_re += fabs(creal(tmp2 - tmp));

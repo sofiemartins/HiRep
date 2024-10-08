@@ -410,6 +410,10 @@ static void index_alloc() {
     icoord = malloc((main_mem_volume + buf_mem_volume) * sizeof(*icoord));
     error((icoord == NULL), 1, __func__, "Cannot allocate memory for send/recv icoord");
     sb_icoord = icoord + main_mem_volume;
+
+    // memory for timeslice array
+    timeslices = malloc((main_mem_volume + buf_mem_volume) * sizeof(*icoord));
+    error((icoord == NULL), 1, __func__, "Cannot allocate memory for time slice array");
 }
 
 static void index_free() {
@@ -523,6 +527,7 @@ static void enumerate_lattice() {
     const int INVALID_POINT = -1;
     //NB: memset only works with 0 and -1 (assuming 2's complement numbers)
     memset(ipt, INVALID_POINT, T_EXT * X_EXT * Y_EXT * Z_EXT * sizeof(*ipt));
+    memset(timeslices, INVALID_POINT, T_EXT * X_EXT * Y_EXT * Z_EXT * sizeof(*timeslices));
 
     //enumerate points in each box
     //we assign an id to each point in a box and record it in ipt_ext and icoord
@@ -597,6 +602,18 @@ static void enumerate_lattice() {
                     iy=safe_ipt_ext(x0_ext,x1_ext,x2_ext,x3_ext-1); idn(ix,3)=iy; if(isInsideBox(geometryBoxes, iy)) xmask |= Z_DN_MASK;
                     // clang-format on
                     imask(ix) = xmask;
+                }
+            }
+        }
+    }
+
+    for (int nt = 0; nt < T; nt++) {
+        for (int nx = 0; nx < X; nx++) {
+            for (int ny = 0; ny < Y; ny++) {
+                for (int nz = 0; nz < Z; nz++) {
+                    int ix = ipt(nt, nx, ny, nz);
+                    // Initialize the array that returns the local time slice for a given index
+                    timeslices[ix] = nt;
                 }
             }
         }

@@ -15,11 +15,13 @@ void init_neighbors_gpu() {
 
     CHECK_CUDA(cudaMalloc((void **)&iup_gpu, 4 * N * sizeof(int)));
     CHECK_CUDA(cudaMalloc((void **)&idn_gpu, 4 * N * sizeof(int)));
+    CHECK_CUDA(cudaMalloc((void **)&timeslices_gpu, N * sizeof(int)));
     CHECK_CUDA(cudaMalloc((void **)&imask_gpu, N * sizeof(char)));
     CHECK_CUDA(cudaMalloc((void **)&ipt_gpu,
                           (X + 2 * X_BORDER) * (Y + 2 * Y_BORDER) * (Z + 2 * Z_BORDER) * (T + 2 * T_BORDER) * sizeof(int)));
     CHECK_CUDA(cudaMemcpy(iup_gpu, iup, 4 * N * sizeof(int), cudaMemcpyHostToDevice));
     CHECK_CUDA(cudaMemcpy(idn_gpu, idn, 4 * N * sizeof(int), cudaMemcpyHostToDevice));
+    CHECK_CUDA(cudaMemcpy(timeslices_gpu, timeslices, N * sizeof(int), cudaMemcpyHostToDevice));
     CHECK_CUDA(cudaMemcpy(imask_gpu, imask, N * sizeof(*imask), cudaMemcpyHostToDevice));
     CHECK_CUDA(cudaMemcpy(ipt_gpu, ipt,
                           (X + 2 * X_BORDER) * (Y + 2 * Y_BORDER) * (Z + 2 * Z_BORDER) * (T + 2 * T_BORDER) * sizeof(int),

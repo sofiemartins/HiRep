@@ -608,7 +608,9 @@ void Dphi_cpu_(spinor_field *restrict out, spinor_field *restrict in) {
 #endif
 
         _SITE_FOR(out->type, ixp, ix) {
+#ifdef _OPENMP
             register int thread0 = hr_threadId();
+#endif
             int iy;
             suNf *up, *um;
             suNf_vector psi, chi, psi2, chi2;

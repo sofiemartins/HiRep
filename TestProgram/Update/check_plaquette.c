@@ -45,9 +45,9 @@ int main(int argc, char *argv[]) {
     scalar_field *sgpu = alloc_scalar_field(1, &glattice);
     scalar_field *scpu = alloc_scalar_field(1, &glattice);
 
-    local_plaquette(sgpu);
+    local_plaquette(u_gauge, sgpu);
     _MASTER_FOR(&glattice, ix) {
-        *_FIELD_AT(scpu, ix) = local_plaq(ix);
+        *_FIELD_AT(scpu, ix) = local_plaq(u_gauge, ix);
     }
 
     copy_to_gpu_scalar_field(scpu);
@@ -55,8 +55,8 @@ int main(int argc, char *argv[]) {
     sub_assign(scpu, sgpu);
     lprintf("LOCAL PLAQUETTE", 0, "L2 diff: %0.15e\n", sqnorm(scpu));
 
-    avr_plaquette_time_cpu(plaqt_cpu, plaqs_cpu);
-    avr_plaquette_time_gpu(plaqt_gpu, plaqs_gpu);
+    avr_plaquette_time_cpu(u_gauge, plaqt_cpu, plaqs_cpu);
+    avr_plaquette_time_gpu(u_gauge, plaqt_gpu, plaqs_gpu);
 
     for (int nt = 0; nt < GLB_T; nt++) {
         compare_diff(errors, plaqt_cpu[nt], plaqt_gpu[nt], "CHECK PLAQUETTE", EPSILON_TEST);
