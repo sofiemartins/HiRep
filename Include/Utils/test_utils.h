@@ -13,8 +13,6 @@
 
 #include "libhr_core.h"
 #include "timing.h"
-//#include "random.h"
-//#include "memory.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,8 +90,9 @@ static double const EPSILON_FLT_TEST = 1.e-4;
     for (int _i = 0; _i < _n; _i++) {                    \
         random_field(&_s[_i]);                           \
         gpu_copy(&_s[_i]);                               \
-        sanity_check(_n, _s);                            \
-    }
+    }                                                    \
+    sanity_check(_n, _s);                                \
+    lprintf("MAIN", 10, "Done setup random spinor fields\n");
 
 #define _TEST_CPU_INV_OP(_errors, _name, _ninputs, _in, _out, _test, _tag, _precision) \
     do {                                                                               \

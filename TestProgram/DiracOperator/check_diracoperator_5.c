@@ -214,14 +214,11 @@ int main(int argc, char *argv[]) {
     _TEST_GPU_OP(errors, "Dphi_eopre", ninputs + noutputs + 1, in, in + 1, Dphi_eopre(-hmass, &in[1], in);
                  Dphi_eopre_cpu(-hmass, &in[1], in);, "GPU_TEST", EPSILON_TEST);
 
-    _TEST_GPU_OP(errors, "g5Dphi_oepre", ninputs + noutputs + 1, in, in + 1, g5Dphi_eopre(-hmass, &in[1], in);
+    _TEST_GPU_OP(errors, "g5Dphi_eopre", ninputs + noutputs + 1, in, in + 1, g5Dphi_eopre(-hmass, &in[1], in);
                  g5Dphi_eopre_cpu(-hmass, &in[1], in);, "GPU_TEST", EPSILON_TEST);
 
-    _TEST_GPU_OP(errors, "g5Dphi_oepre_sq", ninputs + noutputs + 1, in, in + 1, g5Dphi_eopre_sq(-hmass, &in[1], in);
+    _TEST_GPU_OP(errors, "g5Dphi_eopre_sq", ninputs + noutputs + 1, in, in + 1, g5Dphi_eopre_sq(-hmass, &in[1], in);
                  g5Dphi_eopre_sq_cpu(-hmass, &in[1], in);, "GPU_TEST", EPSILON_SQ_TEST);
-
-    _TEST_GPU_OP(errors, "Q_eopre", ninputs + noutputs + 1, in, in + 1, g5Dphi_eopre(-hmass, &in[1], in);
-                 g5Dphi_eopre_cpu(-hmass, &in[1], in);, "GPU_TEST", EPSILON_TEST);
 
 #ifdef DPHI_FLT
 

@@ -5,6 +5,9 @@
 
 #include "Utils/generics.h"
 #include "libhr_core.h"
+#include "update.h"
+#include "geometry.h"
+#include "utils.h"
 
 #if !defined _FIELD_TYPE
 #error Missing _FIELD_TYPE in sync_to_buffer_reduced.cu
@@ -46,7 +49,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             read_gpu<_REAL>(0, &u, gauge, ixg, 0, 4);
 
             _vector_add_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_T_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_T_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[0] = sn.c[1];
 
@@ -54,7 +57,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             in_spinor_field<_REAL>(&(sn.c[1]), in, iy, 3);
 
             _vector_add_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_T_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_T_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[1] = sn.c[1];
             write_gpu<_REAL>(0, &r, out, ix, 0, _FIELD_DIM);
@@ -66,7 +69,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             read_gpu<_REAL>(0, &u, gauge, iy, 0, 4);
 
             _vector_sub_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_T_inverse_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_T_inverse_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[0] = sn.c[1];
 
@@ -74,7 +77,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             in_spinor_field<_REAL>(&(sn.c[1]), in, iy, 3);
 
             _vector_sub_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_T_inverse_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_T_inverse_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[1] = sn.c[1];
             write_gpu<_REAL>(0, &r, out, ix, 0, _FIELD_DIM);
@@ -87,7 +90,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             read_gpu<_REAL>(0, &u, gauge, ixg, 1, 4);
 
             _vector_i_add_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_X_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_X_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[0] = sn.c[1];
 
@@ -95,7 +98,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             in_spinor_field<_REAL>(&(sn.c[1]), in, iy, 2);
 
             _vector_i_add_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_X_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_X_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[1] = sn.c[1];
             write_gpu<_REAL>(0, &r, out, ix, 0, _FIELD_DIM);
@@ -107,7 +110,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             read_gpu<_REAL>(0, &u, gauge, iy, 1, 4);
 
             _vector_i_sub_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_X_inverse_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_X_inverse_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[0] = sn.c[1];
 
@@ -115,7 +118,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             in_spinor_field<_REAL>(&(sn.c[1]), in, iy, 2);
 
             _vector_i_sub_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_X_inverse_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_X_inverse_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[1] = sn.c[1];
             write_gpu<_REAL>(0, &r, out, ix, 0, _FIELD_DIM);
@@ -128,7 +131,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             read_gpu<_REAL>(0, &u, gauge, ixg, 2, 4);
 
             _vector_add_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_Y_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_Y_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[0] = sn.c[1];
 
@@ -136,7 +139,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             in_spinor_field<_REAL>(&(sn.c[1]), in, iy, 2);
 
             _vector_sub_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_Y_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_Y_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[1] = sn.c[1];
             write_gpu<_REAL>(0, &r, out, ix, 0, _FIELD_DIM);
@@ -148,7 +151,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             read_gpu<_REAL>(0, &u, gauge, iy, 2, 4);
 
             _vector_sub_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_Y_inverse_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_Y_inverse_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[0] = sn.c[1];
 
@@ -156,7 +159,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             in_spinor_field<_REAL>(&(sn.c[1]), in, iy, 2);
 
             _vector_add_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_Y_inverse_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_Y_inverse_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[1] = sn.c[1];
             write_gpu<_REAL>(0, &r, out, ix, 0, _FIELD_DIM);
@@ -169,14 +172,14 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             read_gpu<_REAL>(0, &u, gauge, ixg, 3, 4);
 
             _vector_i_add_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_Z_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_Z_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[0] = sn.c[1];
 
             in_spinor_field<_REAL>(&(sn.c[0]), in, iy, 1);
             in_spinor_field<_REAL>(&(sn.c[1]), in, iy, 3);
             _vector_i_sub_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_Z_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_Z_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[1] = sn.c[1];
             write_gpu<_REAL>(0, &r, out, ix, 0, _FIELD_DIM);
@@ -188,7 +191,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             read_gpu<_REAL>(0, &u, gauge, iy, 3, 4);
 
             _vector_i_sub_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_Z_inverse_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_Z_inverse_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[0] = sn.c[1];
 
@@ -196,7 +199,7 @@ _KERNEL(box_to_buffer_kernel_reduced_,
             in_spinor_field<_REAL>(&(sn.c[1]), in, iy, 3);
 
             _vector_i_add_assign_f(sn.c[0], sn.c[1]);
-            _suNf_theta_Z_inverse_multiply(sn.c[1], u, sn.c[0]);
+            _suNf_theta_Z_inverse_multiply_gpu(sn.c[1], u, sn.c[0]);
 
             r.c[1] = sn.c[1];
             write_gpu<_REAL>(0, &r, out, ix, 0, _FIELD_DIM);

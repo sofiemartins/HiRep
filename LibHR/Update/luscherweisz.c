@@ -307,7 +307,7 @@ void lw_force_cpu(double dt, void *vpar) {
         }
     }
 
-    apply_BCs_on_momentum_field(force);
+    apply_BCs_on_momentum_field_cpu(force);
 }
 
 #ifndef WITH_GPU

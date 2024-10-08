@@ -68,5 +68,16 @@ void init_neighbors_gpu() {
     for (int i = 0; i < glattice.nbuffers_spinor / 2; i++) {
         CHECK_CUDA(cudaMalloc((void **)&input[i], sizeof(kernel_field_input)));
     }
+
+#if defined(PLAQ_WEIGHTS)
+    CHECK_CUDA(cudaMalloc((void **)&plaq_weight_gpu, 16 * glattice.gsize_gauge * sizeof(double)));
+    CHECK_CUDA(cudaMalloc((void **)&rect_weight_gpu, 16 * glattice.gsize_gauge * sizeof(double)));
+    if (plaq_weight != NULL) {
+        CHECK_CUDA(
+            cudaMemcpy(plaq_weight_gpu, plaq_weight, 16 * glattice.gsize_gauge * sizeof(double), cudaMemcpyHostToDevice));
+        CHECK_CUDA(
+            cudaMemcpy(rect_weight_gpu, rect_weight, 16 * glattice.gsize_gauge * sizeof(double), cudaMemcpyHostToDevice));
+    }
+#endif
 #endif
 }

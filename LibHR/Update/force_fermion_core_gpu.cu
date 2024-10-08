@@ -9,29 +9,29 @@
 #ifdef WITH_GPU
 
 #ifdef BC_T_THETA
-#define _T_theta_mulc(r)                   \
-    _vector_mulc_f(ptmp, eitheta[0], (r)); \
+#define _T_theta_mulc(r)                       \
+    _vector_mulc_f(ptmp, eitheta_gpu[0], (r)); \
     (r) = ptmp
 #else
 #define _T_theta_mulc(r)
 #endif
 #ifdef BC_X_THETA
-#define _X_theta_mulc(r)                   \
-    _vector_mulc_f(ptmp, eitheta[1], (r)); \
+#define _X_theta_mulc(r)                       \
+    _vector_mulc_f(ptmp, eitheta_gpu[1], (r)); \
     (r) = ptmp
 #else
 #define _X_theta_mulc(r)
 #endif
 #ifdef BC_Y_THETA
-#define _Y_theta_mulc(r)                   \
-    _vector_mulc_f(ptmp, eitheta[2], (r)); \
+#define _Y_theta_mulc(r)                       \
+    _vector_mulc_f(ptmp, eitheta_gpu[2], (r)); \
     (r) = ptmp
 #else
 #define _Y_theta_mulc(r)
 #endif
 #ifdef BC_Z_THETA
-#define _Z_theta_mulc(r)                   \
-    _vector_mulc_f(ptmp, eitheta[3], (r)); \
+#define _Z_theta_mulc(r)                       \
+    _vector_mulc_f(ptmp, eitheta_gpu[3], (r)); \
     (r) = ptmp
 #else
 #define _Z_theta_mulc(r)
