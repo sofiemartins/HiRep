@@ -28,7 +28,6 @@ void write_spinor_field(char filename[], spinor_field *sp) {
 
 #ifdef WITH_MPI
     /* MPI variables */
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
 #ifndef NDEBUG
@@ -45,11 +44,6 @@ void write_spinor_field(char filename[], spinor_field *sp) {
         /* write sq. norm */
         error(fwrite(&norm2, sizeof(double), 1, fp) != 1, -1, "write_spinor_field", "Failed to write spinor field plaquette");
     }
-
-#ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
-#endif
 
     Timer clock;
     timer_set(&clock);
@@ -69,8 +63,8 @@ void write_spinor_field(char filename[], spinor_field *sp) {
                     unsigned int bsize = sizeof(suNf_spinor) / sizeof(double) *
                                          (GLB_Z / NP_Z + ((p[3] < rz) ? 1 : 0)); /* buffer size in doubles */
 #ifdef WITH_MPI
-                    MPI_Cart_rank(cart_comm, p, &cid);
-                    MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                    cid = proc_id(p);
+                    MPI_cart_to_glob_id(&cid, &pid);
 #endif
                     if (pid == PID) { /* fill spinor buffer */
                         int lsite[4];
@@ -158,7 +152,6 @@ void read_spinor_field(char filename[], spinor_field *sp) {
 
 #ifdef WITH_MPI
     /* MPI variables */
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
 #ifndef NDEBUG
@@ -191,11 +184,6 @@ void read_spinor_field(char filename[], spinor_field *sp) {
         error(fread(&norm2, sizeof(double), 1, fp) != 1, -1, "read_spinor_field", "Failed to read spinor field sq. norm");
     }
 
-#ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
-#endif
-
     zsize = GLB_Z / NP_Z;
     rz = GLB_Z - zsize * NP_Z;
     buff = malloc(sizeof(suNf_spinor) * (GLB_Z / NP_Z + ((rz > 0) ? 1 : 0)));
@@ -211,8 +199,8 @@ void read_spinor_field(char filename[], spinor_field *sp) {
                     unsigned int bsize = sizeof(suNf_spinor) / sizeof(double) *
                                          (GLB_Z / NP_Z + ((p[3] < rz) ? 1 : 0)); /* buffer size in doubles */
 #ifdef WITH_MPI
-                    MPI_Cart_rank(cart_comm, p, &cid);
-                    MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                    cid = proc_id(p);
+                    MPI_cart_to_glob_id(&cid, &pid);
 #endif
                     /* read buffer from file */
                     if (PID == 0) {

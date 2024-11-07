@@ -172,6 +172,35 @@ static void compute_psign() {
     origin_coord(c);
     PSIGN = (c[0] + c[1] + c[2] + c[3]) & 1;
 }
+
+#ifndef WITH_MPI_CART
+#define MPI_coord_to_id(x0, x1, x2, x3, ib0, ib1, ib2, ib3)                                     \
+    (x1 + (NP_X / MPI_NBLK_X) * (x2 + (NP_Y / MPI_NBLK_Y) * (x3 + (NP_Z / MPI_NBLK_Z) * x0))) + \
+        (NP_X / MPI_NBLK_X) * (NP_Y / MPI_NBLK_Y) * (NP_Z / MPI_NBLK_Z) * (NP_T / MPI_NBLK_T) * \
+            (ib1 + (MPI_NBLK_X) * (ib2 + (MPI_NBLK_Y) * (ib3 + (MPI_NBLK_Z) * ib0)))
+
+void MPI_id_to_coord(int MPI_coord_id, int *ixc, int *ibc, int *ix) {
+    int nib, nix;
+    nib = MPI_coord_id / ((NP_X / MPI_NBLK_X) * (NP_Y / MPI_NBLK_Y) * (NP_Z / MPI_NBLK_Z) * (NP_T / MPI_NBLK_T));
+    nix = MPI_coord_id % ((NP_X / MPI_NBLK_X) * (NP_Y / MPI_NBLK_Y) * (NP_Z / MPI_NBLK_Z) * (NP_T / MPI_NBLK_T));
+
+    ixc[1] = nix % (NP_X / MPI_NBLK_X);
+    ixc[2] = (nix / (NP_X / MPI_NBLK_X)) % (NP_Y / MPI_NBLK_Y);
+    ixc[3] = ((nix / (NP_X / MPI_NBLK_X)) / (NP_Y / MPI_NBLK_Y)) % (NP_Z / MPI_NBLK_Z);
+    ixc[0] = (((nix / (NP_X / MPI_NBLK_X)) / (NP_Y / MPI_NBLK_Y)) / (NP_Z / MPI_NBLK_Z));
+
+    ibc[1] = nib % (MPI_NBLK_X);
+    ibc[2] = (nib / (MPI_NBLK_X)) % (MPI_NBLK_Y);
+    ibc[3] = ((nib / (MPI_NBLK_X)) / (MPI_NBLK_Y)) % (MPI_NBLK_Z);
+    ibc[0] = (((nib / (MPI_NBLK_X)) / (MPI_NBLK_Y)) / (MPI_NBLK_Z));
+
+    ix[0] = ixc[0] + ibc[0] * (NP_T / MPI_NBLK_T);
+    ix[1] = ixc[1] + ibc[1] * (NP_X / MPI_NBLK_X);
+    ix[2] = ixc[2] + ibc[2] * (NP_Y / MPI_NBLK_Y);
+    ix[3] = ixc[3] + ibc[3] * (NP_Z / MPI_NBLK_Z);
+}
+
+#endif
 #endif
 
 /* given the global coordinate of a site, this function returns the cartesian coordinates 
@@ -259,8 +288,10 @@ int geometry_init() {
 #ifdef WITH_MPI
     /* MPI variables */
     int dims[4];
+#ifdef WITH_MPI_CART
     int periods[4] = { 1, 1, 1, 1 }; /* all directions are periodic */
     int reorder = 1; /* reassign ids */
+#endif
     int mpiret;
 #endif
 
@@ -270,7 +301,6 @@ int geometry_init() {
         lprintf("MPI", 0, "ERROR: MPI has not been initialized!!!\n");
         error(1, 1, "setup_process " __FILE__, "Cannot create cartesian communicator");
     }
-
     /* create the cartesian communicator */
     if (NP_T < 2 && NP_X < 2 && NP_Y < 2 && NP_Z < 2) {
         lprintf("GEOMETRY", 0, "WARNING: NO PARALLEL DIMENSIONS SPECIFIED!!!\n");
@@ -280,6 +310,7 @@ int geometry_init() {
     dims[1] = NP_X;
     dims[2] = NP_Y;
     dims[3] = NP_Z;
+#ifdef WITH_MPI_CART
     mpiret = MPI_Cart_create(GLB_COMM, 4, dims, periods, reorder, &cart_comm);
     if (mpiret != MPI_SUCCESS) {
         char mesg[MPI_MAX_ERROR_STRING];
@@ -299,6 +330,26 @@ int geometry_init() {
     if (CART_SIZE != WORLD_SIZE) {
         error(1, 1, __func__, "WARNING: Cartesian size %d != world size %d\n", CART_SIZE, WORLD_SIZE);
     }
+#else
+
+    error(NP_T % MPI_NBLK_T != 0, 1, "geometry_init " __FILE__,
+          "MPI_NBLK_T must be an exact divisor of NP_T (NP_T % MPI_NBLK_T == 0)");
+    error(NP_X % MPI_NBLK_X != 0, 1, "geometry_init " __FILE__,
+          "MPI_NBLK_X must be an exact divisor of NP_X (NP_X % MPI_NBLK_X == 0)");
+    error(NP_Y % MPI_NBLK_Y != 0, 1, "geometry_init " __FILE__,
+          "MPI_NBLK_Y must be an exact divisor of NP_Y (NP_Y % MPI_NBLK_Y == 0)");
+    error(NP_Z % MPI_NBLK_Z != 0, 1, "geometry_init " __FILE__,
+          "MPI_NBLK_Z must be an exact divisor of NP_Z (NP_Z % MPI_NBLK_Z == 0)");
+
+    cart_comm = GLB_COMM;
+    MPI_Comm_size(cart_comm, &CART_SIZE);
+    MPI_Comm_rank(cart_comm, &CID);
+
+    int ixc[4], ibc[4];
+
+    MPI_id_to_coord(CID, ixc, ibc, COORD);
+
+#endif
     /* this is for the parity of this process */
     compute_psign();
 #else
@@ -336,6 +387,10 @@ int geometry_init() {
     lprintf("GEOMETRY_INIT", 0, "Extended local size is %dx%dx%dx%d\n", T_EXT, X_EXT, Y_EXT, Z_EXT);
     lprintf("GEOMETRY_INIT", 0, "The lattice borders are (%d,%d,%d,%d)\n", T_BORDER, X_BORDER, Y_BORDER, Z_BORDER);
     lprintf("GEOMETRY_INIT", 0, "Size of the bulk subblocking (%d,%d,%d,%d)\n", PB_T, PB_X, PB_Y, PB_Z);
+    if (MPI_NBLK_T + MPI_NBLK_X + MPI_NBLK_Y + MPI_NBLK_Z < 40) {
+        lprintf("GEOMETRY_INIT", 0, "MPI Blocking arrangment (%d,%d,%d,%d)\n", MPI_NBLK_T, MPI_NBLK_X, MPI_NBLK_Y, MPI_NBLK_Z);
+    }
+
     lprintf("GEOMETRY_INIT", 0, "Process sign is %d\n", PSIGN);
 
     check_geometry_variables();
@@ -358,6 +413,7 @@ int geometry_init() {
 
 int proc_up(int id, int dir) {
 #ifdef WITH_MPI
+#ifdef WITH_MPI_CART
     int coords[4];
     int outid;
 
@@ -367,12 +423,24 @@ int proc_up(int id, int dir) {
 
     return outid;
 #else
+    int MPIBLS[4] = { (NP_T / MPI_NBLK_T), (NP_X / MPI_NBLK_X), (NP_Y / MPI_NBLK_Y), (NP_Z / MPI_NBLK_Z) };
+    int NPROC[4] = { NP_T, NP_X, NP_Y, NP_Z };
+
+    int ixc[4], ibc[4], ix[4], newpoint;
+    MPI_id_to_coord(id, ixc, ibc, ix);
+    newpoint = ((ix[dir] + 1) % NPROC[dir]);
+    ixc[dir] = newpoint % MPIBLS[dir];
+    ibc[dir] = newpoint / MPIBLS[dir];
+    return MPI_coord_to_id(ixc[0], ixc[1], ixc[2], ixc[3], ibc[0], ibc[1], ibc[2], ibc[3]);
+#endif
+#else
     return 0;
 #endif
 }
 
 int proc_dn(int id, int dir) {
 #ifdef WITH_MPI
+#ifdef WITH_MPI_CART
     int coords[4];
     int outid;
 
@@ -382,19 +450,48 @@ int proc_dn(int id, int dir) {
 
     return outid;
 #else
+    int MPIBLS[4] = { (NP_T / MPI_NBLK_T), (NP_X / MPI_NBLK_X), (NP_Y / MPI_NBLK_Y), (NP_Z / MPI_NBLK_Z) };
+    int NPROC[4] = { NP_T, NP_X, NP_Y, NP_Z };
+    int ixc[4], ibc[4], ix[4], newpoint;
+    MPI_id_to_coord(id, ixc, ibc, ix);
+    newpoint = ((ix[dir] - 1 + NPROC[dir]) % NPROC[dir]);
+    ixc[dir] = newpoint % MPIBLS[dir];
+    ibc[dir] = newpoint / MPIBLS[dir];
+    return MPI_coord_to_id(ixc[0], ixc[1], ixc[2], ixc[3], ibc[0], ibc[1], ibc[2], ibc[3]);
+#endif
+#else
     return 0;
 #endif
 }
 
 int proc_id(int coords[4]) {
 #ifdef WITH_MPI
+#ifdef WITH_MPI_CART
+
     int outid;
-
     MPI_Cart_rank(cart_comm, coords, &outid);
-
     return outid;
 #else
+    return MPI_coord_to_id(coords[0] % (NP_T / MPI_NBLK_T), coords[1] % (NP_X / MPI_NBLK_X), coords[2] % (NP_Y / MPI_NBLK_Y),
+                           coords[3] % (NP_Z / MPI_NBLK_Z), coords[0] / (NP_T / MPI_NBLK_T), coords[1] / (NP_X / MPI_NBLK_X),
+                           coords[2] / (NP_Y / MPI_NBLK_Y), coords[3] / (NP_Z / MPI_NBLK_Z));
+
+#endif
+#else
     return 0;
+#endif
+}
+
+void MPI_cart_to_glob_id(int *cid, int *pid) {
+#ifdef WITH_MPI
+#ifdef WITH_MPI_CART
+    MPI_Group wg, cg;
+    MPI_Comm_group(GLB_COMM, &wg);
+    MPI_Comm_group(cart_comm, &cg);
+    MPI_Group_translate_ranks(cg, 1, cid, wg, pid);
+#else
+    *pid = *cid;
+#endif
 #endif
 }
 
@@ -411,3 +508,6 @@ void print_gd(geometry_descriptor *gd) {
                 is_spinor ? sp : "");
     }
 }
+#ifdef MPI_coord_to_id
+#undef MPI_coord_to_id
+#endif

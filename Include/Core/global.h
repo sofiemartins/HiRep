@@ -49,6 +49,12 @@ GLB_VAR(int, NP_X, = 1); /* number of processes in direction X */
 GLB_VAR(int, NP_Y, = 1); /* number of processes in direction Y */
 GLB_VAR(int, NP_Z, = 1); /* number of processes in direction Z */
 
+/* global MPI arrangment attributes */
+GLB_VAR(int, MPI_NBLK_T, = 1); /* MPI arrangment size of the sub-block in direction T */
+GLB_VAR(int, MPI_NBLK_X, = 1); /* MPI arrangment size of the sub-block in direction X */
+GLB_VAR(int, MPI_NBLK_Y, = 1); /* MPI arrangment size of the sub-block in direction Y */
+GLB_VAR(int, MPI_NBLK_Z, = 1); /* MPI arrangment size of the sub-block in direction Z */
+
 /* global lattice attributes */
 GLB_VAR(int, GLB_T, = 0); /* global size of the lattice in direction T */
 GLB_VAR(int, GLB_X, = 0); /* global size of the lattice in direction X */

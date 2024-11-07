@@ -25,6 +25,7 @@ void glb_to_proc(int *g, int *p);
 int proc_up(int id, int dir);
 int proc_dn(int id, int dir);
 int proc_id(int coords[4]);
+void MPI_cart_to_glob_id(int *cid, int *pid);
 int geometry_init(void);
 void print_gd(geometry_descriptor *gd);
 

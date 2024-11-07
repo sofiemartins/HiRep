@@ -163,8 +163,6 @@ static const int ninputs = 3;
         _FIELD_TYPE *in;                                                                                                                                          \
                                                                                                                                                                   \
         for (int geom_idx = 0; geom_idx < n_geometries; geom_idx++) {                                                                                             \
-            hr_complex c = 2.0 + 1.0 * I;                                                                                                                         \
-            double d = 2.43782;                                                                                                                                   \
             in = alloc(in, ninputs + 2, geometries[geom_idx]);                                                                                                    \
                                                                                                                                                                   \
             for (int k = 0; k < niter; k++) {                                                                                                                     \

@@ -30,7 +30,6 @@ void write_gauge_field_eolexi_BE(char filename[]) {
 #ifdef WITH_MPI
     /* MPI variables */
     int p[4];
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
     int mpiret;
@@ -40,19 +39,14 @@ void write_gauge_field_eolexi_BE(char filename[]) {
 
     if (PID == 0) { eolexi_field = malloc(sizeof(suNg) * 4 * GLB_T * GLB_X * GLB_Y * GLB_Z); }
 
-#ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
-#endif
-
     for (g[0] = 0; g[0] < GLB_T; g[0]++) {
         for (g[1] = 0; g[1] < GLB_X; g[1]++) {
             for (g[2] = 0; g[2] < GLB_Y; g[2]++) {
                 for (g[3] = 0; g[3] < GLB_Z; g[3]++) {
 #ifdef WITH_MPI
                     glb_to_proc(g, p); /* get the processor coordinate */
-                    MPI_Cart_rank(cart_comm, p, &cid);
-                    MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                    cid = proc_id(p);
+                    MPI_cart_to_glob_id(&cid, &pid);
 #endif
 
                     c[0] = g[0] % T;
@@ -205,7 +199,6 @@ void write_gauge_field_eolexi_LE(char filename[]) {
 #ifdef WITH_MPI
     /* MPI variables */
     int p[4];
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
     int mpiret;
@@ -215,19 +208,14 @@ void write_gauge_field_eolexi_LE(char filename[]) {
 
     if (PID == 0) { eolexi_field = malloc(sizeof(suNg) * 4 * GLB_T * GLB_X * GLB_Y * GLB_Z); }
 
-#ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
-#endif
-
     for (g[0] = 0; g[0] < GLB_T; g[0]++) {
         for (g[1] = 0; g[1] < GLB_X; g[1]++) {
             for (g[2] = 0; g[2] < GLB_Y; g[2]++) {
                 for (g[3] = 0; g[3] < GLB_Z; g[3]++) {
 #ifdef WITH_MPI
                     glb_to_proc(g, p); /* get the processor coordinate */
-                    MPI_Cart_rank(cart_comm, p, &cid);
-                    MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                    cid = proc_id(p);
+                    MPI_cart_to_glob_id(&cid, &pid);
 #endif
 
                     c[0] = g[0] % T;

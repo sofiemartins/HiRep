@@ -58,7 +58,6 @@ void write_gauge_field_su2q(char filename[]) {
 
 #ifdef WITH_MPI
     /* MPI variables */
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
 #ifndef NDEBUG
@@ -88,11 +87,6 @@ void write_gauge_field_su2q(char filename[]) {
               "Failed to write gauge field plaquette");
     }
 
-#ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
-#endif
-
     Timer clock;
     timer_set(&clock);
 
@@ -119,8 +113,8 @@ void write_gauge_field_su2q(char filename[]) {
                         bsize = 4 * 4 * (GLB_Z / NP_Z + ((p[3] < rz) ? 1 : 0));
                     }
 #ifdef WITH_MPI
-                    MPI_Cart_rank(cart_comm, p, &cid);
-                    MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                    cid = proc_id(p);
+                    MPI_cart_to_glob_id(&cid, &pid);
 #endif
                     if (pid == PID) { /* fill link buffer */
                         int lsite[4];
@@ -236,7 +230,6 @@ void read_gauge_field_su2q(char filename[]) {
 
 #ifdef WITH_MPI
     /* MPI variables */
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
 #ifndef NDEBUG
@@ -268,11 +261,6 @@ void read_gauge_field_su2q(char filename[]) {
               "Failed to read gauge field plaquette");
     }
 
-#ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
-#endif
-
     zsize = GLB_Z / NP_Z;
     rz = GLB_Z - zsize * NP_Z;
     if (four_fermion_active) {
@@ -296,8 +284,8 @@ void read_gauge_field_su2q(char filename[]) {
                         bsize = 4 * 4 * (GLB_Z / NP_Z + ((p[3] < rz) ? 1 : 0));
                     }
 #ifdef WITH_MPI
-                    MPI_Cart_rank(cart_comm, p, &cid);
-                    MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                    cid = proc_id(p);
+                    MPI_cart_to_glob_id(&cid, &pid);
 #endif
                     /* read buffer from file */
                     if (PID == 0) {

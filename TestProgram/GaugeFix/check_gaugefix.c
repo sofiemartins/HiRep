@@ -21,7 +21,7 @@ static double calc_plaq_diff(suNg_field *V, suNg_field *W) {
     int mu, nu;
     int iy, iz;
     suNg *v1, *v2, *v3, *v4, w1, w2, w3;
-    double pl, E = 0;
+    double pl, En = 0;
 
     int t, x, y, z, ix;
     for (t = 0; t < T; t++) {
@@ -44,7 +44,7 @@ static double calc_plaq_diff(suNg_field *V, suNg_field *W) {
                             _suNg_times_suNg_dagger(w3, w1, w2);
 
                             _suNg_trace_re(pl, w3);
-                            E += pl;
+                            En += pl;
 
                             v1 = _4FIELD_AT(W, ix, mu);
                             v2 = _4FIELD_AT(W, iy, nu);
@@ -56,7 +56,7 @@ static double calc_plaq_diff(suNg_field *V, suNg_field *W) {
                             _suNg_times_suNg_dagger(w3, w1, w2);
 
                             _suNg_trace_re(pl, w3);
-                            E -= pl;
+                            En -= pl;
 
 #ifdef PLAQ_WEIGHTS
                             if (plaq_weight != NULL) { pl *= plaq_weight[ix * 16 + mu * 4 + nu]; }
@@ -73,8 +73,8 @@ static double calc_plaq_diff(suNg_field *V, suNg_field *W) {
     W->comm_type = GPU_COMM;
 #endif
 
-    global_sum(&E, 1);
-    return E / (6. * NG) / GLB_VOLUME;
+    global_sum(&En, 1);
+    return En / (6. * NG) / GLB_VOLUME;
 }
 
 static void random_g(gtransf *g) {

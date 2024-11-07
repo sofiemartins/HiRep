@@ -556,8 +556,8 @@ void calc_deflated_propagator(spinor_field *psi, spinor_field *eta, int ndilute,
 
 static void calc_propagator_eo_tw_core(spinor_field *psi, spinor_field *eta, int solver) {
 #ifndef CHECK_SPINOR_MATCHING
-    error(eta->type == &glattice, 1, "calc_propagator_eo_tw_core [calc_prop.c]", "incorrect type for the input (eta) spinor");
-    error(psi->type == &glattice, 1, "calc_propagator_eo_tw_core [calc_prop.c]", "incorrect type for the input (psi) spinor");
+    error(eta->type != &glattice, 1, "calc_propagator_eo_tw_core [calc_prop.c]", "incorrect type for the input (eta) spinor");
+    error(psi->type != &glattice, 1, "calc_propagator_eo_tw_core [calc_prop.c]", "incorrect type for the input (psi) spinor");
 #endif
 
     spinor_field qprop_mask_eta;
@@ -658,7 +658,7 @@ static void calc_propagator_eo_tw_core(spinor_field *psi, spinor_field *eta, int
     complete_sendrecv_spinor_field(psi);
 
 #ifndef CHECK_SPINOR_MATCHING
-    error(psi->type == &glattice, 1, "calc_propagator_eo_tw_core [calc_prop.c]", "incorrect type for the input (psi) spinor");
+    error(psi->type != &glattice, 1, "calc_propagator_eo_tw_core [calc_prop.c]", "incorrect type for the input (psi) spinor");
 #endif
 }
 void calc_propagator_tw(double *lmass, double mu, spinor_field *psi, spinor_field *eta, int ndilute) {
@@ -672,8 +672,13 @@ void calc_propagator_tw(double *lmass, double mu, spinor_field *psi, spinor_fiel
     tw_mass = mu;
 
 #ifndef CHECK_SPINOR_MATCHING
-    error(eta->type == &glattice, 1, "calc_propagator_tw [calc_prop.c]", "incorrect type for the input (eta) spinor");
-    error(psi->type == &glattice, 1, "calc_propagator_tw [calc_prop.c]", "incorrect type for the input (psi) spinor");
+    for (beta = 0; beta < ndilute; ++beta) {
+        error(eta[beta].type != &glattice, 1, "calc_propagator_tw [calc_prop.c]", "incorrect type for the input (eta) spinor");
+        for (i = 0; i < n_masses; ++i) {
+            error(psi[beta * n_masses + i].type != &glattice, 1, "calc_propagator_tw [calc_prop.c]",
+                  "incorrect type for the input (psi) spinor");
+        }
+    }
 #endif
 
 #ifdef WITH_CLOVER

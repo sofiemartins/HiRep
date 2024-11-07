@@ -361,27 +361,27 @@ hr_complex avr_plaquette_wrk() {
 }
 
 double E_cpu(suNg_field *V) {
-    double E = 0.;
-    _MASTER_FOR_SUM(&glattice, ix, E) {
+    double En = 0.;
+    _MASTER_FOR_SUM(&glattice, ix, En) {
         double p;
         for (int mu = 0; mu < 4; mu++) {
             for (int nu = mu + 1; nu < 4; nu++) {
                 p = plaq(V, ix, mu, nu);
-                E += NG - p;
+                En += NG - p;
             }
         }
     }
-    E *= 2. / ((double)GLB_VOLUME);
-    global_sum(&E, 1);
-    return E;
+    En *= 2. / ((double)GLB_VOLUME);
+    global_sum(&En, 1);
+    return En;
 }
 
-void E_T_cpu(double *E, suNg_field *V) {
+void E_T_cpu(double *En, suNg_field *V) {
     int gt, t, x, y, z, ix;
     int mu, nu;
     double p;
     for (t = 0; t < 2 * GLB_T; t++) {
-        E[t] = 0.;
+        En[t] = 0.;
     }
     for (t = 0; t < T; t++) {
         gt = t + zerocoord[0];
@@ -392,21 +392,21 @@ void E_T_cpu(double *E, suNg_field *V) {
                     ix = ipt(t, x, y, z);
                     for (nu = 1; nu < 4; nu++) {
                         p = plaq(V, ix, mu, nu);
-                        E[2 * gt] += NG - p;
+                        En[2 * gt] += NG - p;
                     }
                     for (mu = 1; mu < 3; mu++) {
                         for (nu = mu + 1; nu < 4; nu++) {
                             p = plaq(V, ix, mu, nu);
-                            E[2 * gt + 1] += NG - p;
+                            En[2 * gt + 1] += NG - p;
                         }
                     }
                 }
             }
         }
-        E[2 * gt] /= 0.5 * (GLB_VOL3);
-        E[2 * gt + 1] /= 0.5 * (GLB_VOL3);
+        En[2 * gt] /= 0.5 * (GLB_VOL3);
+        En[2 * gt + 1] /= 0.5 * (GLB_VOL3);
     }
-    global_sum(E, 2 * GLB_T);
+    global_sum(En, 2 * GLB_T);
 }
 
 /* This gives F_{\mu\nu}^A */
@@ -475,30 +475,30 @@ void clover_F(suNg_algebra_vector *F, suNg_field *V, int ix, int mu, int nu) {
 }
 
 double Esym_cpu(suNg_field *V) {
-    double E = 0.;
-    _MASTER_FOR_SUM(&glattice, ix, E) {
+    double En = 0.;
+    _MASTER_FOR_SUM(&glattice, ix, En) {
         suNg_algebra_vector clover;
         double p;
         for (int mu = 0; mu < 4; mu++) {
             for (int nu = mu + 1; nu < 4; nu++) {
                 clover_F(&clover, V, ix, mu, nu);
                 _algebra_vector_sqnorm_g(p, clover);
-                E += p;
+                En += p;
             }
         }
     }
-    E *= _FUND_NORM2 / ((double)GLB_VOLUME);
-    global_sum(&E, 1);
-    return E;
+    En *= _FUND_NORM2 / ((double)GLB_VOLUME);
+    global_sum(&En, 1);
+    return En;
 }
 
-void Esym_T_cpu(double *E, suNg_field *V) {
+void Esym_T_cpu(double *En, suNg_field *V) {
     int gt, t, x, y, z, ix;
     int mu, nu;
     suNg_algebra_vector clover;
     double p;
     for (t = 0; t < 2 * GLB_T; t++) {
-        E[t] = 0.;
+        En[t] = 0.;
     }
     for (t = 0; t < T; t++) {
         gt = t + zerocoord[0];
@@ -510,22 +510,22 @@ void Esym_T_cpu(double *E, suNg_field *V) {
                     for (nu = 1; nu < 4; nu++) {
                         clover_F(&clover, V, ix, mu, nu);
                         _algebra_vector_sqnorm_g(p, clover);
-                        E[2 * gt] += p;
+                        En[2 * gt] += p;
                     }
                     for (mu = 1; mu < 4; mu++) {
                         for (nu = mu + 1; nu < 4; nu++) {
                             clover_F(&clover, V, ix, mu, nu);
                             _algebra_vector_sqnorm_g(p, clover);
-                            E[2 * gt + 1] += p;
+                            En[2 * gt + 1] += p;
                         }
                     }
                 }
             }
         }
-        E[2 * gt] *= _FUND_NORM2 / (GLB_VOL3);
-        E[2 * gt + 1] *= _FUND_NORM2 / (GLB_VOL3);
+        En[2 * gt] *= _FUND_NORM2 / (GLB_VOL3);
+        En[2 * gt + 1] *= _FUND_NORM2 / (GLB_VOL3);
     }
-    global_sum(E, 2 * GLB_T);
+    global_sum(En, 2 * GLB_T);
 }
 
 /*

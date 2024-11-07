@@ -357,7 +357,7 @@ void Dphi_cpu_(spinor_field *restrict out, spinor_field *restrict in) {
         // this is achieved with comparing the condition to be different than repeat=0,1
 
         _MASTER_FOR(out->type, ix) {
-#ifdef _OPENMP
+#if defined(_OPENMP) && defined(WITH_PROBE_MPI)
             register int thread0 = hr_threadId();
 #endif
             register suNf_spinor *r = _FIELD_AT(out, ix);
@@ -608,7 +608,7 @@ void Dphi_cpu_(spinor_field *restrict out, spinor_field *restrict in) {
 #endif
 
         _SITE_FOR(out->type, ixp, ix) {
-#ifdef _OPENMP
+#if defined(_OPENMP) && defined(WITH_PROBE_MPI)
             register int thread0 = hr_threadId();
 #endif
             int iy;
@@ -779,7 +779,9 @@ void Dphi_fused_(spinor_field *restrict out, spinor_field *restrict in) {
 
     _OMP_PRAGMA(_omp_for nowait)
     for (int _fuse_master_for_ip_ix = 0; _fuse_master_for_ip_ix < (out->type)->fuse_inner_counter; _fuse_master_for_ip_ix++) {
+#if defined(WITH_PROBE_MPI)
         register int thread0 = hr_threadId();
+#endif
         _FUSE_IDX(out->type, ix);
 
         r = _FIELD_AT(out, ix);

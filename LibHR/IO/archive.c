@@ -40,7 +40,6 @@ void write_gauge_field_matrix(char filename[]) {
 
 #ifdef WITH_MPI
     /* MPI variables */
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
     int mpiret;
@@ -65,11 +64,6 @@ void write_gauge_field_matrix(char filename[]) {
         /* write average plaquette */
         error(fwrite_BE_double(&plaq, (size_t)(1), fp) != (1), 1, "write_gauge_field", "Failed to write gauge field plaquette");
     }
-
-#ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
-#endif
 
     Timer clock;
     timer_set(&clock);
@@ -100,8 +94,8 @@ void write_gauge_field_matrix(char filename[]) {
                     }
 
 #ifdef WITH_MPI
-                    MPI_Cart_rank(cart_comm, p, &cid);
-                    MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                    cid = proc_id(p);
+                    MPI_cart_to_glob_id(&cid, &pid);
 #endif
                     if (pid == PID) { /* fill link buffer */
                         int lsite[4];
@@ -224,7 +218,6 @@ void read_gauge_field_matrix(char filename[]) {
 
 #ifdef WITH_MPI
     /* MPI variables */
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
     int mpiret;
@@ -253,8 +246,8 @@ void read_gauge_field_matrix(char filename[]) {
     }
 
 #ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
+    cid = proc_id(p);
+    MPI_cart_to_glob_id(&cid, &pid);
 #endif
 
     zsize = GLB_Z / NP_Z;
@@ -283,8 +276,8 @@ void read_gauge_field_matrix(char filename[]) {
                     }
 
 #ifdef WITH_MPI
-                    MPI_Cart_rank(cart_comm, p, &cid);
-                    MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                    cid = proc_id(p);
+                    MPI_cart_to_glob_id(&cid, &pid);
 #endif
                     /* read buffer from file */
                     if (PID == 0) {
@@ -407,7 +400,6 @@ void write_ranlxd_state(char filename[]) {
 
 #ifdef WITH_MPI
     /* MPI variables */
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
     int mpiret;
@@ -424,8 +416,8 @@ void write_ranlxd_state(char filename[]) {
     }
 
 #ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
+//    MPI_Comm_group(GLB_COMM, &wg);
+//    MPI_Comm_group(cart_comm, &cg);
 #endif
 
     Timer clock;
@@ -438,8 +430,8 @@ void write_ranlxd_state(char filename[]) {
             for (p[2] = 0; p[2] < NP_Y; ++p[2]) {
                 for (p[3] = 0; p[3] < NP_Z; ++p[3]) {
 #ifdef WITH_MPI
-                    MPI_Cart_rank(cart_comm, p, &cid);
-                    MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                    cid = proc_id(p);
+                    MPI_cart_to_glob_id(&cid, &pid);
 #endif
                     if (pid == PID) { /* get state */
                         rlxd_get(buff);
@@ -514,7 +506,6 @@ void read_ranlxd_state(char filename[]) {
 
 #ifdef WITH_MPI
     /* MPI variables */
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
     int mpiret;
@@ -548,8 +539,8 @@ void read_ranlxd_state(char filename[]) {
     bcast_int(&hproc, 1);
 
 #ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
+//    MPI_Comm_group(GLB_COMM, &wg);
+//    MPI_Comm_group(cart_comm, &cg);
 #endif
 
     buff = malloc(sizeof(*buff) * rsize);
@@ -563,8 +554,8 @@ void read_ranlxd_state(char filename[]) {
                         cproc++;
 
 #ifdef WITH_MPI
-                        MPI_Cart_rank(cart_comm, p, &cid);
-                        MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                        cid = proc_id(p);
+                        MPI_cart_to_glob_id(&cid, &pid);
 #endif
                         /* read buffer from file */
                         if (PID == 0) {
@@ -638,7 +629,6 @@ void write_scalar_field(char filename[]) {
 
 #ifdef WITH_MPI
     /* MPI variables */
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
     int mpiret;
@@ -658,8 +648,8 @@ void write_scalar_field(char filename[]) {
     }
 
 #ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
+//    MPI_Comm_group(GLB_COMM, &wg);
+//    MPI_Comm_group(cart_comm, &cg);
 #endif
 
     Timer clock;
@@ -682,8 +672,8 @@ void write_scalar_field(char filename[]) {
                             (GLB_Z / NP_Z + ((p[3] < rz) ? 1 : 0)); /* buffer size in doubles */
 
 #ifdef WITH_MPI
-                    MPI_Cart_rank(cart_comm, p, &cid);
-                    MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                    cid = proc_id(p);
+                    MPI_cart_to_glob_id(&cid, &pid);
 #endif
                     if (pid == PID) { /* fill link buffer */
                         int lsite[4];
@@ -779,7 +769,6 @@ void read_scalar_field(char filename[]) {
 
 #ifdef WITH_MPI
     /* MPI variables */
-    MPI_Group wg, cg;
     MPI_Status st;
     int cid;
     int mpiret;
@@ -807,8 +796,8 @@ void read_scalar_field(char filename[]) {
     }
 
 #ifdef WITH_MPI
-    MPI_Comm_group(GLB_COMM, &wg);
-    MPI_Comm_group(cart_comm, &cg);
+//    MPI_Comm_group(GLB_COMM, &wg);
+//    MPI_Comm_group(cart_comm, &cg);
 #endif
 
     zsize = GLB_Z / NP_Z;
@@ -828,8 +817,8 @@ void read_scalar_field(char filename[]) {
                             (GLB_Z / NP_Z + ((p[3] < rz) ? 1 : 0)); /* buffer size in doubles */
 
 #ifdef WITH_MPI
-                    MPI_Cart_rank(cart_comm, p, &cid);
-                    MPI_Group_translate_ranks(cg, 1, &cid, wg, &pid);
+                    cid = proc_id(p);
+                    MPI_cart_to_glob_id(&cid, &pid);
 #endif
                     /* read buffer from file */
                     if (PID == 0) {
