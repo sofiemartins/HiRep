@@ -92,6 +92,7 @@ typedef struct input_logger {
 
 } input_logger;
 
+// clang-format off
 #define init_input_logger(varname)                                                                       \
     { .read = { { "Default logger level", "log:default = %d", INT_T, &(varname).def_log_lvl },           \
                 { "Inverter logger level", "log:inverter = %d", INT_T, &(varname).inverter_log_lvl },    \
@@ -100,6 +101,7 @@ typedef struct input_logger {
       .def_log_lvl = -1,                                                                                 \
       .inverter_log_lvl = -1,                                                                            \
       .forcestat_log_lvl = -1 }
+// clang-format on
 
 //read_input.c
 void read_input(input_record_t irec[], char *filename);
