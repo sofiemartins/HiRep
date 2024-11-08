@@ -174,30 +174,30 @@ static void compute_psign() {
 }
 
 #ifndef WITH_MPI_CART
-#define MPI_coord_to_id(x0, x1, x2, x3, ib0, ib1, ib2, ib3)                                     \
-    (x1 + (NP_X / MPI_NBLK_X) * (x2 + (NP_Y / MPI_NBLK_Y) * (x3 + (NP_Z / MPI_NBLK_Z) * x0))) + \
-        (NP_X / MPI_NBLK_X) * (NP_Y / MPI_NBLK_Y) * (NP_Z / MPI_NBLK_Z) * (NP_T / MPI_NBLK_T) * \
-            (ib1 + (MPI_NBLK_X) * (ib2 + (MPI_NBLK_Y) * (ib3 + (MPI_NBLK_Z) * ib0)))
+#define MPI_coord_to_id(x0, x1, x2, x3, ib0, ib1, ib2, ib3 )                                             \
+    ((x1) + (MPI_BLK_X) * ((x2) + (MPI_BLK_Y) * ((x3) + (MPI_BLK_Z) * (x0)))) + \
+        (MPI_BLK_X) * (MPI_BLK_Y) * (MPI_BLK_Z) * (MPI_BLK_T) *         \
+            ((ib1) + (NP_X/MPI_BLK_X) * ((ib2) + (NP_Y/MPI_BLK_Y) * ((ib3) + (NP_Z/MPI_BLK_Z) * (ib0))))
 
-void MPI_id_to_coord(int MPI_coord_id, int *ixc, int *ibc, int *ix) {
+void MPI_id_to_coord (int MPI_coord_id, int *ixc, int *ibc, int *ix) {
     int nib, nix;
-    nib = MPI_coord_id / ((NP_X / MPI_NBLK_X) * (NP_Y / MPI_NBLK_Y) * (NP_Z / MPI_NBLK_Z) * (NP_T / MPI_NBLK_T));
-    nix = MPI_coord_id % ((NP_X / MPI_NBLK_X) * (NP_Y / MPI_NBLK_Y) * (NP_Z / MPI_NBLK_Z) * (NP_T / MPI_NBLK_T));
+    nib = MPI_coord_id / ((MPI_BLK_X) * (MPI_BLK_Y) * (MPI_BLK_Z) * (MPI_BLK_T));
+    nix = MPI_coord_id % ((MPI_BLK_X) * (MPI_BLK_Y) * (MPI_BLK_Z) * (MPI_BLK_T));
 
-    ixc[1] = nix % (NP_X / MPI_NBLK_X);
-    ixc[2] = (nix / (NP_X / MPI_NBLK_X)) % (NP_Y / MPI_NBLK_Y);
-    ixc[3] = ((nix / (NP_X / MPI_NBLK_X)) / (NP_Y / MPI_NBLK_Y)) % (NP_Z / MPI_NBLK_Z);
-    ixc[0] = (((nix / (NP_X / MPI_NBLK_X)) / (NP_Y / MPI_NBLK_Y)) / (NP_Z / MPI_NBLK_Z));
+    ixc[1] = nix % (MPI_BLK_X);
+    ixc[2] = (nix / (MPI_BLK_X)) % (MPI_BLK_Y);
+    ixc[3] = ((nix / (MPI_BLK_X)) / (MPI_BLK_Y)) % (MPI_BLK_Z);
+    ixc[0] = (((nix / (MPI_BLK_X)) / (MPI_BLK_Y)) / (MPI_BLK_Z));
 
-    ibc[1] = nib % (MPI_NBLK_X);
-    ibc[2] = (nib / (MPI_NBLK_X)) % (MPI_NBLK_Y);
-    ibc[3] = ((nib / (MPI_NBLK_X)) / (MPI_NBLK_Y)) % (MPI_NBLK_Z);
-    ibc[0] = (((nib / (MPI_NBLK_X)) / (MPI_NBLK_Y)) / (MPI_NBLK_Z));
+    ibc[1] = nib % (NP_X/MPI_BLK_X);
+    ibc[2] = (nib / (NP_X/MPI_BLK_X)) % (NP_Y/MPI_BLK_Y);
+    ibc[3] = ((nib / (NP_X/MPI_BLK_X)) / (NP_Y/MPI_BLK_Y)) % (NP_Z/MPI_BLK_Z);
+    ibc[0] = (((nib / (NP_X/MPI_BLK_X)) / (NP_Y/MPI_BLK_Y)) / (NP_Z/MPI_BLK_Z));
 
-    ix[0] = ixc[0] + ibc[0] * (NP_T / MPI_NBLK_T);
-    ix[1] = ixc[1] + ibc[1] * (NP_X / MPI_NBLK_X);
-    ix[2] = ixc[2] + ibc[2] * (NP_Y / MPI_NBLK_Y);
-    ix[3] = ixc[3] + ibc[3] * (NP_Z / MPI_NBLK_Z);
+    ix[0] = ixc[0] + ibc[0] * (MPI_BLK_T);
+    ix[1] = ixc[1] + ibc[1] * (MPI_BLK_X);
+    ix[2] = ixc[2] + ibc[2] * (MPI_BLK_Y);
+    ix[3] = ixc[3] + ibc[3] * (MPI_BLK_Z);
 }
 
 #endif
@@ -332,14 +332,14 @@ int geometry_init() {
     }
 #else
 
-    error(NP_T % MPI_NBLK_T != 0, 1, "geometry_init " __FILE__,
-          "MPI_NBLK_T must be an exact divisor of NP_T (NP_T % MPI_NBLK_T == 0)");
-    error(NP_X % MPI_NBLK_X != 0, 1, "geometry_init " __FILE__,
-          "MPI_NBLK_X must be an exact divisor of NP_X (NP_X % MPI_NBLK_X == 0)");
-    error(NP_Y % MPI_NBLK_Y != 0, 1, "geometry_init " __FILE__,
-          "MPI_NBLK_Y must be an exact divisor of NP_Y (NP_Y % MPI_NBLK_Y == 0)");
-    error(NP_Z % MPI_NBLK_Z != 0, 1, "geometry_init " __FILE__,
-          "MPI_NBLK_Z must be an exact divisor of NP_Z (NP_Z % MPI_NBLK_Z == 0)");
+    error(NP_T % MPI_BLK_T != 0, 1, "geometry_init " __FILE__,
+          "MPI_BLK_T must be an exact divisor of NP_T (NP_T % MPI_BLK_T == 0)");
+    error(NP_X % MPI_BLK_X != 0, 1, "geometry_init " __FILE__,
+          "MPI_BLK_X must be an exact divisor of NP_X (NP_X % MPI_BLK_X == 0)");
+    error(NP_Y % MPI_BLK_Y != 0, 1, "geometry_init " __FILE__,
+          "MPI_BLK_Y must be an exact divisor of NP_Y (NP_Y % MPI_BLK_Y == 0)");
+    error(NP_Z % MPI_BLK_Z != 0, 1, "geometry_init " __FILE__,
+          "MPI_BLK_Z must be an exact divisor of NP_Z (NP_Z % MPI_BLK_Z == 0)");
 
     cart_comm = GLB_COMM;
     MPI_Comm_size(cart_comm, &CART_SIZE);
@@ -387,8 +387,8 @@ int geometry_init() {
     lprintf("GEOMETRY_INIT", 0, "Extended local size is %dx%dx%dx%d\n", T_EXT, X_EXT, Y_EXT, Z_EXT);
     lprintf("GEOMETRY_INIT", 0, "The lattice borders are (%d,%d,%d,%d)\n", T_BORDER, X_BORDER, Y_BORDER, Z_BORDER);
     lprintf("GEOMETRY_INIT", 0, "Size of the bulk subblocking (%d,%d,%d,%d)\n", PB_T, PB_X, PB_Y, PB_Z);
-    if (MPI_NBLK_T + MPI_NBLK_X + MPI_NBLK_Y + MPI_NBLK_Z < 40) {
-        lprintf("GEOMETRY_INIT", 0, "MPI Blocking arrangment (%d,%d,%d,%d)\n", MPI_NBLK_T, MPI_NBLK_X, MPI_NBLK_Y, MPI_NBLK_Z);
+    if (MPI_BLK_T * MPI_BLK_X * MPI_BLK_Y + MPI_BLK_Z > 1) {
+        lprintf("GEOMETRY_INIT", 0, "MPI Blocking size (%d,%d,%d,%d)\n", MPI_BLK_T, MPI_BLK_X, MPI_BLK_Y, MPI_BLK_Z);
     }
 
     lprintf("GEOMETRY_INIT", 0, "Process sign is %d\n", PSIGN);
@@ -423,7 +423,7 @@ int proc_up(int id, int dir) {
 
     return outid;
 #else
-    int MPIBLS[4] = { (NP_T / MPI_NBLK_T), (NP_X / MPI_NBLK_X), (NP_Y / MPI_NBLK_Y), (NP_Z / MPI_NBLK_Z) };
+    int MPIBLS[4] = { (MPI_BLK_T), (MPI_BLK_X), (MPI_BLK_Y), (MPI_BLK_Z) };
     int NPROC[4] = { NP_T, NP_X, NP_Y, NP_Z };
 
     int ixc[4], ibc[4], ix[4], newpoint;
@@ -450,7 +450,7 @@ int proc_dn(int id, int dir) {
 
     return outid;
 #else
-    int MPIBLS[4] = { (NP_T / MPI_NBLK_T), (NP_X / MPI_NBLK_X), (NP_Y / MPI_NBLK_Y), (NP_Z / MPI_NBLK_Z) };
+    int MPIBLS[4] = { (MPI_BLK_T), (MPI_BLK_X), (MPI_BLK_Y), (MPI_BLK_Z) };
     int NPROC[4] = { NP_T, NP_X, NP_Y, NP_Z };
     int ixc[4], ibc[4], ix[4], newpoint;
     MPI_id_to_coord(id, ixc, ibc, ix);
@@ -472,9 +472,9 @@ int proc_id(int coords[4]) {
     MPI_Cart_rank(cart_comm, coords, &outid);
     return outid;
 #else
-    return MPI_coord_to_id(coords[0] % (NP_T / MPI_NBLK_T), coords[1] % (NP_X / MPI_NBLK_X), coords[2] % (NP_Y / MPI_NBLK_Y),
-                           coords[3] % (NP_Z / MPI_NBLK_Z), coords[0] / (NP_T / MPI_NBLK_T), coords[1] / (NP_X / MPI_NBLK_X),
-                           coords[2] / (NP_Y / MPI_NBLK_Y), coords[3] / (NP_Z / MPI_NBLK_Z));
+    return MPI_coord_to_id(coords[0] % (MPI_BLK_T), coords[1] % (MPI_BLK_X), coords[2] % (MPI_BLK_Y),
+                           coords[3] % (MPI_BLK_Z), coords[0] / (MPI_BLK_T), coords[1] / (MPI_BLK_X),
+                           coords[2] / (MPI_BLK_Y), coords[3] / (MPI_BLK_Z));
 
 #endif
 #else

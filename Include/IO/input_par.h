@@ -25,7 +25,7 @@ typedef struct input_glb {
     /* THIS ARE DEFINED GLOBALLY !!! */
     /* int GLB_T, GLB_X, GLB_Y, GLB_Z; */
     /* int NP_T, NP_X, NP_Y, NP_Z; */
-    /* int MPI_NBLK_T, MPI_NBLK_X, MPI_NBLK_Y, MPI_NBLK_Z; */
+    /* int MPI_BLK_T, MPI_BLK_X, MPI_BLK_Y, MPI_BLK_Z; */
     /* int N_REP; */
 
     /* for the reading function */
@@ -45,10 +45,10 @@ typedef struct input_glb {
             { "NP_X", "NP_X = %d", INT_T, &NP_X },                   \
             { "NP_Y", "NP_Y = %d", INT_T, &NP_Y },                   \
             { "NP_Z", "NP_Z = %d", INT_T, &NP_Z },                   \
-            { "MPI_NBLK_T", "MPI_NBLK_T = %d", INT_T, &MPI_NBLK_T }, \
-            { "MPI_NBLK_X", "MPI_NBLK_X = %d", INT_T, &MPI_NBLK_X }, \
-            { "MPI_NBLK_Y", "MPI_NBLK_Y = %d", INT_T, &MPI_NBLK_Y }, \
-            { "MPI_NBLK_Z", "MPI_NBLK_Z = %d", INT_T, &MPI_NBLK_Z }, \
+            { "MPI_BLK_T", "MPI_BLK_T = %d", INT_T, &MPI_BLK_T }, \
+            { "MPI_BLK_X", "MPI_BLK_X = %d", INT_T, &MPI_BLK_X }, \
+            { "MPI_BLK_Y", "MPI_BLK_Y = %d", INT_T, &MPI_BLK_Y }, \
+            { "MPI_BLK_Z", "MPI_BLK_Z = %d", INT_T, &MPI_BLK_Z }, \
             { "N_REP", "N_REP = %d", INT_T, &N_REP },                \
             { NULL, NULL, INT_T, NULL }                              \
         }                                                            \

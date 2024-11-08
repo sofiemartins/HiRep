@@ -8,9 +8,10 @@
 #include <string.h>
 
 // this will include the 4th L2 corner in the geometry
-// it's not needed, was here for testing purposed
-// #define _INCLUDE_UP_UP_L2
-
+// it is needed only if CSW is used
+#if (defined(WITH_EXPCLOVER)) || (defined(WITH_CLOVER))
+#define _INCLUDE_UP_UP_L2
+#endif
 char *const LOGTAG = "GEOMETRY DEFINE";
 
 // ██ ███    ██ ██████  ███████ ██   ██ ██ ███    ██  ██████
