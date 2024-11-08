@@ -174,12 +174,12 @@ static void compute_psign() {
 }
 
 #ifndef WITH_MPI_CART
-#define MPI_coord_to_id(x0, x1, x2, x3, ib0, ib1, ib2, ib3 )                                             \
+#define MPI_coord_to_id(x0, x1, x2, x3, ib0, ib1, ib2, ib3)                     \
     ((x1) + (MPI_BLK_X) * ((x2) + (MPI_BLK_Y) * ((x3) + (MPI_BLK_Z) * (x0)))) + \
-        (MPI_BLK_X) * (MPI_BLK_Y) * (MPI_BLK_Z) * (MPI_BLK_T) *         \
-            ((ib1) + (NP_X/MPI_BLK_X) * ((ib2) + (NP_Y/MPI_BLK_Y) * ((ib3) + (NP_Z/MPI_BLK_Z) * (ib0))))
+        (MPI_BLK_X) * (MPI_BLK_Y) * (MPI_BLK_Z) * (MPI_BLK_T) *                 \
+            ((ib1) + (NP_X / MPI_BLK_X) * ((ib2) + (NP_Y / MPI_BLK_Y) * ((ib3) + (NP_Z / MPI_BLK_Z) * (ib0))))
 
-void MPI_id_to_coord (int MPI_coord_id, int *ixc, int *ibc, int *ix) {
+void MPI_id_to_coord(int MPI_coord_id, int *ixc, int *ibc, int *ix) {
     int nib, nix;
     nib = MPI_coord_id / ((MPI_BLK_X) * (MPI_BLK_Y) * (MPI_BLK_Z) * (MPI_BLK_T));
     nix = MPI_coord_id % ((MPI_BLK_X) * (MPI_BLK_Y) * (MPI_BLK_Z) * (MPI_BLK_T));
@@ -189,10 +189,10 @@ void MPI_id_to_coord (int MPI_coord_id, int *ixc, int *ibc, int *ix) {
     ixc[3] = ((nix / (MPI_BLK_X)) / (MPI_BLK_Y)) % (MPI_BLK_Z);
     ixc[0] = (((nix / (MPI_BLK_X)) / (MPI_BLK_Y)) / (MPI_BLK_Z));
 
-    ibc[1] = nib % (NP_X/MPI_BLK_X);
-    ibc[2] = (nib / (NP_X/MPI_BLK_X)) % (NP_Y/MPI_BLK_Y);
-    ibc[3] = ((nib / (NP_X/MPI_BLK_X)) / (NP_Y/MPI_BLK_Y)) % (NP_Z/MPI_BLK_Z);
-    ibc[0] = (((nib / (NP_X/MPI_BLK_X)) / (NP_Y/MPI_BLK_Y)) / (NP_Z/MPI_BLK_Z));
+    ibc[1] = nib % (NP_X / MPI_BLK_X);
+    ibc[2] = (nib / (NP_X / MPI_BLK_X)) % (NP_Y / MPI_BLK_Y);
+    ibc[3] = ((nib / (NP_X / MPI_BLK_X)) / (NP_Y / MPI_BLK_Y)) % (NP_Z / MPI_BLK_Z);
+    ibc[0] = (((nib / (NP_X / MPI_BLK_X)) / (NP_Y / MPI_BLK_Y)) / (NP_Z / MPI_BLK_Z));
 
     ix[0] = ixc[0] + ibc[0] * (MPI_BLK_T);
     ix[1] = ixc[1] + ibc[1] * (MPI_BLK_X);
@@ -472,9 +472,8 @@ int proc_id(int coords[4]) {
     MPI_Cart_rank(cart_comm, coords, &outid);
     return outid;
 #else
-    return MPI_coord_to_id(coords[0] % (MPI_BLK_T), coords[1] % (MPI_BLK_X), coords[2] % (MPI_BLK_Y),
-                           coords[3] % (MPI_BLK_Z), coords[0] / (MPI_BLK_T), coords[1] / (MPI_BLK_X),
-                           coords[2] / (MPI_BLK_Y), coords[3] / (MPI_BLK_Z));
+    return MPI_coord_to_id(coords[0] % (MPI_BLK_T), coords[1] % (MPI_BLK_X), coords[2] % (MPI_BLK_Y), coords[3] % (MPI_BLK_Z),
+                           coords[0] / (MPI_BLK_T), coords[1] / (MPI_BLK_X), coords[2] / (MPI_BLK_Y), coords[3] / (MPI_BLK_Z));
 
 #endif
 #else
