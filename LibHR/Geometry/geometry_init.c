@@ -287,8 +287,8 @@ void glb_to_proc(int *g, int *p) {
 int geometry_init() {
 #ifdef WITH_MPI
     /* MPI variables */
-    int dims[4];
 #ifdef WITH_MPI_CART
+    int dims[4];
     int periods[4] = { 1, 1, 1, 1 }; /* all directions are periodic */
     int reorder = 1; /* reassign ids */
 #endif
@@ -306,11 +306,11 @@ int geometry_init() {
         lprintf("GEOMETRY", 0, "WARNING: NO PARALLEL DIMENSIONS SPECIFIED!!!\n");
         lprintf("GEOMETRY", 0, "WARNING: THE MPI CODE SHOULD NOT BE USED IN THIS CASE!!!\n");
     }
+#ifdef WITH_MPI_CART
     dims[0] = NP_T;
     dims[1] = NP_X;
     dims[2] = NP_Y;
     dims[3] = NP_Z;
-#ifdef WITH_MPI_CART
     mpiret = MPI_Cart_create(GLB_COMM, 4, dims, periods, reorder, &cart_comm);
     if (mpiret != MPI_SUCCESS) {
         char mesg[MPI_MAX_ERROR_STRING];
