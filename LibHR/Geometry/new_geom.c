@@ -266,14 +266,14 @@ int safe_ipt_ext(int x0_ext, int x1_ext, int x2_ext, int x3_ext) {
 
 int nearProc(char mask) {
     int mycoord[4] = {COORD[0], COORD[1], COORD[2], COORD[3]};
-    if (mask & T_UP_MASK) { mycoord[0]++; }
-    if (mask & T_DN_MASK) { mycoord[0]--; }
-    if (mask & X_UP_MASK) { mycoord[1]++; }
-    if (mask & X_DN_MASK) { mycoord[1]--; }
-    if (mask & Y_UP_MASK) { mycoord[2]++; }
-    if (mask & Y_DN_MASK) { mycoord[2]--; }
-    if (mask & Z_UP_MASK) { mycoord[3]++; }
-    if (mask & Z_DN_MASK) { mycoord[3]--; }
+    if (mask & T_UP_MASK) { mycoord[0]=(mycoord[0]+1)%NP_T; }
+    if (mask & T_DN_MASK) { mycoord[0]=(mycoord[0]-1+NP_T)%NP_T; }
+    if (mask & X_UP_MASK) { mycoord[1]=(mycoord[1]+1)%NP_X; }
+    if (mask & X_DN_MASK) { mycoord[1]=(mycoord[1]-1+NP_X)%NP_X; }
+    if (mask & Y_UP_MASK) { mycoord[2]=(mycoord[2]+1)%NP_Y; }
+    if (mask & Y_DN_MASK) { mycoord[2]=(mycoord[2]-1+NP_Y)%NP_Y; }
+    if (mask & Z_UP_MASK) { mycoord[3]=(mycoord[3]+1)%NP_Z; }
+    if (mask & Z_DN_MASK) { mycoord[3]=(mycoord[3]-1+NP_Z)%NP_Z; }
     return proc_id(mycoord);
 }
 
