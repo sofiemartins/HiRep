@@ -48,6 +48,7 @@ void evaluate_sw_order(double *mass) {
         error(0 == 0, 1, "set_sw_order" __FILE__, "SW parameters are out of range");
     }
 }
+<<<<<<< HEAD
 //C = B*A when C hermitian!
 visible void _su2Nfc_times_su2Nfc_herm(suNfc *C, suNfc *B, suNfc *A) {
     // new zero component
@@ -503,5 +504,7 @@ visible void factorialCoef(double *C, int lNNexp) {
         }
     }
 }
+=======
+>>>>>>> 6bb9b21d (Force inline functions for exponential clover calculations)
 
 #endif
