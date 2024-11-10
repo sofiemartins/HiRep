@@ -32,7 +32,7 @@
 #define _complex_add(a, b, c) (a) = (b) + (c)
 #define _complex_sub(a, b, c) (a) = (b) - (c)
 #define _complex_add_star(a, b, c) (a) = (b) + conj(c)
-#define _complex_sub_star(a, b, c) (a) = (b) - conj(c)
+#define _complex_sub_star(a, b, c) (a) = (b)-conj(c)
 #define _complex_div(a, b, c) (a) = (b) / (c)
 #define _complex_inv(a, b) (a) = 1 / (b)
 #define _complex_prod(a, b) conj(a) * b
@@ -45,7 +45,7 @@
 #define _complex_i_minus(a, b) (a) = -I * (b)
 #define _complex_i_plus(a, b) (a) = I * (b)
 #define _complex_i_add(a, b, c) (a) = (b) + I * (c)
-#define _complex_i_sub(a, b, c) (a) = (b) - I * (c)
+#define _complex_i_sub(a, b, c) (a) = (b)-I * (c)
 #define _complex_add_assign(a, b) (a) += (b)
 #define _complex_sub_assign(a, b) (a) -= (b)
 #define _complex_add_star_assign(a, b, c) (a) += (b) + conj(c)
