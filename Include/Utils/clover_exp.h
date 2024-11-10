@@ -15,7 +15,7 @@ int get_NNexp();
 int get_NN();
 
 //C = B*A when C hermitian!
-visible static __forceinline__ void _su2Nfc_times_su2Nfc_herm(suNfc *C, suNfc *B, suNfc *A) {
+visible void forceinline _su2Nfc_times_su2Nfc_herm(suNfc *C, suNfc *B, suNfc *A) {
     // new zero component
     _suNfc_times_suNfc(C[0], B[0], A[0]);
     _suNfc_times_suNfc_assign(C[0], B[1], A[2]);
@@ -32,7 +32,7 @@ visible static __forceinline__ void _su2Nfc_times_su2Nfc_herm(suNfc *C, suNfc *B
 }
 
 //C = B*A
-visible static __forceinline__ void _su2Nfc_times_su2Nfc(suNfc *C, suNfc *B, suNfc *A) {
+visible void forceinline _su2Nfc_times_su2Nfc(suNfc *C, suNfc *B, suNfc *A) {
     // new zero component
     _suNfc_times_suNfc(C[0], B[0], A[0]);
     _suNfc_times_suNfc_assign(C[0], B[1], A[2]);
@@ -51,7 +51,7 @@ visible static __forceinline__ void _su2Nfc_times_su2Nfc(suNfc *C, suNfc *B, suN
 }
 
 // C += A*B
-visible static __forceinline__ void _su2Nfc_times_su2Nfc_assign(suNfc *C, suNfc *B, suNfc *A) {
+visible void forceinline _su2Nfc_times_su2Nfc_assign(suNfc *C, suNfc *B, suNfc *A) {
     // new zero component
     _suNfc_times_suNfc_assign(C[0], B[0], A[0]);
     _suNfc_times_suNfc_assign(C[0], B[1], A[2]);
@@ -70,7 +70,7 @@ visible static __forceinline__ void _su2Nfc_times_su2Nfc_assign(suNfc *C, suNfc 
 }
 
 //C += B*A when C hermitian!
-visible static __forceinline__ void _su2Nfc_times_su2Nfc_assign_herm(suNfc *C, suNfc *B, suNfc *A) {
+visible void forceinline _su2Nfc_times_su2Nfc_assign_herm(suNfc *C, suNfc *B, suNfc *A) {
     // new zero component
     _suNfc_times_suNfc_assign(C[0], B[0], A[0]);
     _suNfc_times_suNfc_assign(C[0], B[1], A[2]);
@@ -87,7 +87,7 @@ visible static __forceinline__ void _su2Nfc_times_su2Nfc_assign_herm(suNfc *C, s
 }
 
 //trace of B*A
-visible static __forceinline__ void _su2Nfc_times_su2Nfc_trace(hr_complex *trace, suNfc *B, suNfc *A) {
+visible void forceinline _su2Nfc_times_su2Nfc_trace(hr_complex *trace, suNfc *B, suNfc *A) {
     suNfc aux;
 
     _suNfc_times_suNfc(aux, B[0], A[0]);
@@ -99,7 +99,7 @@ visible static __forceinline__ void _su2Nfc_times_su2Nfc_trace(hr_complex *trace
 }
 
 //trace of the square of a 2NF hermitian matrix
-visible static __forceinline__ void _su2Nfc_times_su2Nfc_trace_herm_sq(hr_complex *trace, suNfc *B) {
+visible void forceinline _su2Nfc_times_su2Nfc_trace_herm_sq(hr_complex *trace, suNfc *B) {
     suNfc aux;
     hr_complex auxtrace;
 
@@ -113,14 +113,14 @@ visible static __forceinline__ void _su2Nfc_times_su2Nfc_trace_herm_sq(hr_comple
     *trace = *trace + 2 * auxtrace;
 }
 
-visible static __forceinline__ void _su2Nfc_unit(suNfc *A) {
+visible void forceinline _su2Nfc_unit(suNfc *A) {
     _suNfc_unit(A[0]);
     _suNfc_unit(A[3]);
     _suNfc_zero(A[1]);
     _suNfc_zero(A[2]);
 }
 
-visible static __forceinline__ void _su2Nfc_trace(hr_complex *p, suNfc *A) {
+visible void forceinline _su2Nfc_trace(hr_complex *p, suNfc *A) {
     hr_complex aux = 0.;
     _suNfc_trace(aux, A[0]);
     _suNfc_trace(*p, A[3]);
@@ -129,7 +129,7 @@ visible static __forceinline__ void _su2Nfc_trace(hr_complex *p, suNfc *A) {
 
 #if (NF == 3)
 
-visible static __forceinline__ void clover_exp_NF3(suNfc *Aplus, suNfc *expAplus, int NN) {
+visible void forceinline clover_exp_NF3(suNfc *Aplus, suNfc *expAplus, int NN) {
     suNfc A0[3], A2[4], A3[4], tmp1[4], tmp2[3];
 
     int i = 0, j = 0;
@@ -214,7 +214,7 @@ visible static __forceinline__ void clover_exp_NF3(suNfc *Aplus, suNfc *expAplus
 
 #if (NF == 2)
 
-visible static __forceinline__ void clover_exp_NF2(suNfc *Aplus, suNfc *expAplus, int lNN) {
+visible void forceinline clover_exp_NF2(suNfc *Aplus, suNfc *expAplus, int lNN) {
     suNfc A0[3], A2[4], tmp1[4];
 
     int i = 0, j = 0;
@@ -265,7 +265,7 @@ visible static __forceinline__ void clover_exp_NF2(suNfc *Aplus, suNfc *expAplus
 
 #endif
 
-visible static __forceinline__ void clover_exp_taylor(suNfc *Xin, suNfc *u) {
+visible void forceinline clover_exp_taylor(suNfc *Xin, suNfc *u) {
     suNfc Xk[4], tmp[4];
     _su2Nfc_unit(u);
     _su2Nfc_unit(Xk);
@@ -294,7 +294,7 @@ visible static __forceinline__ void clover_exp_taylor(suNfc *Xin, suNfc *u) {
     }
 }
 
-visible __forceinline__ void clover_exp(suNfc *Aplus, suNfc *expAplus, int lNN) {
+visible void forceinline clover_exp(suNfc *Aplus, suNfc *expAplus, int lNN) {
 #if (NF == 2)
     clover_exp_NF2(Aplus, expAplus, lNN);
 #elif (NF == 3)
@@ -306,7 +306,7 @@ visible __forceinline__ void clover_exp(suNfc *Aplus, suNfc *expAplus, int lNN) 
 
 #if (NF == 3)
 
-visible static __forceinline__ void doublehornerNF3(double *C, suNfc *A, int lNNexp) {
+visible void forceinline doublehornerNF3(double *C, suNfc *A, int lNNexp) {
     suNfc A2[4], A3[4];
     hr_complex p[2 * NF - 1];
 
@@ -390,7 +390,7 @@ visible static __forceinline__ void doublehornerNF3(double *C, suNfc *A, int lNN
 
 #if (NF == 2)
 
-visible static __forceinline__ void doublehornerNF2(double *C, suNfc *A, int lNNexp) {
+visible void forceinline doublehornerNF2(double *C, suNfc *A, int lNNexp) {
     suNfc A2[4];
     hr_complex p[2 * NF - 1];
     _su2Nfc_times_su2Nfc_herm(A2, A, A);
@@ -453,7 +453,7 @@ visible static __forceinline__ void doublehornerNF2(double *C, suNfc *A, int lNN
 }
 #endif
 
-visible __forceinline__ void doublehorner(double *C, suNfc *A, int lNNexp) {
+visible void forceinline doublehorner(double *C, suNfc *A, int lNNexp) {
 #if (NF == 3)
     doublehornerNF3(C, A, lNNexp);
 #elif (NF == 2)
@@ -466,7 +466,7 @@ visible __forceinline__ void doublehorner(double *C, suNfc *A, int lNNexp) {
 #endif
 }
 
-visible __forceinline__ void factorialCoef(double *C, int lNNexp) {
+visible void forceinline factorialCoef(double *C, int lNNexp) {
     int i, j;
 
     for (j = 0; j < lNNexp; j++) {

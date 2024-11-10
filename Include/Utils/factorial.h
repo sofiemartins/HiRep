@@ -18,7 +18,7 @@ extern "C" {
 #error "MAX_FACTORIAL cannot be larger than 100. There is probably no reason, to calculate inverse factorials this high."
 #endif
 
-visible __forceinline__ double inverse_fact(int i) {
+visible double forceinline inverse_fact(int i) {
     static const double inv_fact[] = { 1.0,
                                        1.0,
                                        0.5,
