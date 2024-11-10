@@ -173,7 +173,8 @@ __device__ static __forceinline__ void g5_sigma(suNf_spinor *s, suNf_spinor *u, 
     }
 }
 
-__device__ static __forceinline__ suNf fmat_create(suNf_spinor *a_lhs, suNf_spinor *a_rhs, suNf_spinor *b_lhs, suNf_spinor *b_rhs) {
+__device__ static __forceinline__ suNf fmat_create(suNf_spinor *a_lhs, suNf_spinor *a_rhs, suNf_spinor *b_lhs,
+                                                   suNf_spinor *b_rhs) {
     suNf fmat;
     _suNf_zero(fmat);
     for (int i = 0; i < NF; i++) {
