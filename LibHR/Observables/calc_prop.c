@@ -150,6 +150,10 @@ void free_propagator_eo() {
         free_spinor_field(tmp_even);
         tmp_even = NULL;
     }
+    if (tmp_even2 != NULL) {
+        free_spinor_field(tmp_even2);
+        tmp_even2 = NULL;
+    }
     if (resd_even != NULL) {
         free_spinor_field(resd_even);
         resd_even = NULL;
