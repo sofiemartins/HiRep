@@ -11,9 +11,6 @@
 
 #define THREADSIZE 32
 
-//#include "libhr_core.h"
-//#include "geometry.h"
-
 enum DIRECTION { UP = 0, DOWN = 1 };
 
 #ifdef __cplusplus
@@ -123,7 +120,7 @@ __host__ __device__ __forceinline__ void write_assign_atomic_gpu(int stride, SIT
     for (int i = 0; i < n_components; ++i) {
 // Be aware that for lower architectures this is the same
 // as the write assign!!!
-#if __CUDA_ARCH__ >= 600
+#if (__CUDA_ARCH__ >= 600) || defined(HIP)
         atomicAdd(&out_cpx[iz], out_comp_cpx[i]);
 #else
         out_cpx[iz] += out_comp_cpx[i];
