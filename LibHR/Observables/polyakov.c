@@ -335,8 +335,7 @@ void polyakov() {
             sCOORD[3] = COORD[3];
             sCOORD[mu] = np[mu] - 1;
             {
-                MPIRET(mpiret)
-                MPI_Cart_rank(cart_comm, sCOORD, &sCID);
+                sCID = proc_id(sCOORD);
 #ifndef NDEBUG
                 if (mpiret != MPI_SUCCESS) {
                     char mesg[MPI_MAX_ERROR_STRING];

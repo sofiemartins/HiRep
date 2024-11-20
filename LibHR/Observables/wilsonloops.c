@@ -482,7 +482,7 @@ void WL_broadcast_polyakov(suNg *poly, suNg_field *gf) {
         sCOORD[1] = COORD[1];
         sCOORD[2] = COORD[2];
         sCOORD[3] = COORD[3];
-        MPIRET(mpiret) MPI_Cart_rank(cart_comm, sCOORD, &sCID);
+        sCID = proc_id(sCOORD);
 #ifndef NDEBUG
         if (mpiret != MPI_SUCCESS) {
             char mesg[MPI_MAX_ERROR_STRING];
