@@ -54,6 +54,18 @@ typedef struct input_polyakov {
 
 input_polyakov poly_var = init_input_polyakov(poly_var);
 
+typedef struct input_forces {
+    char measure[256];
+    input_record_t read[2];
+} input_forces;
+
+#define init_input_forces(varname)                                                                                        \
+    {                                                                                                                     \
+        .read = { { "Measure forces", "forces:measure = %s", STRING_T, (varname).measure }, { NULL, NULL, INT_T, NULL } } \
+    }
+
+input_forces force_var = init_input_forces(force_var);
+
 /* Lowest-eigenvalue parameters */
 typedef struct input_eigval {
     char make[256];
@@ -106,6 +118,7 @@ int main(int argc, char *argv[]) {
     read_input(mes_var.read, get_input_filename());
     read_input(poly_var.read, get_input_filename());
     read_input(eigval_var.read, get_input_filename());
+    read_input(force_var.read, get_input_filename());
 
     /* Init Monte Carlo */
 
@@ -184,24 +197,6 @@ int main(int argc, char *argv[]) {
             }
         }
 
-#ifdef MEASURE_FORCE
-        lprintf("FORCE_SUMMARY", 0, "%d ave Gauge: %1.6f, Fermion: %1.6f", i, force_ave[0], force_ave[1]);
-        for (int k = 2; k < num_mon(); ++k) {
-            lprintf("FORCE_SUMMARY", 0, ", Hasen %d: %1.6f", k - 2, force_ave[k]);
-        }
-        lprintf("FORCE_SUMMARY", 0, "\n");
-        lprintf("FORCE_SUMMARY", 0, "%d max Gauge: %1.6f, Fermion: %1.6f", i, force_max[0], force_max[1]);
-        for (int k = 2; k < num_mon(); ++k) {
-            lprintf("FORCE_SUMMARY", 0, ", Hasen %d: %1.6f", k - 2, force_max[k]);
-        }
-        lprintf("FORCE_SUMMARY", 0, "\n");
-        lprintf("INV_SUMMARY", 0, "%d Iterations in fermion: %d ", i, n_inv_iter[0]);
-        for (int k = 1; k < num_mon(); ++k) {
-            lprintf("INV_SUMMARY", 0, " Hasenbusch %d: %d", k - 1, n_inv_iter[k]);
-        }
-        lprintf("INV_SUMMARY", 0, "\n");
-#endif
-
 #ifdef WITH_GPU
         copy_from_gpu(u_gauge);
 #ifdef ALLOCATE_REPR_GAUGE_FIELD
@@ -228,6 +223,8 @@ int main(int argc, char *argv[]) {
 
             /* Polyakov loops */
             if (strcmp(poly_var.make, "true") == 0) { polyakov(); }
+
+            if (strcmp(force_var.measure, "true") == 0) { print_force_summary(); }
 
             /* Lowest eigenvalues */
             if (strcmp(eigval_var.make, "true") == 0) {
