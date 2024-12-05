@@ -158,19 +158,6 @@ int main(int argc, char *argv[]) {
         Timer clock;
         timer_set(&clock);
 
-#ifdef MEASURE_FORCE
-        if (force_ave == NULL) {
-            force_ave = (double *)malloc(num_mon() * sizeof(double));
-            force_max = (double *)malloc(num_mon() * sizeof(double));
-            n_inv_iter = (int *)malloc(num_mon() * sizeof(int));
-        }
-        for (int k = 0; k < num_mon(); k++) {
-            force_ave[k] = 0.0;
-            force_max[k] = 0.0;
-            n_inv_iter[k] = 0;
-        }
-#endif
-
         rr = update_ghmc();
 
         double elapsed_sec = timer_lap(&clock) * 1.e-6; //time in seconds
@@ -257,12 +244,6 @@ int main(int argc, char *argv[]) {
             write_ranlxd_state(rlx_var.rlxd_state);
         }
     }
-
-#ifdef MEASURE_FORCE
-    free(force_ave);
-    free(force_max);
-    free(n_inv_iter);
-#endif
 
     /* inalize Monte Carlo & close communications */
     finalize_process();
