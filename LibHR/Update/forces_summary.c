@@ -7,157 +7,185 @@ static scalar_field *la = NULL; /* local action field for Metropolis test */
 
 static void force_to_zero(mon_type type, monomial_data const *data) {
     switch (type) {
-    case PureGauge:
+    case PureGauge: {
         mon_pg_par *par_pg = (mon_pg_par *)(data->par);
         zero(*par_pg->force_par.momenta);
         break;
+    }
 
-    case LuscherWeisz:
+    case LuscherWeisz: {
         mon_lw_par *par_lw = (mon_lw_par *)(data->par);
         zero(*par_lw->force_par.momenta);
         break;
+    }
 
-    case FourFermion:
+    case FourFermion: {
         /* Do nothing */
         break;
+    }
 
-    case HMC:
+    case HMC: {
         mon_hmc_par *par_hmc = (mon_hmc_par *)(data->par);
         zero(*par_hmc->fpar.momenta);
         break;
+    }
 
-    case RHMC:
+    case RHMC: {
         mon_rhmc_par *par_rhmc = (mon_rhmc_par *)(data->par);
         zero(*par_rhmc->fpar.momenta);
         break;
+    }
 
-    case TM:
+    case TM: {
         mon_tm_par *par_tm = (mon_tm_par *)(data->par);
         zero(*par_tm->fpar.momenta);
         break;
+    }
 
-    case TM_alt:
+    case TM_alt: {
         mon_tm_par *par_tm_alt = (mon_tm_par *)(data->par);
         zero(*par_tm_alt->fpar.momenta);
         break;
+    }
 
-    case Hasenbusch:
+    case Hasenbusch: {
         mon_hasenbusch_par *par_hb = (mon_hasenbusch_par *)(data->par);
         zero(*par_hb->fpar.momenta);
         break;
+    }
 
-    case Hasenbusch_tm:
+    case Hasenbusch_tm: {
         mon_hasenbusch_tm_par *par_hb_tm = (mon_hasenbusch_tm_par *)(data->par);
         zero(*par_hb_tm->fpar.momenta);
         break;
+    }
 
-    case Hasenbusch_tm_alt:
+    case Hasenbusch_tm_alt: {
         mon_hasenbusch_tm_par *par_hb_tm_alt = (mon_hasenbusch_tm_par *)(data->par);
         zero(*par_hb_tm_alt->fpar.momenta);
         break;
+    }
 
-    case HMC_ff:
+    case HMC_ff: {
         mon_hmc_par *par_hmc_ff = (mon_hmc_par *)(data->par);
         zero(*par_hmc_ff->fpar.momenta);
         break;
+    }
 
-    case Hasenbusch_ff:
+    case Hasenbusch_ff: {
         mon_hasenbusch_par *par_hb_ff = (mon_hasenbusch_par *)(data->par);
         zero(*par_hb_ff->fpar.momenta);
         break;
+    }
 
-    case Scalar:
+    case Scalar: {
         mon_scalar_par *par_scalar = (mon_scalar_par *)(data->par);
         zero(*par_scalar->force_par.momenta);
         break;
+    }
 
-    default:
+    default: {
         error(1, 1, __func__, "Unsupported monomial\n");
         break;
+    }
     }
 }
 
 static void square_norm_force(mon_type type, monomial_data const *data) {
     switch (type) {
-    case PureGauge:
+    case PureGauge: {
         mon_pg_par *par_pg = (mon_pg_par *)(data->par);
         lprintf("GAUGE FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_pg->force_par.momenta),
                 sqnorm(*par_pg->force_par.momenta));
         break;
+    }
 
-    case LuscherWeisz:
+    case LuscherWeisz: {
         mon_lw_par *par_lw = (mon_lw_par *)(data->par);
         lprintf("LW FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_lw->force_par.momenta),
                 sqnorm(*par_lw->force_par.momenta));
         break;
+    }
 
-    case FourFermion:
+    case FourFermion: {
         lprintf("FOUR FERMION FORCE", 0, "Skipping force measurement\n");
         break;
+    }
 
-    case HMC:
+    case HMC: {
         mon_hmc_par *par_hmc = (mon_hmc_par *)(data->par);
         lprintf("HMC FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_hmc->fpar.momenta),
                 sqnorm(*par_hmc->fpar.momenta));
         break;
+    }
 
-    case RHMC:
+    case RHMC: {
         mon_rhmc_par *par_rhmc = (mon_rhmc_par *)(data->par);
         lprintf("RHMC FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_rhmc->fpar.momenta),
                 sqnorm(*par_rhmc->fpar.momenta));
         break;
+    }
 
-    case TM:
+    case TM: {
         mon_tm_par *par_tm = (mon_tm_par *)(data->par);
         lprintf("TM FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_tm->fpar.momenta),
                 sqnorm(*par_tm->fpar.momenta));
         break;
+    }
 
-    case TM_alt:
+    case TM_alt: {
         mon_tm_par *par_tm_alt = (mon_tm_par *)(data->par);
         lprintf("TM ALT FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_tm_alt->fpar.momenta),
                 sqnorm(*par_tm_alt->fpar.momenta));
         break;
+    }
 
-    case Hasenbusch:
+    case Hasenbusch: {
         mon_hasenbusch_par *par_hb = (mon_hasenbusch_par *)(data->par);
         lprintf("HASENBUSCH FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_hb->fpar.momenta),
                 sqnorm(*par_hb->fpar.momenta));
         break;
+    }
 
-    case Hasenbusch_tm:
+    case Hasenbusch_tm: {
         mon_hasenbusch_tm_par *par_hb_tm = (mon_hasenbusch_tm_par *)(data->par);
         lprintf("HASENBUSCH TM FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_hb_tm->fpar.momenta),
                 sqnorm(*par_hb_tm->fpar.momenta));
         break;
+    }
 
-    case Hasenbusch_tm_alt:
+    case Hasenbusch_tm_alt: {
         mon_hasenbusch_tm_par *par_hb_tm_alt = (mon_hasenbusch_tm_par *)(data->par);
         lprintf("HASENBUSCH TM ALT FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_hb_tm_alt->fpar.momenta),
                 sqnorm(*par_hb_tm_alt->fpar.momenta));
         break;
+    }
 
-    case HMC_ff:
+    case HMC_ff: {
         mon_hmc_par *par_hmc_ff = (mon_hmc_par *)(data->par);
         lprintf("HMC FF FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_hmc_ff->fpar.momenta),
                 sqnorm(*par_hmc_ff->fpar.momenta));
         break;
+    }
 
-    case Hasenbusch_ff:
+    case Hasenbusch_ff: {
         mon_hasenbusch_par *par_hb_ff = (mon_hasenbusch_par *)(data->par);
         lprintf("HASENBUSCH FF FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_hb_ff->fpar.momenta),
                 sqnorm(*par_hb_ff->fpar.momenta));
         break;
+    }
 
-    case Scalar:
+    case Scalar: {
         mon_scalar_par *par_scalar = (mon_scalar_par *)(data->par);
         lprintf("SCALAR FORCE", 0, "Max norm: %0.15e, square norm: %0.15e\n", max(*par_scalar->force_par.momenta),
                 sqnorm(*par_scalar->force_par.momenta));
         break;
+    }
 
-    default:
+    default: {
         error(1, 1, __func__, "Unsupported monomial\n");
         break;
+    }
     }
 }
 
