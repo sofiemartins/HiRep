@@ -1,6 +1,9 @@
 #include "libhr_core.h"
 #include "update.h"
 #include "inverters.h"
+#include "memory.h"
+
+static scalar_field *la = NULL; /* local action field for Metropolis test */
 
 static void force_to_zero(mon_type type, monomial_data const *data) {
     switch (type) {
@@ -160,6 +163,24 @@ static void square_norm_force(mon_type type, monomial_data const *data) {
 
 void print_force_summary() {
     lprintf("INFO", 0, "Evaluating force summary ... \n");
+
+    if (la == NULL) { la = alloc_scalar_field(1, &glattice); }
+
+    /* generate new pseudofermions */
+    for (int i = 0; i < num_mon(); ++i) {
+        monomial const *m = mon_n(i);
+        m->gaussian_pf(m);
+    }
+
+    /* compute starting action */
+    local_hmc_action(NEW, la, suN_momenta, scalar_momenta);
+
+    /* correct pseudofermion distribution */
+    for (int i = 0; i < num_mon(); ++i) {
+        monomial const *m = mon_n(i);
+        m->correct_pf(m);
+    }
+
     for (int n = 0; n < num_mon(); n++) {
         monomial const *m = mon_n(n);
         mon_type type = m->data.type;

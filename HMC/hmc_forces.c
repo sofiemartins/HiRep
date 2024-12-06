@@ -58,9 +58,10 @@ int main(int argc, char *argv[]) {
         represent_gauge_field();
         lprintf("TEST", 0, "<p> %1.6f\n", avr_plaquette());
 
-        // Measure forces
         Timer clock;
         timer_set(&clock);
+
+        // Measure forces
         print_force_summary();
         double elapsed = timer_lap(&clock) * 1.e-6;
         lprintf("MAIN", 0, "Configuration #%d: analysed in [%lf sec]\n", i, elapsed);
