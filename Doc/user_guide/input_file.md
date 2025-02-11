@@ -699,10 +699,15 @@ Number of measurements. Putting one here measures once at `WF:tmax`, in this exa
 
 ```
 WF:eps = 0.002
+```
+
+This number describes the step size in the integrator. Given the two integrators `0` and `1`, this is the fixed step size used for the integration scheme. If this is equal to the distance between measurements, like in this example, the software will measure observables after each numerical integration step. However, it is possible to choose this value to make many integration steps between the measurements to increase accuracy. The algorithm also accounts for cases where the distance between the measurements is not an integer multiple of the integration step size.
+
+```
 WF:delta= 0.00001
 ```
 
-Adaptive epsilon and delta parameters for the (adaptive) integrator.
+Adaptive epsilon and delta parameters for the adaptive integrator `2`, specifying the error tolerance, which should determine the step size. The adaptive integrator will choose the parameter in `WF:eps` as the initial guess and then adapt the step size based on the tolerance in `WF:delta`.
 
 ```
 WF:configlist = list_confs.txt
