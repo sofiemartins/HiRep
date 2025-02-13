@@ -15,8 +15,6 @@
 
 #ifndef LARGE_N
 #define DPHI_T_UP_GPU(ix, iy, in, gauge, r, sn, u)        \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);   \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);   \
     in_gauge_field<REAL>(&u, (gauge), (ix), (iy), 0, UP); \
                                                           \
     _vector_add_assign_f((sn).c[0], (sn).c[1]);           \
@@ -33,8 +31,6 @@
     _vector_mul_add_assign_f((r).c[3], -0.5, (sn).c[1]);
 
 #define DPHI_T_DN_GPU(ix, iy, in, gauge, r, sn, u)                 \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);            \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);            \
     in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 0, DOWN);      \
                                                                    \
     _vector_sub_assign_f((sn).c[0], (sn).c[1]);                    \
@@ -51,8 +47,6 @@
     _vector_mul_sub_assign_f((r).c[3], -0.5, (sn).c[1]);
 
 #define DPHI_X_UP_GPU(ix, iy, in, gauge, r, sn, u)          \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);     \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);     \
     in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 1, UP); \
                                                             \
     _vector_i_add_assign_f((sn).c[0], (sn).c[1]);           \
@@ -69,8 +63,6 @@
     _vector_i_mul_sub_assign_f((r).c[2], -0.5, (sn).c[1]);
 
 #define DPHI_X_DN_GPU(ix, iy, in, gauge, r, sn, u)                 \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);            \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);            \
     in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 1, DOWN);      \
                                                                    \
     _vector_i_sub_assign_f((sn).c[0], (sn).c[1]);                  \
@@ -87,8 +79,6 @@
     _vector_i_mul_add_assign_f((r).c[2], -0.5, (sn).c[1]);
 
 #define DPHI_Y_UP_GPU(ix, iy, in, gauge, r, sn, u)          \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);     \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);     \
     in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 2, UP); \
                                                             \
     _vector_add_assign_f((sn).c[0], (sn).c[1]);             \
@@ -105,8 +95,6 @@
     _vector_mul_sub_assign_f((r).c[2], -0.5, (sn).c[1]);
 
 #define DPHI_Y_DN_GPU(ix, iy, in, gauge, r, sn, u)                 \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);            \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 3);            \
     in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 2, DOWN);      \
                                                                    \
     _vector_sub_assign_f((sn).c[0], (sn).c[1]);                    \
@@ -123,8 +111,6 @@
     _vector_mul_add_assign_f((r).c[2], -0.5, (sn).c[1]);
 
 #define DPHI_Z_UP_GPU(ix, iy, in, gauge, r, sn, u)          \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);     \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);     \
     in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 3, UP); \
                                                             \
     _vector_i_add_assign_f((sn).c[0], (sn).c[1]);           \
@@ -141,8 +127,6 @@
     _vector_i_mul_add_assign_f((r).c[3], -0.5, (sn).c[1]);
 
 #define DPHI_Z_DN_GPU(ix, iy, in, gauge, r, sn, u)                 \
-    in_spinor_field<REAL>(&((sn).c[0]), (in), (iy), 0);            \
-    in_spinor_field<REAL>(&((sn).c[1]), (in), (iy), 2);            \
     in_gauge_field<REAL>(&(u), (gauge), (ix), (iy), 3, DOWN);      \
                                                                    \
     _vector_i_sub_assign_f((sn).c[0], (sn).c[1]);                  \
@@ -404,58 +388,84 @@ __global__ void Dphi_gpu_inner_kernel(SITE_TYPE *in, SITE_TYPE *out, const GAUGE
         int ix = id + base_out;
 
         SITE_TYPE r;
-        HSPINOR_TYPE sn;
         GAUGE_TYPE u;
+        HSPINOR_TYPE v[8] = { 0 };
+
+        int iyp[8] = { 0 };
+
+        if (imask_gpu[ix] & T_UP_MASK) {
+            iyp[0] = iup_gpu[4 * ix];
+            in_spinor_field<REAL>(&((v[0]).c[0]), (in), (iyp[0]), 0);
+            in_spinor_field<REAL>(&((v[0]).c[1]), (in), (iyp[0]), 2);
+        }
+
+        if (imask_gpu[ix] & T_DN_MASK) {
+            iyp[1] = idn_gpu[4 * ix];
+            in_spinor_field<REAL>(&((v[1]).c[0]), (in), (iyp[1]), 0);
+            in_spinor_field<REAL>(&((v[1]).c[1]), (in), (iyp[1]), 2);
+        }
+
+        if (imask_gpu[ix] & X_UP_MASK) {
+            iyp[2] = iup_gpu[4 * ix + 1];
+            in_spinor_field<REAL>(&((v[2]).c[0]), (in), (iyp[2]), 0);
+            in_spinor_field<REAL>(&((v[2]).c[1]), (in), (iyp[2]), 3);
+        }
+
+        if (imask_gpu[ix] & X_DN_MASK) {
+            iyp[3] = idn_gpu[4 * ix + 1];
+            in_spinor_field<REAL>(&((v[3]).c[0]), (in), (iyp[3]), 0);
+            in_spinor_field<REAL>(&((v[3]).c[1]), (in), (iyp[3]), 3);
+        }
+
+        if (imask_gpu[ix] & Y_UP_MASK) {
+            iyp[4] = iup_gpu[4 * ix + 2];
+            in_spinor_field<REAL>(&((v[4]).c[0]), (in), (iyp[4]), 0);
+            in_spinor_field<REAL>(&((v[4]).c[1]), (in), (iyp[4]), 3);
+        }
+
+        if (imask_gpu[ix] & Y_DN_MASK) {
+            iyp[5] = idn_gpu[4 * ix + 2];
+            in_spinor_field<REAL>(&((v[5]).c[0]), (in), (iyp[5]), 0);
+            in_spinor_field<REAL>(&((v[5]).c[1]), (in), (iyp[5]), 3);
+        }
+
+        if (imask_gpu[ix] & Z_UP_MASK) {
+            iyp[6] = iup_gpu[4 * ix + 3];
+            in_spinor_field<REAL>(&((v[6]).c[0]), (in), (iyp[6]), 0);
+            in_spinor_field<REAL>(&((v[6]).c[1]), (in), (iyp[6]), 2);
+        }
+
+        if (imask_gpu[ix] & Z_DN_MASK) {
+            iyp[7] = idn_gpu[4 * ix + 3];
+            in_spinor_field<REAL>(&((v[7]).c[0]), (in), (iyp[7]), 0);
+            in_spinor_field<REAL>(&((v[7]).c[1]), (in), (iyp[7]), 2);
+        }
 
         _spinor_zero_f(r);
 
         /******************************* direction +0 *********************************/
-        if (imask_gpu[ix] & T_UP_MASK) {
-            const int iy = iup_gpu[4 * ix];
-            DPHI_T_UP_GPU(ix, iy, in, gauge, r, sn, u);
-        }
+        if (imask_gpu[ix] & T_UP_MASK) { DPHI_T_UP_GPU(ix, iyp[0], in, gauge, r, v[0], u); }
 
         /******************************* direction -0 *********************************/
-        if (imask_gpu[ix] & T_DN_MASK) {
-            const int iy = idn_gpu[4 * ix];
-            DPHI_T_DN_GPU(ix, iy, in, gauge, r, sn, u);
-        }
+        if (imask_gpu[ix] & T_DN_MASK) { DPHI_T_DN_GPU(ix, iyp[1], in, gauge, r, v[1], u); }
 
         /******************************* direction +1 *********************************/
-        if (imask_gpu[ix] & X_UP_MASK) {
-            const int iy = iup_gpu[4 * ix + 1];
-            DPHI_X_UP_GPU(ix, iy, in, gauge, r, sn, u);
-        }
+        if (imask_gpu[ix] & X_UP_MASK) { DPHI_X_UP_GPU(ix, iyp[2], in, gauge, r, v[2], u); }
 
         /******************************* direction -1 *********************************/
-        if (imask_gpu[ix] & X_DN_MASK) {
-            const int iy = idn_gpu[4 * ix + 1];
-            DPHI_X_DN_GPU(ix, iy, in, gauge, r, sn, u);
-        }
+        if (imask_gpu[ix] & X_DN_MASK) { DPHI_X_DN_GPU(ix, iyp[3], in, gauge, r, v[3], u); }
 
         /******************************* direction +2 *********************************/
-        if (imask_gpu[ix] & Y_UP_MASK) {
-            const int iy = iup_gpu[4 * ix + 2];
-            DPHI_Y_UP_GPU(ix, iy, in, gauge, r, sn, u);
-        }
+        if (imask_gpu[ix] & Y_UP_MASK) { DPHI_Y_UP_GPU(ix, iyp[4], in, gauge, r, v[4], u); }
 
         /******************************* direction -2 *********************************/
-        if (imask_gpu[ix] & Y_DN_MASK) {
-            const int iy = idn_gpu[4 * ix + 2];
-            DPHI_Y_DN_GPU(ix, iy, in, gauge, r, sn, u);
-        }
+        if (imask_gpu[ix] & Y_DN_MASK) { DPHI_Y_DN_GPU(ix, iyp[5], in, gauge, r, v[5], u); }
 
         /******************************* direction +3 *********************************/
-        if (imask_gpu[ix] & Z_UP_MASK) {
-            const int iy = iup_gpu[4 * ix + 3];
-            DPHI_Z_UP_GPU(ix, iy, in, gauge, r, sn, u);
-        }
+        if (imask_gpu[ix] & Z_UP_MASK) { DPHI_Z_UP_GPU(ix, iyp[6], in, gauge, r, v[6], u); }
 
         /******************************* direction -3 *********************************/
-        if (imask_gpu[ix] & Z_DN_MASK) {
-            const int iy = idn_gpu[4 * ix + 3];
-            DPHI_Z_DN_GPU(ix, iy, in, gauge, r, sn, u);
-        }
+        if (imask_gpu[ix] & Z_DN_MASK) { DPHI_Z_DN_GPU(ix, iyp[7], in, gauge, r, v[7], u); }
 
         write_out_spinor_field<REAL>(&r, out, ix);
     }
